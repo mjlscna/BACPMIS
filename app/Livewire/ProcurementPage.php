@@ -5,6 +5,8 @@ use App\Models\Category;
 use App\Models\CategoryVenue;
 use App\Models\ClusterCommittee;
 use App\Models\Division;
+use App\Models\EndUser;
+use App\Models\FundSource;
 use App\Models\Procurement;
 use App\Models\Province;
 use App\Models\Supplier;
@@ -23,6 +25,8 @@ class ProcurementPage extends Component
     public $activeTab = 1; // Track the active tab
     public $tab1Data, $tab2Data, $tab3Data; // Data for each tab
     public $isCreating = false;
+    public $editingId = null;
+
 
     // Form fields for procurement creation
     public $form = [
@@ -41,7 +45,7 @@ class ProcurementPage extends Component
         'fund_source_id' => '',
         'expense_class' => '',
         'abc' => '',
-        'abc_50k' => '',
+        'abc_50k' => '50k_or_less',
         'mode_of_procurement_id' => 1,
         'ib_number' => '',
         'pre_proc_conference' => '',
@@ -100,6 +104,18 @@ class ProcurementPage extends Component
 
     }
 
+
+
+    public function updatedFormAbc($value)
+    {
+        // Remove ₱ and commas if pasted
+        $cleaned = preg_replace('/[^0-9.]/', '', $value);
+        $numericValue = floatval($cleaned);
+
+        $this->form['abc_50k'] = $numericValue > 50000 ? 'above_50k' : '50k_or_less';
+    }
+
+
     // Save data for the active tab
     public function saveTabData()
     {
@@ -123,33 +139,121 @@ class ProcurementPage extends Component
         session()->flash('success', 'Tab data saved!');
     }
 
-    // Create a new procurement record
-    public function createProcurement()
+    public function saveProcurement()
     {
+        $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
         $this->validate();
 
-        Procurement::create([
-            'pr_number' => $this->form['pr_number'],
-            'procurement_program_project' => $this->form['procurement_program_project'],
-            'date_receipt_advance' => $this->form['date_receipt_advance'],
-            'date_receipt_signed' => $this->form['date_receipt_signed'],
-            'rbac_sbac' => $this->form['rbac_sbac'],
-            'dtrack_no' => $this->form['dtrack_no'],
-            'unicode' => $this->form['unicode'],
-            'divisions_id' => $this->form['divisions_id'],
-            'cluster_committees_id' => $this->form['cluster_committees_id'],
-            'category_id' => $this->form['category_id'],
-            'venue_specific_id' => $this->form['venue_specific_id'],
-            'venue_province_huc_id' => $this->form['venue_province_huc_id'],
-            'fund_source_id' => $this->form['fund_source_id'],
-            'expense_class' => $this->form['expense_class'],
-            'abc' => $this->form['abc'],
-            'abc_50k' => $this->form['abc'] > 50000 ? 'above_50k' : '50k_or_less',
-        ]);
+        if ($this->editingId) {
+            // Update existing record
+            Procurement::findOrFail($this->editingId)->update($this->form);
+            session()->flash('message', 'Procurement updated successfully!');
+        } else {
+            // Create new record
+            Procurement::create([
+                'pr_number' => $this->form['pr_number'],
+                'procurement_program_project' => $this->form['procurement_program_project'],
+                'date_receipt_advance' => $this->form['date_receipt_advance'],
+                'date_receipt_signed' => $this->form['date_receipt_signed'],
+                'rbac_sbac' => $this->form['rbac_sbac'],
+                'dtrack_no' => $this->form['dtrack_no'],
+                'unicode' => $this->form['unicode'],
+                'divisions_id' => $this->form['divisions_id'],
+                'cluster_committees_id' => $this->form['cluster_committees_id'],
+                'category_id' => $this->form['category_id'],
+                'venue_specific_id' => $this->form['venue_specific_id'],
+                'venue_province_huc_id' => $this->form['venue_province_huc_id'],
+                'fund_source_id' => $this->form['fund_source_id'],
+                'expense_class' => $this->form['expense_class'],
+                'abc' => $this->form['abc'],
+                'abc_50k' => $this->form['abc'] > 50000 ? 'above_50k' : '50k_or_less',
+            ]);
+            session()->flash('message', 'Procurement created successfully!');
+        }
 
-        session()->flash('success', 'Procurement record created successfully!');
-        $this->closeCreateModal(); // Close modal after saving
+        $this->closeCreateModal();
+        $this->resetForm();
     }
+
+
+    public function createProcurement()
+    {
+        try {
+            $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
+            $this->validate();
+
+            Procurement::create([
+                'pr_number' => $this->form['pr_number'],
+                'procurement_program_project' => $this->form['procurement_program_project'],
+                'date_receipt_advance' => $this->form['date_receipt_advance'],
+                'date_receipt_signed' => $this->form['date_receipt_signed'],
+                'rbac_sbac' => $this->form['rbac_sbac'],
+                'dtrack_no' => $this->form['dtrack_no'],
+                'unicode' => $this->form['unicode'],
+                'divisions_id' => $this->form['divisions_id'],
+                'cluster_committees_id' => $this->form['cluster_committees_id'],
+                'category_id' => $this->form['category_id'],
+                'venue_specific_id' => $this->form['venue_specific_id'],
+                'venue_province_huc_id' => $this->form['venue_province_huc_id'],
+                'fund_source_id' => $this->form['fund_source_id'],
+                'expense_class' => $this->form['expense_class'],
+                'abc' => $this->form['abc'],
+                'abc_50k' => $this->form['abc'] > 50000 ? 'above_50k' : '50k_or_less',
+            ]);
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
+    }
+
+
+    public function editProcurement($id)
+    {
+        $this->editingId = $id;
+        $procurement = Procurement::findOrFail($id);
+
+        // Populate the form with the existing procurement data
+        $this->form = [
+            'pr_number' => $procurement->pr_number,
+            'procurement_program_project' => $procurement->procurement_program_project,
+            'date_receipt_advance' => $procurement->date_receipt_advance,
+            'date_receipt_signed' => $procurement->date_receipt_signed,
+            'rbac_sbac' => $procurement->rbac_sbac,
+            'dtrack_no' => $procurement->dtrack_no,
+            'unicode' => $procurement->unicode,
+            'divisions_id' => $procurement->divisions_id,
+            'cluster_committees_id' => $procurement->cluster_committees_id,
+            'category_id' => $procurement->category_id,
+            'venue_specific_id' => $procurement->venue_specific_id,
+            'venue_province_huc_id' => $procurement->venue_province_huc_id,
+            'fund_source_id' => $procurement->fund_source_id,
+            'expense_class' => $procurement->expense_class,
+            'abc' => $procurement->abc,
+            'abc_50k' => $procurement->abc > 50000 ? 'above_50k' : '50k_or_less',
+            'mode_of_procurement_id' => $procurement->mode_of_procurement_id,
+            'ib_number' => $procurement->ib_number,
+            'pre_proc_conference' => $procurement->pre_proc_conference,
+            'ads_post_ib' => $procurement->ads_post_ib,
+            'pre_bid_conf' => $procurement->pre_bid_conf,
+            'eligibility_check' => $procurement->eligibility_check,
+            'sub_open_bids' => $procurement->sub_open_bids,
+            'Bids' => $procurement->Bids ?? [],
+        ];
+
+        $this->showCreateModal = true;
+    }
+    public function deleteProcurement($id)
+    {
+        try {
+            $procurement = Procurement::findOrFail($id);
+            $procurement->delete();
+
+            session()->flash('message', 'Procurement deleted successfully.');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
+    }
+
+
 
     // Reset the form fields
     private function resetForm()
@@ -192,6 +296,8 @@ class ProcurementPage extends Component
         $venueSpecifics = Venue::all();
         $venueProvinces = Province::all();
         $categoryVenues = CategoryVenue::all();
+        $endUsers = EndUser::all();
+        $fundSources = FundSource::all();
 
         if ($this->showCreateModal) {
             return view(
@@ -204,6 +310,8 @@ class ProcurementPage extends Component
                     'venueSpecifics',
                     'venueProvinces',
                     'categoryVenues',
+                    'endUsers',
+                    'fundSources',
                 )
             );
         }

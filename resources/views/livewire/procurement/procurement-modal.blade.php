@@ -6,7 +6,7 @@
         <div class="flex justify-between items-center p-4 border-gray-200 bg-emerald-600 dark:border-neutral-700">
             <h2 class="text-lg font-semibold text-white">Procurement</h2>
             <button wire:click="$set('showCreateModal', false)"
-                class="text-white hover:text-gray-100 dark:text-white dark:hover:text-gray-100">
+                class="text-red-600 hover:text-red-700 dark:text-white dark:hover:text-gray-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 18L18 6M6 6l12 12" />
@@ -176,9 +176,14 @@
                             <div class="flex flex-col col-span-2">
                                 <label for="category_venue_id" class="block text-sm font-medium text-gray-700">Venue
                                     Province/HUC</label>
-                                <select id="category_venue_id" wire:model.defer="form.category_venue_id"
+                                <select id="venue_province_huc_id" wire:model.defer="form.venue_province_huc_id"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                                    <!-- Populate with options from your database -->
+                                    <option value="">Select</option>
+                                    @foreach ($venueProvinces as $venueProvince)
+                                        <option value="{{ $venueProvince->id }}">
+                                            {{ $venueProvince->province }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -241,7 +246,12 @@
                                     class="block text-sm font-medium text-gray-700">PMO/End-User</label>
                                 <select id="end_users_id" wire:model.defer="form.end_users_id"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                                    <!-- Populate with options from your database -->
+                                    <option value="">Select</option>
+                                    @foreach ($endUsers as $endUser)
+                                        <option value="{{ $endUser->id }}">
+                                            {{ $endUser->endusers }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             <!-- Early Procurement Toggle -->
@@ -292,7 +302,12 @@
                                     Funds</label>
                                 <select id="fund_source_id" wire:model.defer="form.fund_source_id"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                                    <!-- Populate with options from your database -->
+                                    <option value="">Select</option>
+                                    @foreach ($fundSources as $fundSource)
+                                        <option value="{{ $fundSource->id }}">
+                                            {{ $fundSource->fundsources }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -307,22 +322,32 @@
 
                             <!-- ABC Amount -->
                             <div class="flex flex-col">
-                                <label for="abc" class="block text-sm font-medium text-gray-700">ABC
+                                <label for="abc" class="block text-sm font-medium text-gray-700 pl-5">ABC
                                     Amount</label>
-                                <input type="text" id="abc" wire:model.defer="form.abc"
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-right" />
+
+                                <div class="relative">
+                                    <span
+                                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₱</span>
+                                    <input type="text" id="abc" wire:model.live="form.abc"
+                                        class="mt-1 block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-right"
+                                        inputmode="decimal" />
+                                </div>
                             </div>
 
-                            <!-- ABC 50k -->
+                            <!-- ABC ⇔ 50k -->
                             <div class="flex flex-col">
-                                <label for="abc_50k" class="block text-sm font-medium text-gray-700">ABC <=>
-                                        50k</label>
-                                <select id="rbac_sbac" wire:model.defer="form.rbac_sbac"
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                                    <option value="50k_or_less">50k or less</option>
-                                    <option value="above_50k">above 50k</option>
+                                <label for="abc_50k" class="block text-sm font-medium text-gray-700 pl-5">ABC ⇔
+                                    50k</label>
+                                <select disabled
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed">
+                                    <option value="50k_or_less"
+                                        {{ $form['abc_50k'] === '50k_or_less' ? 'selected' : '' }}>50k or less</option>
+                                    <option value="above_50k"
+                                        {{ $form['abc_50k'] === 'above_50k' ? 'selected' : '' }}>above 50k</option>
                                 </select>
                             </div>
+
+
                         </div>
                     </div>
                 </div>
@@ -402,10 +427,11 @@
                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
                 Cancel
             </button>
-            <button wire:click="save"
-                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-                Save
+            <button wire:click="saveProcurement"
+                class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
+                {{ $editingId ? 'Update' : 'Save' }}
             </button>
+
         </div>
     </div>
 </div>

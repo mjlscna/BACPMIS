@@ -1,6 +1,39 @@
 <div>
+    <div>
+        <!-- Flash Message -->
+        @if (session()->has('message'))
+            <div
+                class="fixed bottom-4 right-4 w-96 z-50 flash-message opacity-100 transition-opacity duration-500 ease-in-out">
+                <div class="bg-teal-50 border-t-2 border-teal-500 rounded-lg p-4 dark:bg-teal-800/30" role="alert">
+                    <div class="flex">
+                        <div class="shrink-0">
+                            <!-- Icon -->
+                            <span
+                                class="inline-flex justify-center items-center size-8 rounded-full border-4 border-teal-100 bg-teal-200 text-teal-800 dark:border-teal-900 dark:bg-teal-800 dark:text-teal-400">
+                                <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24"
+                                    height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z">
+                                    </path>
+                                    <path d="m9 12 2 2 4-4"></path>
+                                </svg>
+                            </span>
+                            <!-- End Icon -->
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="text-gray-800 font-semibold dark:text-white">
+                                Success!
+                            </h3>
+                            <p class="text-sm text-gray-700 dark:text-neutral-400">
+                                {{ session('message') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
     <div class="max-w-[85rem] sm:px-6 mx-auto">
-
         <!-- Card -->
         <div class="flex flex-col items-center"> <!-- Add items-center here -->
             <div class="overflow-x-auto w-full"> <!-- Removed "-m-" and added w-full -->
@@ -82,6 +115,9 @@
                                             Venue(Province/HUC)</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                            Early Procurement</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                                             Source of Funds</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
@@ -136,6 +172,23 @@
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-neutral-200">
                                                 {{ $procurement->venueProvince->province }}</td>
+                                            <td class="text-center">
+                                                @if ($procurement->early_procurement)
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-5 w-5 text-green-500" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-5 w-5 text-red-400" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                @endif
+                                            </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-neutral-200">
                                                 {{ $procurement->fundSource->fundsources }}</td>
@@ -150,10 +203,13 @@
                                                 {{ $procurement->abc_50k }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                                                 <button type="button"
+                                                    wire:click="editProcurement({{ $procurement->id }})"
                                                     class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-hidden focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:text-blue-400">
                                                     Edit
                                                 </button>
+
                                                 <button type="button"
+                                                    wire:click="deleteProcurement({{ $procurement->id }})"
                                                     class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-red-600 hover:text-red-800 focus:outline-hidden focus:text-red-800 disabled:opacity-50 disabled:pointer-events-none dark:text-red-500 dark:hover:text-red-400 dark:focus:text-red-400">
                                                     Delete
                                                 </button>
