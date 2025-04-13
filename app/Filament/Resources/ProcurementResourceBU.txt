@@ -1,0 +1,882 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ProcurementResource\Modals\MultipleEditModal;
+use App\Filament\Resources\ProcurementResource\Modals\MultipleViewModal;
+use App\Filament\Resources\ProcurementResource\Pages;
+use App\Filament\Resources\ProcurementResource\Pages\BulkEditProcurements;
+use App\Filament\Resources\ProcurementResource\RelationManagers;
+use App\Models\Procurement;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
+use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Support\RawJs;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Support\Facades\Redirect;
+use Livewire\Livewire;
+
+class ProcurementResourceBU extends Resource
+{
+    protected static ?string $model = Procurement::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Procurement Information')
+                    ->schema([
+                        TextInput::make('pr_number')
+                            ->label('PR No.')
+                            ->required()
+                            ->maxLength(12)
+                            ->extraInputAttributes(['class' => 'text-right']),
+                        TextInput::make('ib_number')
+                            ->label('IB No.')
+                            ->maxLength(12)->
+                            extraInputAttributes(['class' => 'text-right']),
+                        TextInput::make('np_no')
+                            ->label('NP No.')
+                            ->maxLength(12)
+                            ->extraInputAttributes(['class' => 'text-right']),
+                        Textarea::make('procurement_program_project')
+                            ->label('Procurement Program / Project')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                        DatePicker::make('date_receipt_advance')
+                            ->label('Date Receipt')
+                            ->columnSpan(1)
+                            ->helperText('Advance Copy'),
+                        DatePicker::make('date_receipt_signed')
+                            ->label('Date Receipt')
+                            ->columnSpan(1)
+                            ->helperText('Signed Copy'),
+                        Select::make('rbac_sbac')
+                            ->label('RBAC / SBAC')
+                            ->options(['RBAC' => 'RBAC', 'SBAC' => 'SBAC'])
+                            ->default('RBAC')
+                            ->required(),
+                        TextInput::make('dtrack_no')
+                            ->label('DTRACK #')
+                            ->maxLength(12),
+                        TextInput::make('unicode')
+                            ->label('UniCode')
+                            ->maxLength(30)
+                            ->extraInputAttributes(['class' => 'text-right'])
+                            ->columnSpan(2),
+                        Select::make('divisions_id')
+                            ->label('Division')
+                            ->relationship('division', 'divisions')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->columnSpan(2),
+                        Select::make('cluster_committees_id')
+                            ->label('Cluster / Committee')
+                            ->relationship('clusterCommittee', 'clustercommittee')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->columnSpan(2),
+                        Select::make('category_id')
+                            ->label('Category')
+                            ->relationship('category', 'category')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->columnSpan(2),
+
+                    ])->columns(7),
+
+                Section::make('Venue Details')
+                    ->schema([
+                        Select::make('venue_specific_id')
+                            ->label('Venue(Specific)')
+                            ->relationship('venueSpecific', 'venue')
+                            ->searchable()
+                            ->preload(),
+                        Select::make('venue_province_huc_id')
+                            ->label('Venue(Province/HUC)')
+                            ->relationship('venueProvince', 'province')
+                            ->searchable()
+                            ->preload(),
+                        Select::make('category_venue_id')
+                            ->label('Category / Venue')
+                            ->relationship('categoryVenue', 'category_venue')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(2),
+                        Textarea::make('approved_ppmp')
+                            ->label('w/Approved PPMP')
+                            ->columnSpanFull(),
+                        Textarea::make('app_updated')
+                            ->label('APP (Updated)')
+                            ->columnSpanFull(),
+                    ])->columns(4),
+
+                Section::make('Procurement Schedule')
+                    ->schema([
+                        Textarea::make('immediate_date_needed')
+                            ->label('Immediate Date Needed')
+                            ->columnSpan(2),
+                        Textarea::make('date_needed')
+                            ->label('Date Needed')
+                            ->columnSpan(2),
+                        Select::make('end_users_id')
+                            ->label('PMO/End-User')
+                            ->relationship('endUser', 'endusers')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(1),
+                        Toggle::make('early_procurement')
+                            ->onColor('success')
+                            ->offColor('danger')
+                            ->helperText('No / Yes'),
+                    ])->columns(4),
+
+                Section::make('Funding Details')
+                    ->schema([
+                        Select::make('fund_source_id')
+                            ->label('Source of Funds')
+                            ->relationship('fundSource', 'fundsources')
+                            ->searchable()
+                            ->preload(),
+                        TextInput::make('expense_class')
+                            ->label('Expense Class')
+                            ->maxLength(255),
+                        TextInput::make('abc')
+                            ->label('ABC Amount')
+                            ->numeric()
+                            ->prefix('₱')
+                            ->mask(RawJs::make('$money($input)'))
+                            ->stripCharacters(',')
+                            ->minValue(0)
+                            ->default(0)
+                            ->required()
+                            ->extraInputAttributes(['class' => 'text-right']),
+                        Select::make('mode_of_procurement_id')
+                            ->label('Mode of Procurement')
+                            ->relationship('modeOfProcurement', 'modeofprocurements')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(1),
+                        Select::make('abc_50k')
+                            ->label('ABC <=> 50k')
+                            ->options([
+                                '50k_or_less' => '50k or less',
+                                'above_50k' => 'above 50k',
+                            ])
+                            ->required(),
+                    ])->columns(5),
+
+                Section::make('Bidding & Evaluation')
+                    ->schema([
+                        Grid::make(6) // 6 columns for the first row
+                            ->schema([
+                                DatePicker::make('pre_proc_conference')
+                                    ->label('Pre-Proc Conference'),
+                                DatePicker::make('ads_post_ib')
+                                    ->label('Ads/Post IB'),
+                                DatePicker::make('pre_bid_conf')
+                                    ->label('Pre-Bid Conference'),
+                                DatePicker::make('eligibility_check')
+                                    ->label('Eligibility Check'),
+                                DatePicker::make('sub_open_bids')
+                                    ->label('Sub/Open of Bids'),
+                            ]),
+
+                        Grid::make(6) // 4 columns to move to the next row
+                            ->schema([
+                                DatePicker::make('first_bidding_date')
+                                    ->label('1st Bidding Date'),
+                                Select::make('first_bidding_result')
+                                    ->label('1st Bidding Result')
+                                    ->options([
+                                        'Not Applicable' => 'Not Applicable',
+                                        'Successful' => 'Successful',
+                                        'Failed' => 'Failed',
+                                    ]),
+                                DatePicker::make('second_bidding_date')
+                                    ->label('2nd Bidding Date'),
+                                Select::make('second_bidding_result')
+                                    ->label('2nd Bidding Result')
+                                    ->options([
+                                        'Not applicable' => 'Not Applicable',
+                                        'Successful' => 'Successful',
+                                        'Failed' => 'Failed',
+                                    ]),
+                            ]),
+
+                        Grid::make(6) // 6 columns again for the last row
+                            ->schema([
+                                DatePicker::make('bid_evaluation_date')
+                                    ->label('Bid Evaluation'),
+                                DatePicker::make('post_qual_date')
+                                    ->label('Post Qualification'),
+                            ]),
+                    ]),
+
+                Section::make('NTF')
+                    ->schema([
+                        TextInput::make('resolution_number')
+                            ->label('Resolution Number')
+                            ->maxLength(12),
+                        TextInput::make('ntf_no')
+                            ->label('NTF No.')
+                            ->maxLength(12),
+                        DatePicker::make('ntf_bidding_date')
+                            ->label('NTF Bidding (Date)'),
+                        Select::make('ntf_bidding_result')
+                            ->label('NTF Bidding Result')
+                            ->options([
+                                'Not applicable' => 'Not applicable',
+                                'Successful' => 'Successful',
+                                'Failed' => 'Failed',
+                            ]),
+                    ])->columns(7),
+
+                Section::make('Canvassing & Awarding')
+                    ->schema([
+                        Grid::make(7) // 6 columns for the first row
+                            ->schema([
+                                TextInput::make('rfq_no')
+                                    ->label('RFQ No.')
+                                    ->maxLength(12)
+                                    ->columnSpan(1), // Gives more space to the text field
+
+                                DatePicker::make('canvass_date')
+                                    ->label('Canvass Date')
+                                    ->columnSpan(1), // Keeps it small
+
+                                DatePicker::make('returned_canvass_date')
+                                    ->label('Return of Canvass')
+                                    ->columnSpan(1), // Keeps it small
+
+                                DatePicker::make('abstract_of_canvass_date')
+                                    ->label('Abstract of Canvass')
+                                    ->columnSpan(1), // Keeps it small
+
+                                DatePicker::make('bac_resolution_award_date')
+                                    ->label('BAC Resolution')
+                                    ->helperText('Recommending for Award')
+                                    ->columnSpan(1)
+                                    ->extraAttributes(['class' => 'custom-helper-text']),
+
+                                DatePicker::make('notice_of_award_date')
+                                    ->label('Notice of Award Date')
+                                    ->columnSpan(1), // Small size, stays inline
+
+                                TextInput::make('awarded_amount')
+                                    ->label('Awarded Amount')
+                                    ->numeric()
+                                    ->prefix('₱')
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->required()
+                                    ->extraInputAttributes(['class' => 'text-right'])
+                                    ->columnSpan(1), // Small size, stays inline
+                            ]),
+
+                        Grid::make(7)
+                            ->schema([
+                                TextInput::make('award_notice_number')
+                                    ->label('Award Notice No.')
+                                    ->maxLength(12)
+                                    ->columnSpan(1), // Small size, stays inline
+
+                                DatePicker::make('posting_award_philgeps')
+                                    ->label('Posting of Award')
+                                    ->columnSpan(1)
+                                    ->helperText('on PhilGEPS'),
+                            ]),
+
+                    ]),
+
+                Section::make('Supplier & Finalization')
+                    ->schema([
+                        Select::make('supplier_id')
+                            ->label('Supplier')
+                            ->relationship('supplier', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(3),
+                        Select::make('procurement_stage_id')
+                            ->label('Procurement Stage')
+                            ->relationship('procurementStage', 'procurementstage')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(2),
+                        Select::make('remarks_id')
+                            ->label('Remarks')
+                            ->relationship('remarks', 'remarks')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(2),
+                        Textarea::make('remarks_note')
+                            ->label('Remarks Note')
+                            ->columnSpanFull(),
+                        Textarea::make('reschedule_cancellation_letter')
+                            ->label('Reschedule / Cancellation Letter')
+                            ->columnSpanFull(),
+                        DatePicker::make('forwarded_to_pmu_date')
+                            ->label('Date Forwarded to PMU'),
+                        TextInput::make('philgeps_posting_reference_number')
+                            ->label('PhilGEPS Posting Reference Number')
+                            ->maxLength(12)
+                            ->columnSpan(1),
+                    ])->columns(7),
+
+                Section::make('Contract & Delivery')
+                    ->schema([
+                        TextInput::make('contract_amount')
+                            ->label('Contract Amount')
+                            ->numeric()
+                            ->prefix('₱')
+                            ->mask(RawJs::make('$money($input)'))
+                            ->stripCharacters(',')
+                            ->minValue(0)
+                            ->default(0)
+                            ->required()
+                            ->extraInputAttributes(['class' => 'text-right']),
+                        TextInput::make('purchase_order_contract_number')
+                            ->label('PO / Contract No.')
+                            ->maxLength(20),
+                        DatePicker::make('contract_signing_po')
+                            ->label('Contract Signing (PO)'),
+                        DatePicker::make('notice_to_proceed')
+                            ->label('Notice to Proceed'),
+                        Textarea::make('delivery_completion')
+                            ->label('Delivery Completion')
+                            ->columnSpanFull(),
+                        Textarea::make('inspection_acceptance')
+                            ->label('Inspection & Acceptance')
+                            ->columnSpanFull(),
+
+                    ])->columns(6),
+
+                Section::make('Other Details')
+                    ->schema([
+                        Textarea::make('list_of_invited_observers')
+                            ->label('List of Invited Observers')
+                            ->columnSpanFull(),
+                        DatePicker::make('pre_bid_conf2')
+                            ->label('Pre-bid Conf2'),
+                        DatePicker::make('eligibility_check3')
+                            ->label('Eligibility Check3'),
+                        DatePicker::make('sub_open_bids4')
+                            ->label('Sub/Open of Bids4'),
+                        DatePicker::make('bid_evaluation5')
+                            ->label('Bid Evaluation5'),
+                        DatePicker::make('post_qual6')
+                            ->label('Post Qual6'),
+                        Select::make('delivery_completion_acceptance')
+                            ->label('Delivery/Completion/Acceptance')
+                            ->options([
+                                'Delivery' => 'Delivery',
+                                'Completion' => 'Completion',
+                                'Acceptance' => 'Acceptance',
+                            ])
+                            ->columnSpan(2)
+                            ->helperText('(If applicable)'),
+                        Textarea::make('remarks_changes_app')
+                            ->label('Remarks(Explaining changes from the APP)')
+                            ->columnSpanFull(),
+                        DatePicker::make('date_last_updated')
+                            ->label('Date Last Updated'),
+                        Select::make('bac_type')
+                            ->label('BAC Type')
+                            ->options([
+                                'BAC A' => 'BAC A',
+                                'Alternative' => 'Alternative',
+                            ])
+                            ->required(),
+                        Toggle::make('po')
+                            ->label('PO?')
+                            ->onColor('success')
+                            ->offColor('danger'),
+                        Select::make('fund_class_id')
+                            ->label('Fund Class')
+                            ->relationship('fundClass', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(2),
+                        Toggle::make('pr_stat')
+                            ->label('PR Status')
+                            ->onColor('success')
+                            ->offColor('danger'),
+                    ])
+                    ->columns(7),
+
+
+            ]);
+
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('pr_number')
+                    ->label('PR Number')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('ib_number')
+                    ->label('IB Number')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('np_no')
+                    ->label('NP No.')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('procurement_program_project')
+                    ->label('Procurement Program / Project')
+                    ->wrap(),
+                TextColumn::make('date_receipt_advance')
+                    ->label(' Date Receipt (Advance Copy)')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('date_receipt_signed')
+                    ->label(' Date Receipt (Signed Copy)')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('rbac_sbac')
+                    ->label('RBAC / SBAC')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        'RBAC' => 'RBAC',
+                        'SBAC' => 'SBAC',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                TextColumn::make('dtrack_no')
+                    ->label('DTRACK #')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('unicode')
+                    ->label('UniCode')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('division.divisions')
+                    ->label('Division')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('clusterCommittee.clustercommittee')
+                    ->label('Cluster / Committee')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('category.category')
+                    ->label('Category')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('venueSpecific.venue')
+                    ->label('Venue(Specific)')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('venueProvince.province')
+                    ->label('Venue(Province/HUC)')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('approved_ppmp')
+                    ->label('w/Approved PPMP')
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('app_updated')
+                    ->label('APP (Updated)')
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('immediate_date_needed')
+                    ->label('Immediate Date Needed')
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('endUser.endusers')
+                    ->label('PMO/End-User')
+                    ->alignCenter(),
+                TextColumn::make('fundSource.fundsources')
+                    ->label('Source of Funds')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                IconColumn::make('early_procurement')
+                    ->label('Early Procurement')
+                    ->boolean()
+                    ->alignCenter(),
+                TextColumn::make('fundSource.fundsources')
+                    ->label('Source of Funds')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('expense_class')
+                    ->label('Expense Class')
+                    ->alignCenter()
+                    ->searchable(),
+                TextColumn::make('abc')
+                    ->label('ABC')
+                    ->alignCenter()
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('modeOfProcurement.modeofprocurements')
+                    ->label('Mode of Procurement')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('abc_50k')
+                    ->label('ABC <=> 50k')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        '50k_or_less' => '50k or less',
+                        'above_50k' => 'above 50k',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                TextColumn::make('pre_proc_conference')
+                    ->label('Pre-Proc Conference')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('ads_post_ib')
+                    ->label('Ads/Post IB')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('pre_bid_conf')
+                    ->label('Pre-Bid Conference')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('eligibility_check')
+                    ->label('Eligibility Check')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('sub_open_bids')
+                    ->label('Sub/Open of Bids')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('first_bidding_date')
+                    ->label('1st Bidding Result')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('first_bidding_result')
+                    ->label('1st Bidding Result')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        'Not Applicable' => 'Not Applicable',
+                        'Successful' => 'Successful',
+                        'Failed' => 'Failed',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                TextColumn::make('second_bidding_date')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('second_bidding_result')
+                    ->label('2nd Bidding Result')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        'Not Applicable' => 'Not Applicable',
+                        'Successful' => 'Successful',
+                        'Failed' => 'Failed',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                TextColumn::make('bid_evaluation_date')
+                    ->label('Bid Evaluation')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('post_qual_date')
+                    ->label('Post Qualification')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('resolution_number')
+                    ->label('Resolution Number')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('ntf_no')
+                    ->label('NTF No.')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('ntf_bidding_date')
+                    ->label('NTF Bidding (Date)')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('ntf_bidding_result')
+                    ->label('2nd Bidding Result')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        'Not Applicable' => 'Not Applicable',
+                        'Successful' => 'Successful',
+                        'Failed' => 'Failed',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                TextColumn::make('rfq_no')
+                    ->label('RFQ No.')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('canvass_date')
+                    ->label('Canvass Date')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('returned_canvass_date')
+                    ->label('Return of Canvass')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('abstract_of_canvass_date')
+                    ->label('Abstract of Canvass')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('bac_resolution_award_date')
+                    ->label('BAC Resolution Award Date')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('notice_of_award_date')
+                    ->label('Notice of Award Date')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('awarded_amount')
+                    ->label('Awarded Amount')
+                    ->numeric()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('award_notice_number')
+                    ->label('Award Notice No.')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('posting_award_philgeps')
+                    ->label('Posting of Award on PhilGEPS')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('supplier.name')
+                    ->label('Supplier')
+                    ->sortable()
+                    ->wrap()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('procurementStage.procurementstage')
+                    ->label('Procurement Stage')
+                    ->sortable()
+                    ->wrap()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('remarks.remarks')
+                    ->label('Remarks')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('remarks_note')
+                    ->label('Remarks Note')
+                    ->wrap()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('reschedule_cancellation_letter')
+                    ->label('Reschedule / Cancellation Letter')
+                    ->wrap()
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('reschedule_cancellation_letter')
+                    ->searchable()
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('forwarded_to_pmu_date')
+                    ->label('Forwaded to PMU')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('philgeps_posting_reference_number')
+                    ->label('PhilGEPS Posting Reference #')
+                    ->searchable()
+                    ->extraAttributes(['class' => 'text-center'])
+                    ->alignCenter(),
+                TextColumn::make('contract_amount')
+                    ->label('Contract Amount')
+                    ->numeric()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('purchase_order_contract_number')
+                    ->label('PO / Contract No.')
+                    ->searchable()
+                    ->alignCenter(),
+                TextColumn::make('contract_signing_po')
+                    ->label('Contract Signing (PO)')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('notice_to_proceed')
+                    ->label('Notice to Proceed')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('delivery_completion')
+                    ->label('Delivery Completion')
+                    ->searchable()
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('inspection_acceptance')
+                    ->label('Inspection & Acceptance')
+                    ->searchable()
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('list_of_invited_observers')
+                    ->label('List of Invited Observers')
+                    ->searchable()
+                    ->wrap()
+                    ->alignCenter(),
+                TextColumn::make('pre_bid_conf2')
+                    ->label('Pre-bid Conf2')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('eligibility_check3')
+                    ->label('Eligibility Check3')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('sub_open_bids4')
+                    ->label('Sub/Open of Bids4')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('bid_evaluation5')
+                    ->label('Bid Evaluation5')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('post_qual6')
+                    ->label('Post Qual6')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('delivery_completion_acceptance')
+                    ->label('Delivery/Completion/Acceptance(If applicable)')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        'Delivery' => 'Delivery',
+                        'Completion' => 'Completion',
+                        'Acceptance' => 'Acceptance',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                TextColumn::make('remarks_changes_app')
+                    ->label('Remarks(Explaining changes from the APP)')
+                    ->searchable()
+                    ->wrap()
+                    ->alignCenter()
+                    ->wrap(),
+                TextColumn::make('date_last_updated')
+                    ->label('Date Last Updated')
+                    ->date()
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('bac_type')
+                    ->label('BAC Type')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($state) => [
+                        'BAC A' => 'BAC A',
+                        'Alternative' => 'Alternative',
+                    ][$state] ?? '')
+                    ->alignCenter(),
+                IconColumn::make('po')
+                    ->boolean()
+                    ->alignCenter(),
+                TextColumn::make('fundClass.name')
+                    ->label('Fund Class')
+                    ->sortable()
+                    ->searchable()
+                    ->alignCenter(),
+                IconColumn::make('pr_stat')
+                    ->boolean()
+                    ->alignCenter(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+            ])
+
+            ->bulkActions([
+                BulkAction::make('bulkEdit')
+                    ->label('Bulk Edit')
+                    ->action(fn($records) => redirect()->route('filament.admin.resources.procurements.bulk-edit', [
+                        'recordIds' => implode(',', $records->pluck('id')->toArray()),
+                    ]))
+
+            ]);
+    }
+
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListProcurements::route('/'),
+            'create' => Pages\CreateProcurement::route('/create'),
+            'edit' => Pages\EditProcurement::route('/{record}/edit'),
+            'bulk-edit' => Pages\BulkEditProcurements::route('/bulk-edit'),
+        ];
+    }
+
+}
