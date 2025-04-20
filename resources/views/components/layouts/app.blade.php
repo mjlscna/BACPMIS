@@ -16,14 +16,14 @@
     @livewire('partials.sidebar')
     <!-- Content -->
     <div class="w-full lg:ps-60">
-        <div class="">
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
-        @livewire('partials.footer')
+        <main>
+            {{ $slot }}
+        </main>
     </div>
+    @livewire('partials.footer')
+
     @livewireScripts()
+    @livewireAlert() <!-- Correct placement for LivewireAlert -->
 </body>
 
 </html>

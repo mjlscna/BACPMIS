@@ -4,15 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Procurement extends Model
 {
     use HasFactory;
 
+    use SoftDeletes;
     protected $fillable = [
+        'procID',
         'pr_number',
-        'ib_number',
-        'np_no',
         'procurement_program_project',
         'date_receipt_advance',
         'date_receipt_signed',
@@ -24,7 +25,7 @@ class Procurement extends Model
         'category_id',
         'venue_specific_id',
         'venue_province_huc_id',
-        'category_venue_id',
+        'category_venue',
         'approved_ppmp',
         'app_updated',
         'immediate_date_needed',
@@ -34,59 +35,8 @@ class Procurement extends Model
         'fund_source_id',
         'expense_class',
         'abc',
-        'mode_of_procurement_id',
-        'abc_50k',
-        'pre_proc_conference',
-        'ads_post_ib',
-        'pre_bid_conf',
-        'eligibility_check',
-        'sub_open_bids',
-        'first_bidding_date',
-        'first_bidding_result',
-        'second_bidding_date',
-        'second_bidding_result',
-        'bid_evaluation_date',
-        'post_qual_date',
-        'resolution_number',
-        'ntf_no',
-        'ntf_bidding_date',
-        'ntf_bidding_result',
-        'rfq_no',
-        'canvass_date',
-        'returned_canvass_date',
-        'abstract_of_canvass_date',
-        'bac_resolution_award_date',
-        'notice_of_award_date',
-        'awarded_amount',
-        'award_notice_number',
-        'posting_award_philgeps',
-        'supplier_id',
-        'procurement_stage_id',
-        'remarks_id',
-        'remarks_note',//add ''
-        'reschedule_cancellation_letter',
-        'forwarded_to_pmu_date',
-        'philgeps_posting_reference_number',
-        'contract_amount',
-        'purchase_order_contract_number',
-        'contract_signing_po',
-        'notice_to_proceed',
-        'delivery_completion',
-        'inspection_acceptance',
-        'list_of_invited_observers',
-        'pre_bid_conf2',
-        'eligibility_check3',
-        'sub_open_bids4',
-        'bid_evaluation5',
-        'post_qual6',
-        'delivery_completion_acceptance',
-        'remarks_changes_app',
-        'date_last_updated',
-        'bac_type',
-        'po',
-        'fund_class_id',
-        'pr_stat',
-        'category_venue_id',
+        'abc_50k'
+
     ];
 
     public function division()
