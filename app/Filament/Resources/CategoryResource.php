@@ -7,6 +7,7 @@ use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
@@ -32,7 +33,7 @@ class CategoryResource extends Resource
             ->schema([
                 Section::make('Category Details')
                     ->schema([
-                        Grid::make(2) // Adjust grid for better layout
+                        Grid::make(3) // Adjust grid for better layout
                             ->schema([
                                 TextInput::make('category')
                                     ->label('Category Name')
@@ -49,6 +50,13 @@ class CategoryResource extends Resource
                                     ->required()
                                     ->dehydrated()
                                     ->unique(Category::class, 'slug', ignoreRecord: true),
+
+                                Select::make('category_type_id')
+                                    ->label('Category Type')
+                                    ->relationship('categoryType', 'category_type')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
                             ]),
 
                         Toggle::make('is_active')
@@ -63,8 +71,13 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
+
                 Tables\Columns\TextColumn::make('category')
-                    ->label('Category Name')
+                    ->label('Category')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('categoryType.category_type')
+                    ->label('Category Type')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('slug')

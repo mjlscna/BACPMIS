@@ -117,7 +117,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return [
             \App\Filament\Resources\CategoryResource::class,
-            \App\Filament\Resources\CategoryVenueResource::class,
+            \App\Filament\Resources\CategoryTypeResource::class,
             \App\Filament\Resources\ClusterCommitteeResource::class,
             \App\Filament\Resources\DivisionResource::class,
             \App\Filament\Resources\FundSourceResource::class,

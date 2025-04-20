@@ -2,16 +2,14 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CategoryVenueResource\Pages;
-use App\Filament\Resources\CategoryVenueResource\RelationManagers;
-use App\Models\CategoryVenue;
+use App\Filament\Resources\CategoryTypeResource\Pages;
+use App\Models\CategoryType;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
@@ -19,30 +17,29 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
-class CategoryVenueResource extends Resource
+class CategoryTypeResource extends Resource
 {
-    protected static ?string $model = CategoryVenue::class;
+    protected static ?string $model = CategoryType::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
+
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make('Category/Venue Details')
+                Section::make('Category Type Details')
                     ->schema([
                         Grid::make(2) // Adjust grid for better layout
                             ->schema([
-                                TextInput::make('category_venue')
-                                    ->label('Category/Venue')
+                                TextInput::make('category_type')
+                                    ->label('Category Type')
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn(string $operation, $state, Set $set) =>
+                                    ->afterStateUpdated(fn(string $operation, $state, Forms\Set $set) =>
                                         $operation === 'create' ? $set('slug', Str::slug($state)) : null),
 
                                 TextInput::make('slug')
@@ -51,7 +48,7 @@ class CategoryVenueResource extends Resource
                                     ->disabled()
                                     ->required()
                                     ->dehydrated()
-                                    ->unique(CategoryVenue::class, 'slug', ignoreRecord: true),
+                                    ->unique(CategoryType::class, 'slug', ignoreRecord: true),
                             ]),
 
                         Toggle::make('is_active')
@@ -66,8 +63,8 @@ class CategoryVenueResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('category_venue')
-                    ->label('Category/Venue')
+                Tables\Columns\TextColumn::make('category_type')
+                    ->label('Category Type')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('slug')
@@ -89,7 +86,7 @@ class CategoryVenueResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                // Add future filters here
             ])
             ->actions([
                 ActionGroup::make([
@@ -107,17 +104,15 @@ class CategoryVenueResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCategoryVenues::route('/'),
-            'create' => Pages\CreateCategoryVenue::route('/create'),
-            'edit' => Pages\EditCategoryVenue::route('/{record}/edit'),
+            'index' => Pages\ListCategoryTypes::route('/'),
+            'create' => Pages\CreateCategoryType::route('/create'),
+            'edit' => Pages\EditCategoryType::route('/{record}/edit'),
         ];
     }
 }

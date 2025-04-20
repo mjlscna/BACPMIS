@@ -31,7 +31,7 @@
                     <ul class="flex flex-col space-y-1">
                         <li>
                             <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
-                                {{ request()->routeIs('dashboard.page') ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 ?>' }}
+                                {{ request()->routeIs('dashboard.page') ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white ?>' }}
                                 focus:outline-hidden focus:bg-gray-100
                                 dark:bg-neutral-700 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-white"
                                 href="{{ route('dashboard.page') }}">
@@ -48,7 +48,7 @@
 
                         <li>
                             <a class="w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
-                                {{ request()->routeIs('procurement.page') ? 'bg-emerald-700 text-white' : 'text-gray-800 hover:bg-emerald-600' }}
+                                {{ request()->routeIs('procurement.page') ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white ?>' }}
                                 focus:outline-hidden focus:bg-gray-100
                                 dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
                                 href="{{ route('procurement.page') }}">

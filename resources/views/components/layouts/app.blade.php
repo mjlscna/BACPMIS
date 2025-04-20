@@ -16,30 +16,14 @@
     @livewire('partials.sidebar')
     <!-- Content -->
     <div class="w-full lg:ps-60">
-        <div class="">
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
-        @livewire('partials.footer')
+        <main>
+            {{ $slot }}
+        </main>
     </div>
+    @livewire('partials.footer')
+
     @livewireScripts()
-    <!-- Flash Message Script -->
-    <script>
-        // Check if there's a flash message and fade it out after 3 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            const flashMessage = document.querySelector('.flash-message');
-            if (flashMessage) {
-                setTimeout(function() {
-                    flashMessage.classList.add('opacity-0'); // Fade out the message
-                    // Optional: Remove the message after it fades out
-                    setTimeout(function() {
-                        flashMessage.remove();
-                    }, 300); // Wait for fade-out animation to complete
-                }, 3000); // Delay of 3 seconds before hiding
-            }
-        });
-    </script>
+    @livewireAlert() <!-- Correct placement for LivewireAlert -->
 </body>
 
 </html>
