@@ -15,4 +15,8 @@ class ModeOfProcurement extends Model
     {
         return $this->hasMany(Procurement::class);
     }
+    public function bidModeOfProcurements()
+    {
+        return $this->belongsTo(BidModeOfProcurement::class, 'bid_mode_of_procurement_id');
+    }
 }

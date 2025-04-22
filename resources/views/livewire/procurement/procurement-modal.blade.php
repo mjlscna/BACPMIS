@@ -21,13 +21,13 @@
                 <!-- Tab 1 -->
                 <button type="button" wire:click="switchTab(1)"
                     class="{{ $activeTab == 1 ? 'bg-emerald-600 text-white' : 'bg-white text-neutral-800' }} py-3 px-4 inline-flex items-center text-sm font-medium text-center border border-gray-200 rounded-t-lg">
-                    Procurement Information
+                    Information
                 </button>
 
                 <!-- Tab 2 -->
                 <button type="button" wire:click="switchTab(2)"
                     class="{{ $activeTab == 2 ? 'bg-emerald-600 text-white' : 'bg-white text-neutral-800' }} py-3 px-4 inline-flex items-center gap-x-2 text-sm font-medium text-center border border-gray-200 rounded-t-lg">
-                    Additional Details
+                    Bidding
                 </button>
 
                 <!-- Tab 3 -->
@@ -330,8 +330,7 @@
                             <!-- Early Procurement Toggle -->
 
                             <div class="flex items-center gap-x-3">
-                                <label for="early_procurement" class="block text-sm font-medium text-gray-700"> <span
-                                        class="text-red-500 mr-1">*</span>Early
+                                <label for="early_procurement" class="block text-sm font-medium text-gray-700">Early
                                     Procurement</label>
                                 <label for="hs-large-switch-with-icons"
                                     class="relative inline-block w-15 h-8 cursor-pointer">
@@ -445,84 +444,151 @@
                 {{-- TAB 2 --}}
                 <div id="card-type-tab-2" class="{{ $activeTab === 2 ? '' : 'hidden' }}" role="tabpanel"
                     aria-labelledby="card-type-tab-item-2">
-                    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 ">
+                    <div class="inline-block bg-white p-4 rounded-xl shadow border border-gray-200 mt-6">
                         <div class="flex flex-col mb-4">
-                            <label for="mode_of_procurement_id" class="block text-sm font-medium text-gray-700">Mode
-                                of
-                                Procurement</label>
-                            <select id="mode_of_procurement_id" wire:model.defer="form.mode_of_procurement_id"
+                            <label for="mode_of_procurement_id" class="block text-sm font-medium text-gray-700">
+                                Mode of Procurement
+                            </label>
+
+                            <select id="mode_of_procurement_id" wire:model.live="form.mode_of_procurement_id"
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required
                                 style="width: 300px;">
-                                <option value="1" selected>For BAC Decision</option>
-                                <option value="2">Competitive Bidding</option>
+                                <option value="">Select</option>
+                                @foreach ($modeOfProcurements as $modeOfProcurement)
+                                    <option value="{{ $modeOfProcurement->id }}"
+                                        @if ($modeOfProcurement->id == $form['mode_of_procurement_id']) selected @endif>
+                                        {{ $modeOfProcurement->modeofprocurements }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
-
-                        <div class="flex flex-col mb-4">
-                            <label for="ib_number" class="block text-sm font-medium text-gray-700">IB No.</label>
-                            <input type="text" id="ib_number" wire:model.defer="form.ib_number" maxlength="12"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-right" />
-                        </div>
-
-                        <div class="flex flex-col mb-4">
-                            <label for="pre_proc_conference" class="block text-sm font-medium text-gray-700">Pre-Proc
-                                Conference</label>
-                            <input type="date" id="pre_proc_conference"
-                                wire:model.defer="form.pre_proc_conference"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
-
-                        <div class="flex flex-col mb-4">
-                            <label for="ads_post_ib" class="block text-sm font-medium text-gray-700">Ads/Post
-                                IB</label>
-                            <input type="date" id="ads_post_ib" wire:model.defer="form.ads_post_ib"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
-
-                        <div class="flex flex-col mb-4">
-                            <label for="pre_bid_conf" class="block text-sm font-medium text-gray-700">Pre-Bid
-                                Conference</label>
-                            <input type="date" id="pre_bid_conf" wire:model.defer="form.pre_bid_conf"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
-
-                        <div class="flex flex-col mb-4">
-                            <label for="eligibility_check" class="block text-sm font-medium text-gray-700">Eligibility
-                                Check</label>
-                            <input type="date" id="eligibility_check" wire:model.defer="form.eligibility_check"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
-
-                        <div class="flex flex-col mb-4">
-                            <label for="sub_open_bids" class="block text-sm font-medium text-gray-700">Sub/Open of
-                                Bids</label>
-                            <input type="date" id="sub_open_bids" wire:model.defer="form.sub_open_bids"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
                     </div>
+
+
+                    {{-- Show bid schedule entries only if added --}}
+                    {{-- Check if mode_of_procurement_id is neither empty nor 1 --}}
+                    @if (!in_array($form['mode_of_procurement_id'], [null, '', 1]))
+
+                        {{-- Display bid schedule fields only when they are added --}}
+                        <div>
+                            @foreach ($form['bid_schedules'] as $index => $schedule)
+                                <div class="relative bg-white p-6 mt-6 rounded-xl shadow border border-gray-200">
+                                    <button type="button"
+                                        wire:click.prevent="removeBidSchedule({{ $index }})"
+                                        class="absolute top-2 right-2 text-red-500 hover:text-red-700" title="Remove">
+                                        <x-heroicon-o-trash class="w-5 h-5" />
+                                    </button>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                                        {{-- IB No. --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">IB No.</label>
+                                            <input type="text"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.ib_number"
+                                                maxlength="12"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-right" />
+                                        </div>
+
+                                        {{-- Pre-Proc Conference --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Pre-Proc
+                                                Conference</label>
+                                            <input type="date"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.pre_proc_conference"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        </div>
+
+                                        {{-- Ads/Post IB --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Ads/Post IB</label>
+                                            <input type="date"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.ads_post_ib"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        </div>
+
+                                        {{-- Pre-Bid Conference --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Pre-Bid Conference</label>
+                                            <input type="date"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.pre_bid_conf"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        </div>
+
+                                        {{-- Eligibility Check --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Eligibility Check</label>
+                                            <input type="date"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.eligibility_check"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        </div>
+
+                                        {{-- Sub/Open of Bids --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Sub/Open of Bids</label>
+                                            <input type="date"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.sub_open_bids"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        </div>
+
+                                        {{-- Bidding Number --}}
+                                        <div class="col-span-1">
+                                            <label class="text-sm font-medium text-gray-700">Bidding #</label>
+                                            <select
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.bidding_number"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                                                <option value="">Select</option>
+                                                <option value="1">1st Bidding</option>
+                                                <option value="2">2nd Bidding</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Bidding Date --}}
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Bidding Date</label>
+                                            <input type="date"
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.bidding_date"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        </div>
+
+                                        {{-- Bidding Result --}}
+                                        <div class="col-span-1">
+                                            <label class="text-sm font-medium text-gray-700">Bidding Result</label>
+                                            <select
+                                                wire:model.defer="form.bid_schedules.{{ $index }}.bidding_result"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                                                <option value="">Select</option>
+                                                <option value="SUCCESSFUL">SUCCESSFUL</option>
+                                                <option value="UNSUCCESSFUL">UNSUCCESSFUL</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Add Bid Button --}}
+                        <div class="mt-6">
+                            <button type="button" wire:click.prevent="addBidSchedule"
+                                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl font-medium shadow">
+                                + Add Bid
+                            </button>
+                        </div>
+                    @endif
                 </div>
 
-                <div id="card-type-tab-3" class="{{ $activeTab === 3 ? '' : 'hidden' }}" role="tabpanel"
-                    aria-labelledby="card-type-tab-item-3">
-                    <p class="text-gray-500 dark:text-neutral-400">
-                        This is the <em class="font-semibold text-gray-800 dark:text-neutral-200">third</em> item's tab
-                        body.
-                    </p>
-                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-neutral-700">
+                <button wire:click="$set('showCreateModal', false)"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
+                    Cancel
+                </button>
+                <button wire:click="saveTabData"
+                    class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
+                    {{ $editingId ? 'Update' : 'Save' }}
+                </button>
+
             </div>
         </div>
-
-        <!-- Footer -->
-        <div class="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-neutral-700">
-            <button wire:click="$set('showCreateModal', false)"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
-                Cancel
-            </button>
-            <button wire:click="saveProcurement"
-                class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
-                {{ $editingId ? 'Update' : 'Save' }}
-            </button>
-
-        </div>
     </div>
-</div>

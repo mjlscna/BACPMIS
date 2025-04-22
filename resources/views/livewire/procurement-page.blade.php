@@ -12,7 +12,7 @@
                             <div class="flex items-center gap-x-2">
                                 <!-- Search Bar -->
                                 <div class="relative">
-                                    <input type="text" wire:model="search" placeholder="Search Procurements..."
+                                    <input type="text" wire:model.live="search" placeholder="Search Procurements..."
                                         class="px-4 py-2 border border-gray-300 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-neutral-800 dark:text-white dark:border-neutral-700" />
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         class="absolute right-3 top-2.5 text-gray-500 dark:text-white" width="20"
@@ -124,29 +124,19 @@
                                                 <!-- Edit Button -->
                                                 <button type="button"
                                                     wire:click="editProcurement({{ $procurement->id }})"
-                                                    class="inline-flex items-center text-sm font-semibold sticky left-0 rounded-lg border border-transparent text-emerald-600 hover:text-yellow-300 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 mr-2">
-
-                                                    <!-- Pencil Icon -->
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                        class="w-5 h-5">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M16.862 3.487a2.25 2.25 0 113.182 3.182L7.5 19.313l-4.243 1.06 1.06-4.243L16.862 3.487z" />
-                                                    </svg>
+                                                    class="inline-flex items-center text-sm font-semibold sticky left-0 rounded-lg border border-transparent text-emerald-600 hover:text-yellow-300 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 mr-2"
+                                                    title="Edit">
+                                                    <x-heroicon-o-pencil class="w-5 h-5" />
                                                 </button>
+
                                                 <!-- Delete Button -->
                                                 <button type="button"
                                                     wire:click="confirmDelete({{ $procurement->id }})"
-                                                    class="inline-flex items-center text-sm font-semibold rounded-lg border border-transparent text-red-600 hover:text-red-800 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-red-500 dark:hover:text-red-400">
-
-                                                    <!-- Trash Icon -->
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                        class="w-5 h-5">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
+                                                    class="inline-flex items-center text-sm font-semibold rounded-lg border border-transparent text-red-600 hover:text-red-800 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-red-500 dark:hover:text-red-400"
+                                                    title="Delete">
+                                                    <x-heroicon-o-trash class="w-5 h-5" />
                                                 </button>
+
                                             </td>
 
                                             <td

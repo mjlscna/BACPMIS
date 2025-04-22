@@ -103,4 +103,13 @@ class Procurement extends Model
     {
         return $this->belongsTo(EndUser::class, 'end_users_id');
     }
+    public function bidModeOfProcurement()
+    {
+        return $this->hasMany(BidModeOfProcurement::class, 'procID', 'procID');
+    }
+    public function bidSchedules()
+    {
+        return $this->hasMany(BidSchedule::class, 'procID', 'procID');
+    }
+
 }

@@ -68,10 +68,10 @@ class AdminPanelProvider extends PanelProvider
     {
         return [
             // ✅ Dashboard always first
-            NavigationItem::make('Dashboard')
-                ->icon('heroicon-o-home')
-                ->isActiveWhen(fn() => request()->routeIs('filament.admin.pages.dashboard'))
-                ->url(fn() => route('filament.admin.pages.dashboard')),
+            // NavigationItem::make('Dashboard')
+            //     ->icon('heroicon-o-home')
+            //     ->isActiveWhen(fn() => request()->routeIs('filament.admin.pages.dashboard'))
+            //     ->url(fn() => route('filament.admin.pages.dashboard')),
 
             // ✅ Automatically add resources **without a group** after the Dashboard
             ...collect(Filament::getResources())
