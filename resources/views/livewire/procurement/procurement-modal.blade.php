@@ -473,11 +473,6 @@
                         <div>
                             @foreach ($form['bid_schedules'] as $index => $schedule)
                                 <div class="relative bg-white p-6 mt-6 rounded-xl shadow border border-gray-200">
-                                    <button type="button"
-                                        wire:click.prevent="removeBidSchedule({{ $index }})"
-                                        class="absolute top-2 right-2 text-red-500 hover:text-red-700" title="Remove">
-                                        <x-heroicon-o-trash class="w-5 h-5" />
-                                    </button>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                                         {{-- IB No. --}}

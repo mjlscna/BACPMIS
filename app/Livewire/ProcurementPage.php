@@ -79,6 +79,7 @@ class ProcurementPage extends Component
         'bidding_number' => '',
         'bidding_date' => '',
         'bidding_result' => '',
+        'bid_schedules' => [],
     ];
 
     protected $paginationTheme = 'tailwind';
@@ -347,7 +348,7 @@ class ProcurementPage extends Component
         $this->procID = 'BAC' . now()->format('YmdHis') . rand(100, 999);
         // Create the procurement record
         Procurement::create([
-            'procID' => $generatedProcID = 'BAC' . now()->format('YmdHis') . rand(100, 999),
+            'procID' => $this->procID,
             'pr_number' => $this->form['pr_number'],
             'procurement_program_project' => $this->form['procurement_program_project'],
             'date_receipt_advance' => $this->form['date_receipt_advance'],
@@ -376,8 +377,9 @@ class ProcurementPage extends Component
             'abc' => $this->form['abc'],
             'abc_50k' => $this->form['abc'] >= 50000 ? 'above_50k' : '50k_or_less',
         ]);
-        $this->procID = $generatedProcID;
-        // Show success toast after saving
+
+
+
         LivewireAlert::title('Saved!')
             ->success()
             ->toast()
@@ -447,8 +449,6 @@ class ProcurementPage extends Component
 
         $this->showCreateModal = true;
     }
-
-
     public function confirmDelete($id)
     {
         // Show confirmation alert
@@ -481,10 +481,13 @@ class ProcurementPage extends Component
 
     public function removeBidSchedule($index)
     {
-        unset($this->form['bid_schedules'][$index]);
-        // Re-index the array after removal to prevent gaps in the index
-        $this->form['bid_schedules'] = array_values($this->form['bid_schedules']);
+        if (isset($this->form['bid_schedules'][$index])) {
+            unset($this->form['bid_schedules'][$index]);
+            // Reindex to avoid gaps
+            $this->form['bid_schedules'] = array_values($this->form['bid_schedules']);
+        }
     }
+
     public function addBidSchedule()
     {
         $this->form['bid_schedules'][] = [
@@ -500,61 +503,52 @@ class ProcurementPage extends Component
         ];
     }
 
-
-
     public function saveTab2()
     {
         try {
-            // Log the form data for debugging
-            \Log::info('Form Data: ' . json_encode($this->form));
+            // Log form data for debugging
+            \Log::info('Form Data:', $this->form);
 
-            // Validate inputs
+            // Validate required fields
             $this->validate([
                 'form.mode_of_procurement_id' => 'required|exists:mode_of_procurements,id',
-                'form.bid_schedules' => 'array', // Ensure bid_schedules is an array
-                'form.bid_schedules.*.ib_number' => 'nullable|string|max:255', // Validate each bid schedule field
+                'form.bid_schedules' => 'nullable|array',
+                'form.bid_schedules.*.ib_number' => 'nullable|string|max:255',
                 'form.bid_schedules.*.pre_proc_conference' => 'nullable|date',
                 'form.bid_schedules.*.ads_post_ib' => 'nullable|date',
                 'form.bid_schedules.*.pre_bid_conf' => 'nullable|date',
                 'form.bid_schedules.*.eligibility_check' => 'nullable|date',
                 'form.bid_schedules.*.sub_open_bids' => 'nullable|date',
-                'form.bid_schedules.*.bidding_number' => 'nullable|integer', // Validate as integer
+                'form.bid_schedules.*.bidding_number' => 'nullable|integer|min:0|max:255',
                 'form.bid_schedules.*.bidding_date' => 'nullable|date',
                 'form.bid_schedules.*.bidding_result' => 'nullable|string|max:255',
             ]);
 
-            // Save Mode of Procurement (ensure it updates or creates)
-            BidModeOfProcurement::updateOrCreate(
-                ['procID' => $this->procID], // Look for existing record
-                ['mode_of_procurement_id' => $this->form['mode_of_procurement_id']] // Update this field
-            );
+            // Save Mode of Procurement
+            BidModeOfProcurement::create([
+                'procID' => $this->procID,
+                'mode_of_procurement_id' => $this->form['mode_of_procurement_id'],
+            ]);
 
-            // Log before saving bid schedules
-            \Log::info('Saving Bid Schedules: ', $this->form['bid_schedules']);
-
-            // Save Bid Schedules with updateOrCreate for each schedule
-            foreach ($this->form['bid_schedules'] as $schedule) {
-                // Ensure bidding_number is an integer
-                $schedule['bidding_number'] = (int) $schedule['bidding_number'];
-
-                \Log::info('Saving or Updating bid schedule: ', $schedule); // Log each schedule
-
-                BidSchedule::updateOrCreate(
-                    ['procID' => $this->procID, 'bidding_number' => $schedule['bidding_number']], // Match by unique fields
-                    [
+            // Only save bid schedules if they exist and if no prior schedules are found
+            if (!empty($this->form['bid_schedules']) && BidSchedule::where('procID', $this->procID)->doesntExist()) {
+                foreach ($this->form['bid_schedules'] as $schedule) {
+                    BidSchedule::create([
+                        'procID' => $this->procID,
                         'ib_number' => $schedule['ib_number'] ?? null,
                         'pre_proc_conference' => $schedule['pre_proc_conference'] ?? null,
                         'ads_post_ib' => $schedule['ads_post_ib'] ?? null,
                         'pre_bid_conf' => $schedule['pre_bid_conf'] ?? null,
                         'eligibility_check' => $schedule['eligibility_check'] ?? null,
                         'sub_open_bids' => $schedule['sub_open_bids'] ?? null,
+                        'bidding_number' => $schedule['bidding_number'] ?? null,
                         'bidding_date' => $schedule['bidding_date'] ?? null,
                         'bidding_result' => $schedule['bidding_result'] ?? null,
-                    ]
-                );
+                    ]);
+                }
             }
 
-            // Success message
+            // Success alert
             LivewireAlert::title('Saved Successfully!')
                 ->success()
                 ->toast()
@@ -562,18 +556,95 @@ class ProcurementPage extends Component
                 ->show();
 
         } catch (ValidationException $e) {
-            // Handle validation errors
-            \Log::error('Validation Error: ' . $e->getMessage());
             LivewireAlert::title('Validation Error!')
                 ->error()
                 ->toast()
                 ->position('top-end')
                 ->show();
         } catch (\Exception $e) {
-            // Log the error for debugging
             \Log::error('Error saving procurement data: ' . $e->getMessage());
 
             LivewireAlert::title('Error Saving Tab 2!')
+                ->error()
+                ->toast()
+                ->position('top-end')
+                ->show();
+        }
+    }
+    public function updateTab2()
+    {
+        try {
+            // Debug: Log the bid_schedules before validation
+            \Log::info('Bid Schedules Data:', ['bid_schedules' => $this->form['bid_schedules'] ?? []]);
+            // Once the above passes, reintroduce rules one by one:
+            $this->validate([
+                'form.mode_of_procurement_id' => 'required|exists:mode_of_procurements,id',
+                'form.bid_schedules' => 'nullable|array',
+                'form.bid_schedules.*.ib_number' => 'nullable|string|max:255',
+                'form.bid_schedules.*.pre_proc_conference' => 'nullable|date',
+                'form.bid_schedules.*.ads_post_ib' => 'nullable|date',
+                'form.bid_schedules.*.pre_bid_conf' => 'nullable|date',
+                'form.bid_schedules.*.eligibility_check' => 'nullable|date',
+                'form.bid_schedules.*.sub_open_bids' => 'nullable|date',
+                'form.bid_schedules.*.bidding_number' => 'nullable|integer|min:0|max:255',
+                'form.bid_schedules.*.bidding_date' => 'nullable|date',
+                'form.bid_schedules.*.bidding_result' => 'nullable|string|max:255',
+            ]);
+
+
+            // Update or create the mode of procurement
+            BidModeOfProcurement::updateOrCreate(
+                ['procID' => $this->procID],
+                ['mode_of_procurement_id' => $this->form['mode_of_procurement_id']]
+            );
+
+            foreach ($this->form['bid_schedules'] as $schedule) {
+                if (isset($schedule['id'])) {
+                    // Update existing schedule
+                    BidSchedule::where('id', $schedule['id'])->update([
+                        'ib_number' => $schedule['ib_number'] ?? null,
+                        'pre_proc_conference' => $schedule['pre_proc_conference'] ?? null,
+                        'ads_post_ib' => $schedule['ads_post_ib'] ?? null,
+                        'pre_bid_conf' => $schedule['pre_bid_conf'] ?? null,
+                        'eligibility_check' => $schedule['eligibility_check'] ?? null,
+                        'sub_open_bids' => $schedule['sub_open_bids'] ?? null,
+                        'bidding_number' => $schedule['bidding_number'] ?? null,
+                        'bidding_date' => $schedule['bidding_date'] ?? null,
+                        'bidding_result' => $schedule['bidding_result'] ?? null,
+                    ]);
+                } else {
+                    // Create new schedule
+                    BidSchedule::create([
+                        'procID' => $this->procID,
+                        'ib_number' => $schedule['ib_number'] ?? null,
+                        'pre_proc_conference' => $schedule['pre_proc_conference'] ?? null,
+                        'ads_post_ib' => $schedule['ads_post_ib'] ?? null,
+                        'pre_bid_conf' => $schedule['pre_bid_conf'] ?? null,
+                        'eligibility_check' => $schedule['eligibility_check'] ?? null,
+                        'sub_open_bids' => $schedule['sub_open_bids'] ?? null,
+                        'bidding_number' => $schedule['bidding_number'] ?? null,
+                        'bidding_date' => $schedule['bidding_date'] ?? null,
+                        'bidding_result' => $schedule['bidding_result'] ?? null,
+                    ]);
+                }
+            }
+
+            LivewireAlert::title('Tab 2 Updated!')
+                ->success()
+                ->toast()
+                ->position('top-end')
+                ->show();
+
+        } catch (ValidationException $e) {
+            LivewireAlert::title('Validation Failed!')
+                ->error()
+                ->toast()
+                ->position('top-end')
+                ->show();
+        } catch (\Exception $e) {
+            \Log::error('Tab 2 update error: ' . $e->getMessage());
+
+            LivewireAlert::title('Error Updating Tab 2!')
                 ->error()
                 ->toast()
                 ->position('top-end')
@@ -630,7 +701,11 @@ class ProcurementPage extends Component
                 $this->saveProcurement();
                 break;
             case 2:
-                $this->saveTab2();
+                if ($this->editingId) {
+                    $this->updateTab2();
+                } else {
+                    $this->saveTab2();
+                }
                 break;
             case 3:
                 break;
@@ -640,6 +715,9 @@ class ProcurementPage extends Component
     // Render the component view
     public function render()
     {
+        if (!isset($this->form['bid_schedules'])) {
+            $this->form['bid_schedules'] = [];
+        }
         // Fetching required data for dropdowns and selects
         $divisions = Division::all();
         $suppliers = Supplier::all();
@@ -651,9 +729,6 @@ class ProcurementPage extends Component
         $endUsers = EndUser::all();
         $fundSources = FundSource::all();
         $modeOfProcurements = ModeOfProcurement::all();
-
-        // Fetching BidSchedules for the current procurement
-        $bidSchedules = BidSchedule::where('procID', $this->procID)->get();
 
         if ($this->showCreateModal) {
             return view('livewire.procurement.procurement-modal', [
@@ -667,7 +742,6 @@ class ProcurementPage extends Component
                 'endUsers' => $endUsers,
                 'fundSources' => $fundSources,
                 'modeOfProcurements' => $modeOfProcurements,
-                'bidSchedules' => $bidSchedules, // Pass bid schedules here if needed for display
                 'form' => $this->form,  // Pass the form data so it can be prefilled in the modal
             ]);
         }

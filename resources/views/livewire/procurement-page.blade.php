@@ -39,9 +39,9 @@
                         <!-- End Header -->
 
                         <!-- Table -->
-                        <div class="overflow-x-auto max-h-[500px]">
+                        <div class="overflow-y-auto max-h-[600px] relative">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
-                                <thead class="bg-gray-50 dark:bg-neutral-900">
+                                <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-10">
                                     <tr>
                                         <th scope="col"
                                             class="px-6 py-3 text-center text-xs font-medium sticky left-0 text-gray-500 uppercase dark:text-neutral-500">
@@ -117,7 +117,8 @@
                                             ABC <=> 50k</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                                <tbody
+                                    class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                                     @foreach ($procurements as $procurement)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -232,7 +233,10 @@
                             </table>
                         </div>
 
-                        <div class="mt-4">{{ $procurements->links() }}</div>
+                        <div class="py-4">
+                            {{ $procurements->links('vendor.pagination.tailwind') }}
+                        </div>
+
                     </div>
                     <!-- Procurement Modal -->
                     @if ($showCreateModal)

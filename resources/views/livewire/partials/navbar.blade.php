@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <a class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80"
                     href="#" aria-label="LMS">
-                    <img src="{{ '/storage/images/LMS.svg' }}" width="200" height="40"></img>
+                    <img src="" width="200" height="40"></img>
                 </a>
                 <!-- End Logo -->
 
@@ -19,7 +19,7 @@
 
                 <div class="hidden md:block">
                     <!-- Search Input -->
-                    <!--<img src="{{ '/storage/images/LMS.svg' }}" width="200" height="50"></img>-->
+                    <!--<img src="" width="200" height="50"></img>-->
                     <!-- End Search Input -->
                 </div>
 
