@@ -13,8 +13,10 @@ class BidModeOfProcurement extends Model
     protected $table = 'bid_mode_of_procurement';
 
     protected $fillable = [
-        'procID', // Add procID to fillable
+        'procID',
+        'uid',
         'mode_of_procurement_id',
+        'mode_order',
     ];
 
     /**

@@ -8,7 +8,7 @@
                         class="max-w-6xl bg-white border border-gray-200 rounded-xl shadow-2xs overflow-hidden dark:bg-neutral-900 dark:border-neutral-700">
                         <!-- Header -->
                         <div
-                            class="sticky top-0 z-50 bg-white dark:bg-neutral-900 px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700">
+                            class="sticky top-0 z-40 bg-white dark:bg-neutral-900 px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700">
                             <div class="flex items-center gap-x-2">
                                 <!-- Search Bar -->
                                 <div class="relative">
@@ -41,7 +41,7 @@
                         <!-- Table -->
                         <div class="overflow-y-auto max-h-[600px] relative">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
-                                <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-10">
+                                <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
                                     <tr>
                                         <th scope="col"
                                             class="px-6 py-3 text-center text-xs font-medium sticky left-0 text-gray-500 uppercase dark:text-neutral-500">
@@ -124,7 +124,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                                 <!-- Edit Button -->
                                                 <button type="button"
-                                                    wire:click="editProcurement({{ $procurement->id }})"
+                                                    wire:click="openEditModal({{ $procurement->id }})"
                                                     class="inline-flex items-center text-sm font-semibold sticky left-0 rounded-lg border border-transparent text-emerald-600 hover:text-yellow-300 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 mr-2"
                                                     title="Edit">
                                                     <x-heroicon-o-pencil class="w-5 h-5" />
@@ -198,19 +198,11 @@
                                                 {{ $procurement->endUser?->endusers ?? 'No End-User Assigned' }}</td>
                                             <td class="text-center">
                                                 @if ($procurement->early_procurement)
-                                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-5 w-5 text-green-500 mx-auto" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M5 13l4 4L19 7" />
-                                                    </svg>
+                                                    <x-heroicon-s-check-circle title="Yes"
+                                                        class="h-5 w-5 text-emerald-600 mx-auto" />
                                                 @else
-                                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-5 w-5 text-red-400 mx-auto" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
+                                                    <x-heroicon-s-x-circle title="No"
+                                                        class="h-5 w-5 text-red-600 mx-auto" />
                                                 @endif
                                             </td>
                                             <td
@@ -231,9 +223,9 @@
                                     @endforeach
                                 </tbody>
                             </table>
-                        </div>
 
-                        <div class="py-4">
+                        </div>
+                        <div class="p-0 m-0 py-4 -mt-2">
                             {{ $procurements->links('vendor.pagination.tailwind') }}
                         </div>
 

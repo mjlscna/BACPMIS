@@ -30,7 +30,7 @@ class Procurement extends Model
         'app_updated',
         'immediate_date_needed',
         'date_needed',
-        'pmo_end_user',
+        'end_users_id',
         'early_procurement',
         'fund_source_id',
         'expense_class',

@@ -15,7 +15,8 @@
     @livewire('partials.navbar')
     @livewire('partials.sidebar')
     <!-- Content -->
-    <div class="w-full lg:ps-60">
+    <div class="w-full lg:ps-60 pt-45">
+
         <main>
             {{ $slot }}
         </main>
