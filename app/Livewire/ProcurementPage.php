@@ -625,7 +625,7 @@ class ProcurementPage extends Component
                         $existingMode->update([
                             'mode_of_procurement_id' => $modeId,
                             'mode_order' => $modeOrder,
-                            'uid' => "MOP{$modeId}-{$modeOrder}-" . now()->timestamp, // Recalculate UID
+                            'uid' => "MOP{$modeId}-{$modeOrder}", // Recalculate UID
                         ]);
 
                         // Update the UID in the form so we can track it
@@ -642,7 +642,7 @@ class ProcurementPage extends Component
                     }
                 } else {
                     // Mode doesn't exist, create a new one with a new UID
-                    $uid = "MOP{$modeId}-{$modeOrder}-" . now()->timestamp;
+                    $uid = "MOP{$modeId}-{$modeOrder}";
                     \Log::info("Creating new mode with UID: {$uid}");
 
                     $existingMode = BidModeOfProcurement::create([
