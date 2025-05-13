@@ -12,6 +12,7 @@ class BidSchedule extends Model
 
     protected $fillable = [
         'procID',
+        'uid',
         'modeproc',
         'ib_number',
         'pre_proc_conference',

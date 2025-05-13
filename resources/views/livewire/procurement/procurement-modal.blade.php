@@ -504,10 +504,9 @@
                     </div>
 
                     {{-- Loop through Modes --}}
-                    {{-- Loop through Modes --}}
                     <div class="flex flex-col items-center gap-6 mt-4">
 
-                        @foreach (collect($form['modes'])->values() as $loopIndex => $mode)
+                        @foreach (collect($form['modes'])->values() as $modeIndex => $mode)
                             <div
                                 class="bg-white p-4 rounded-xl shadow border border-emerald-600 w-full max-w-5xl space-y-6 mx-auto">
                                 {{-- Mode Dropdown --}}
@@ -515,7 +514,7 @@
                                     <label class="block text-sm font-medium text-gray-700 text-center">
                                         Mode of Procurement
                                     </label>
-                                    <select wire:model.live="form.modes.{{ $loopIndex }}.mode_of_procurement_id"
+                                    <select wire:model.live="form.modes.{{ $modeIndex }}.mode_of_procurement_id"
                                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-center"
                                         required>
                                         <option value="">Select</option>
@@ -532,7 +531,7 @@
                                     @if ($mode['mode_of_procurement_id'] == 4 || (isset($mode['bid_schedules']) && count($mode['bid_schedules']) < 2))
                                         <div class="flex justify-center">
                                             <button type="button"
-                                                wire:click.prevent="addBidSchedule({{ $loopIndex }})"
+                                                wire:click.prevent="addBidSchedule({{ $modeIndex }})"
                                                 class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-medium shadow">
                                                 + Add
                                             </button>
@@ -549,7 +548,7 @@
                                                             <label class="text-sm font-medium text-gray-700">IB
                                                                 No.</label>
                                                             <input type="text"
-                                                                wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
+                                                                wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
                                                                 maxlength="12"
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-right" />
                                                         </div>
@@ -558,7 +557,7 @@
                                                             <label class="text-sm font-medium text-gray-700">Pre-Proc
                                                                 Conference</label>
                                                             <input type="date"
-                                                                wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
+                                                                wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                         </div>
 
@@ -566,7 +565,7 @@
                                                             <label class="text-sm font-medium text-gray-700">Ads/Post
                                                                 IB</label>
                                                             <input type="date"
-                                                                wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
+                                                                wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                         </div>
 
@@ -574,7 +573,7 @@
                                                             <label class="text-sm font-medium text-gray-700">Pre-Bid
                                                                 Conference</label>
                                                             <input type="date"
-                                                                wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
+                                                                wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                         </div>
 
@@ -583,7 +582,7 @@
                                                                 class="text-sm font-medium text-gray-700">Eligibility
                                                                 Check</label>
                                                             <input type="date"
-                                                                wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
+                                                                wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                         </div>
 
@@ -592,7 +591,7 @@
                                                                 of
                                                                 Bids</label>
                                                             <input type="date"
-                                                                wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
+                                                                wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                         </div>
 
@@ -603,9 +602,9 @@
 
                                                             {{-- Display for user (readonly) --}}
                                                             <input type="text"
-                                                                value="{{ $schedule['bidding_number'] ?? $bidIndex + 1 }}"
-                                                                readonly
+                                                                value="{{ $schedule['bidding_number'] }}" readonly
                                                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-right">
+
                                                         </div>
 
                                                         {{-- Bidding Date & Result (except mode 4) --}}
@@ -615,7 +614,7 @@
                                                                     class="text-sm font-medium text-gray-700">Bidding
                                                                     Date</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.bidding_date"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_date"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -624,7 +623,7 @@
                                                                     class="text-sm font-medium text-gray-700">Bidding
                                                                     Result</label>
                                                                 <select
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.bidding_result"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_result"
                                                                     class="mt-1 block w-full px-1 py-2 border border-gray-300 rounded-md">
                                                                     <option value="">Select</option>
                                                                     <option value="SUCCESSFUL">SUCCESSFUL</option>
@@ -639,7 +638,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">NTF
                                                                     No.</label>
                                                                 <input type="text"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.ntfNumber"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntfNumber"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -647,7 +646,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">NTF
                                                                     Bidding Date</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.ntfBiddingDate"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntfBiddingDate"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -655,7 +654,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">NTF
                                                                     Bidding Result</label>
                                                                 <select
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.ntfBiddingResult"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntfBiddingResult"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                                                                     <option value="">Select</option>
                                                                     <option value="SUCCESSFUL">SUCCESSFUL</option>
@@ -667,7 +666,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">RFQ
                                                                     No.</label>
                                                                 <input type="text"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.rfqNo"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfqNo"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -676,7 +675,7 @@
                                                                     class="text-sm font-medium text-gray-700">Canvass
                                                                     Date</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.postQualDate"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.postQualDate"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -685,7 +684,7 @@
                                                                     class="text-sm font-medium text-gray-700">Returned
                                                                     of Canvass</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.dateReturnedOfCanvass"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.dateReturnedOfCanvass"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -694,7 +693,7 @@
                                                                     class="text-sm font-medium text-gray-700">Abstract
                                                                     of Canvass</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $loopIndex }}.bid_schedules.{{ $bidIndex }}.abstractOfCanvassDate"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstractOfCanvassDate"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
                                                         @endif

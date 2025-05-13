@@ -447,9 +447,9 @@ class ProcurementPage extends Component
         // Create a default mode of procurement
         BidModeOfProcurement::create([
             'procID' => $this->procID,
-            'uid' => 'MOP1-1', // uid based on default mode_of_procurement_id and mode_order
+            'uid' => 'MOP1-0', // uid based on default mode_of_procurement_id and mode_order
             'mode_of_procurement_id' => 1,  // Default mode ID
-            'mode_order' => 1,
+            'mode_order' => 0,
         ]);
 
         $this->loadModeOfProcurement();
@@ -520,35 +520,29 @@ class ProcurementPage extends Component
     }
     public function addMode()
     {
-        $modeIndex = count($this->form['modes']) + 1;
-
-        // Generate a temporary uid that will later be updated when saved
-        $tempUid = "TEMP-{$modeIndex}-" . now()->timestamp;
-
         $newMode = [
-            'uid' => $tempUid, // Add temporary uid here
-            'mode_of_procurement_id' => '', // Initially empty for mode selection
-            'bid_schedules' => [], // Initially empty
+            'uid' => '',
+            'mode_of_procurement_id' => '',
+            'bid_schedules' => [],
         ];
 
-        // Add the new mode at the start of the array
-        array_unshift($this->form['modes'], $newMode);
+        // Insert new mode at the top
+        $this->form['modes'] = array_merge([$newMode], $this->form['modes'] ?? []);
+
+        // Reassign mode_order from bottom (1) to top (N)
+        $total = count($this->form['modes']);
+        foreach ($this->form['modes'] as $index => &$mode) {
+            $mode['mode_order'] = $total - $index; // Bottom = 1, top = N
+        }
     }
 
     public function addBidSchedule($modeIndex)
     {
-        // Get the current mode and its associated bid schedules
-        $mode = $this->form['modes'][$modeIndex]; // This works because we're passing $loopIndex here
-        $bidSchedules = $mode['bid_schedules'] ?? [];
-        $bidIndex = count($bidSchedules);  // This gives the index of the new bid
+        $existingSchedules = $this->form['modes'][$modeIndex]['bid_schedules'] ?? [];
 
-        // Generate a unique modeBidUid for this bid schedule
-        $modeId = $mode['mode_of_procurement_id'] ?? 'x'; // Use mode ID as part of the unique ID
-        $this->modeBidUID = "mp{$modeId}-{$modeIndex}-{$bidIndex}";
+        $newBiddingNumber = count($existingSchedules) + 1;
 
-        // Ensure we're appending a completely new bid schedule
         $newBidSchedule = [
-            'modeproc' => $this->modeBidUid,  // Unique ID for each bid schedule
             'ib_number' => '',
             'pre_proc_conference' => null,
             'ads_post_ib' => null,
@@ -557,7 +551,7 @@ class ProcurementPage extends Component
             'sub_open_bids' => null,
             'bidding_date' => null,
             'bidding_result' => '',
-            'bidding_number' => $bidIndex + 1,
+            'bidding_number' => $newBiddingNumber,
             'ntfNumber' => '',
             'ntfBiddingDate' => null,
             'ntfBiddingResult' => '',
@@ -567,9 +561,13 @@ class ProcurementPage extends Component
             'abstractOfCanvassDate' => null,
         ];
 
-        // Append this new bid schedule to the current mode's bid schedules
-        $this->form['modes'][$modeIndex]['bid_schedules'][] = $newBidSchedule;
+        // Add to top (for UX), but with highest bidding_number
+        $this->form['modes'][$modeIndex]['bid_schedules'] = array_merge(
+            [$newBidSchedule],
+            $existingSchedules
+        );
     }
+
 
     public function storeOrUpdateTab2()
     {
@@ -592,47 +590,51 @@ class ProcurementPage extends Component
                 'form.modes.*.bid_schedules.*.bidding_result' => 'nullable|string|max:255',
             ]);
 
-            foreach ($this->form['modes'] as $modeIndex => $mode) {
+            // Make a separate copy for sorting, so Livewire's original form data isn't mutated
+            $modesForProcessing = $this->form['modes'];
+
+            usort($modesForProcessing, function ($a, $b) {
+                return ($a['mode_order'] ?? 0) <=> ($b['mode_order'] ?? 0);
+            });
+
+            foreach ($modesForProcessing as $modeIndex => $mode) {
                 \Log::info("Processing Mode {$modeIndex}: ", $mode);
 
                 $modeId = $mode['mode_of_procurement_id'];
-                $modeOrder = $mode['mode_order'] ?? (BidModeOfProcurement::where('procID', $this->procID)->max('mode_order') ?? 0) + 1;
 
-                // Prevent duplicate mode_id = 1
+                // Use existing mode_order or fallback to current index + 1
+                $modeOrder = $mode['mode_order'] ?? ($modeIndex + 1);
+
+                // Prevent duplicate entry of mode_id = 1
                 if ($modeId == 1) {
                     $exists = BidModeOfProcurement::where('procID', $this->procID)
                         ->where('mode_of_procurement_id', 1)
                         ->exists();
 
-                    if ($exists) {
+                    if ($exists && (empty($mode['uid']) || str_starts_with($mode['uid'], 'TEMP-'))) {
                         throw new \Exception('Mode of procurement ID 1 is already added.');
                     }
                 }
 
                 \Log::info("Mode Order for Mode ID {$modeId}: {$modeOrder}");
 
-                // Handle existing mode by checking UID
+                // Handle update or create based on UID
                 $existingMode = !empty($mode['uid']) && !str_starts_with($mode['uid'], 'TEMP-')
                     ? BidModeOfProcurement::where('uid', $mode['uid'])->first()
                     : null;
 
-                // If existing mode exists, only update if mode_id changes
                 if ($existingMode) {
-                    // If mode_id is being updated to a different value (from 1 to another mode), recalculate the UID
                     if ($existingMode->mode_of_procurement_id == 1 && $modeId != 1) {
+                        // Special case: mode_id is changing from 1 to something else
                         \Log::info("Changing mode from 1 to {$modeId}, updating UID");
-                        // Update the mode with the new mode_id and recalculate UID only when changing from mode_id 1
                         $existingMode->update([
                             'mode_of_procurement_id' => $modeId,
                             'mode_order' => $modeOrder,
-                            'uid' => "MOP{$modeId}-{$modeOrder}", // Recalculate UID
+                            'uid' => "MOP{$modeId}-{$modeOrder}",
                         ]);
-
-                        // Update the UID in the form so we can track it
                         $uid = $existingMode->uid;
-                        $this->form['modes'][$modeIndex]['uid'] = $uid;
                     } else {
-                        // If the mode_id is not 1, just update the mode without changing the UID
+                        // Regular update
                         \Log::info("Mode ID remains the same, using existing UID.");
                         $existingMode->update([
                             'mode_of_procurement_id' => $modeId,
@@ -641,7 +643,7 @@ class ProcurementPage extends Component
                         $uid = $existingMode->uid;
                     }
                 } else {
-                    // Mode doesn't exist, create a new one with a new UID
+                    // Create new record
                     $uid = "MOP{$modeId}-{$modeOrder}";
                     \Log::info("Creating new mode with UID: {$uid}");
 
@@ -651,54 +653,69 @@ class ProcurementPage extends Component
                         'mode_of_procurement_id' => $modeId,
                         'mode_order' => $modeOrder,
                     ]);
-
-                    // Update the UID in the form for future reference
-                    $this->form['modes'][$modeIndex]['uid'] = $uid;
-                    $this->form['modes'][$modeIndex]['mode_order'] = $modeOrder;
                 }
 
-                // Save or update bid schedules
-                if (!empty($mode['bid_schedules'])) {
-                    foreach ($mode['bid_schedules'] as $bidIndex => $schedule) {
-                        \Log::info("Processing Bid Schedule for Mode UID: {$uid}", $schedule); // Debug log for bid schedule
+                // Update form reference for Livewire if needed
+                foreach ($this->form['modes'] as &$formMode) {
+                    if (
+                        (!empty($formMode['uid']) && $formMode['uid'] === $mode['uid']) ||
+                        (empty($formMode['uid']) && $formMode['mode_of_procurement_id'] === $mode['mode_of_procurement_id'])
+                    ) {
+                        $formMode['uid'] = $uid;
+                        $formMode['mode_order'] = $modeOrder;
+                        break;
+                    }
+                }
 
-                        // Normalize date fields to null if empty
+                // ADD BID
+                if (!empty($mode['bid_schedules'])) {
+                    // Reverse the schedule list to match the top-to-bottom UI order
+                    $reorderedSchedules = array_reverse($mode['bid_schedules']); // Reverse the order
+
+                    foreach ($reorderedSchedules as $i => $schedule) {
+                        // Assign new bidding_number
+                        $biddingNumber = $i + 1; // Ensure bidding_number starts at 1 and increases
+                        $schedule['bidding_number'] = $biddingNumber;
+
+                        // Construct UID based on the current mode's UID and the bidding number
+                        $scheduleUid = "{$uid}-{$biddingNumber}";
+                        \Log::info("Processing Bid Schedule for Mode UID: {$scheduleUid}", $schedule);
+
+                        // Normalize date fields
                         foreach (['pre_proc_conference', 'ads_post_ib', 'pre_bid_conf', 'eligibility_check', 'sub_open_bids', 'bidding_date'] as $field) {
                             $schedule[$field] = empty($schedule[$field]) ? null : $schedule[$field];
                         }
 
-                        // Prepare the data to save or update
+                        // Prepare save data
                         $data = [
                             'procID' => $this->procID,
-                            'uid' => $uid,
+                            'uid' => $scheduleUid,
                             'ib_number' => $schedule['ib_number'] ?? null,
                             'pre_proc_conference' => $schedule['pre_proc_conference'],
                             'ads_post_ib' => $schedule['ads_post_ib'],
                             'pre_bid_conf' => $schedule['pre_bid_conf'],
                             'eligibility_check' => $schedule['eligibility_check'],
                             'sub_open_bids' => $schedule['sub_open_bids'],
-                            'bidding_number' => $schedule['bidding_number'] ?? null,
+                            'bidding_number' => $biddingNumber,
                             'bidding_date' => $schedule['bidding_date'],
                             'bidding_result' => $schedule['bidding_result'] ?? null,
                         ];
 
-                        // Check if the schedule exists
                         $existingSchedule = BidSchedule::where('procID', $this->procID)
-                            ->where('uid', $uid)
-                            ->where('bidding_number', $schedule['bidding_number'])
+                            ->where('uid', $scheduleUid)
                             ->first();
 
                         if ($existingSchedule) {
-                            // If schedule exists, update it
-                            \Log::info("Updating existing schedule for bidding number {$schedule['bidding_number']}");
+                            \Log::info("Updating existing schedule for bidding number {$biddingNumber}");
                             $existingSchedule->update($data);
                         } else {
-                            // If schedule doesn't exist, create it
-                            \Log::info("Creating new schedule for bidding number {$schedule['bidding_number']}");
+                            \Log::info("Creating new schedule for bidding number {$biddingNumber}");
                             BidSchedule::create($data);
                         }
                     }
                 }
+
+
             }
 
             LivewireAlert::title('Saved Successfully!')
@@ -715,7 +732,7 @@ class ProcurementPage extends Component
                 ->position('top-end')
                 ->show();
         } catch (\Exception $e) {
-            \Log::error('Error Saving Data: ' . $e->getMessage()); // Log error details for debugging
+            \Log::error('Error Saving Data: ' . $e->getMessage());
             LivewireAlert::title('Error Saving Data!')
                 ->error()
                 ->text($e->getMessage())
@@ -724,8 +741,6 @@ class ProcurementPage extends Component
                 ->show();
         }
     }
-
-
 
     public function toggleModeSelect()
     {
