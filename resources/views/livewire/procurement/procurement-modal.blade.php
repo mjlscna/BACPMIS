@@ -753,7 +753,7 @@
                                 <div class="col-span-1">
                                     <label class="text-sm font-medium text-gray-700">Resolution Number</label>
                                     <input type="text" wire:model.defer="form.resolutionNumber"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-right" />
                                 </div>
                                 <div class="col-span-1">
                                     <label class="text-sm font-medium text-gray-700">Recommending for Award</label>
@@ -765,11 +765,30 @@
                                     <input type="date" wire:model.defer="form.noticeOfAward"
                                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                 </div>
-                                <div class="col-span-1">
-                                    <label class="text-sm font-medium text-gray-700">Awarded Amount</label>
-                                    <input type="number" wire:model.defer="form.awardedAmount"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                <div class="col-span-1" x-data="{ displayAwardedAmount: '{{ number_format((float) ($form['awardedAmount'] ?? 0), 2) }}' }">
+                                    <label for="awardedAmount" class="block text-sm font-medium text-gray-700 pl-5">
+                                        <span class="text-red-500 mr-1">*</span>Awarded Amount
+                                    </label>
+                                    <div class="relative">
+                                        <span
+                                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₱</span>
+                                        <input type="text" id="awardedAmount" x-model="displayAwardedAmount"
+                                            @input="displayAwardedAmount = $event.target.value.replace(/[^0-9.]/g, '')"
+                                            @blur="
+                let num = parseFloat(displayAwardedAmount.replace(/,/g, ''));
+                if (!isNaN(num)) {
+                    displayAwardedAmount = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+                    $wire.set('form.awardedAmount', num);
+                } else {
+                    displayAwardedAmount = '';
+                    $wire.set('form.awardedAmount', null);
+                }
+            "
+                                            class="mt-1 block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-right"
+                                            inputmode="decimal" />
+                                    </div>
                                 </div>
+
                                 <div class="col-span-">
                                     <label class="text-sm font-medium text-gray-700">Posting of Award on
                                         PhilGEPS</label>
