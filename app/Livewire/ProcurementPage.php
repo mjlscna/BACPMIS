@@ -10,6 +10,8 @@ use App\Models\Division;
 use App\Models\EndUser;
 use App\Models\FundSource;
 use App\Models\ModeOfProcurement;
+use App\Models\NtfBidSchedule;
+use App\Models\PostProcurement;
 use App\Models\Procurement;
 use App\Models\Province;
 use App\Models\Supplier;
@@ -19,11 +21,10 @@ use Illuminate\Validation\ValidationException;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 
 class ProcurementPage extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination;
     public $search = '';
     public string $procID = '';
 
@@ -44,7 +45,10 @@ class ProcurementPage extends Component
     public $venue_province_huc_id, $venue_specific_id, $category_venue;
     public $bid_schedules = [];
     public bool $showModeSelect = false;
-    // Form fields for procurement creation
+
+    public $hasSuccessfulBidOrNtf = false;
+    public bool $hasMode5 = false;
+    protected $paginationTheme = 'tailwind';
     public $form = [
         'pr_number' => '',
         'procurement_program_project' => '',
@@ -82,42 +86,61 @@ class ProcurementPage extends Component
         'bidding_result' => '',
 
     ];
+    public function render()
+    {
+        if (!isset($this->form['modes'])) {
+            $this->form['modes'] = [];
+        }
+        if (!isset($this->form['bid_schedules'])) {
+            $this->form['bid_schedules'] = [];
+        }
+        // Fetching required data for dropdowns and selects
+        $divisions = Division::all();
+        $suppliers = Supplier::all();
+        $categories = Category::all();
+        $clusterCommittees = ClusterCommittee::all();
+        $venueSpecifics = Venue::all();
+        $venueProvinces = Province::all();
+        $categoryVenues = CategoryVenue::all();
+        $endUsers = EndUser::all();
+        $fundSources = FundSource::all();
+        $modeOfProcurements = ModeOfProcurement::all();
 
+        $this->checkSuccessfulBidOrNtf();
 
-    protected $paginationTheme = 'tailwind';
+        if ($this->showCreateModal) {
+            return view('livewire.procurement.procurement-modal', [
+                'divisions' => $divisions,
+                'suppliers' => $suppliers,
+                'categories' => $categories,
+                'clusterCommittees' => $clusterCommittees,
+                'venueSpecifics' => $venueSpecifics,
+                'venueProvinces' => $venueProvinces,
+                'categoryVenues' => $categoryVenues,
+                'endUsers' => $endUsers,
+                'fundSources' => $fundSources,
+                'modeOfProcurements' => $modeOfProcurements,
+                'form' => $this->form,  // Pass the form data so it can be prefilled in the modal
+            ]);
+        }
 
-    protected $rules = [
-        'form.pr_number' => 'required|string|max:12',
-        'form.procurement_program_project' => 'required|string|max:255',
-        'form.date_receipt_advance' => 'nullable|date',
-        'form.date_receipt_signed' => 'nullable|date',
-        'form.rbac_sbac' => 'required|in:RBAC,SBAC',
-        'form.dtrack_no' => 'required|string|max:12',
-        'form.unicode' => 'nullable|string|max:30',
-        'form.divisions_id' => 'required|exists:divisions,id',
-        'form.cluster_committees_id' => 'required|exists:cluster_committees,id',
-        'form.category_id' => 'required|exists:categories,id',
-        'form.venue_specific_id' => 'nullable|exists:venues,id',
-        'form.venue_province_huc_id' => 'nullable|exists:provinces,id',
-        'form.category_venue' => 'nullable|string|max:255',
-        'form.approved_ppmp' => 'required|string|max:255',
-        'form.app_updated' => 'required|string|max:255',
-        'form.immediate_date_needed' => 'nullable|string|max:255',
-        'form.date_needed' => 'nullable|string|max:255',
-        'form.end_users_id' => 'nullable|string|max:255',
-        'form.early_procurement' => 'nullable|boolean',
-        'form.fund_source_id' => 'nullable|exists:fund_sources,id',
-        'form.expense_class' => 'nullable|string|max:255',
-        'form.abc' => 'required|numeric|min:0',
-        'form.abc_50k' => 'nullable|string|in:50k_or_less,above_50k',
-    ];
+        // For searching procurements (when modal is not shown)
+        $query = Procurement::query()->latest();
 
-    // Toggle between showing the list of procurements and creating a new one
+        if ($this->search) {
+            $query->where('pr_number', 'like', '%' . $this->search . '%')
+                ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
+        }
+
+        // Return the view for the procurement page with paginated results
+        return view('livewire.procurement-page', [
+            'procurements' => $query->paginate($this->perPage),
+        ]);
+    }
     public function toggleCreateForm()
     {
         $this->isCreating = !$this->isCreating;
     }
-    // Open the modal for creating a procurement
     public function openCreateModal()
     {
         // dd('BAC' . now()->format('YmdHis') . rand(100, 999));
@@ -132,17 +155,111 @@ class ProcurementPage extends Component
         $procurement = Procurement::findOrFail($id);
         $this->procID = $procurement->procID;
 
-        // Load all modes for this procurement, ordered by the latest mode (created_at or updated_at)
+        // Load tab 1 data (basic procurement info)
+        $this->update1($procurement);
+
+        // Load tab 2 data (modes and bid schedules)
+        $this->update2();
+
+        // Load tab 3 data (check successful bids/NTF)
+        $this->update3();
+
+        // Decide which tab to activate
+        $this->activeTab = 1;
+        if (!empty($this->form['modes'])) {
+            $this->activeTab = 2;
+        }
+        if ($this->hasSuccessfulBidOrNtf) {
+            $this->activeTab = 3;
+        }
+
+        $this->showCreateModal = true;
+    }
+    public function closeCreateModal()
+    {
+        $this->showCreateModal = false;  // Close the modal
+        $this->editingId = null; // Clear the editingId
+        $this->resetForm();              // Reset the form fields
+    }
+    public function switchTab(int $tab)
+    {
+        switch ($tab) {
+            case 1:
+                $this->activeTab = 1;
+                break;
+            case 2:
+                if (!empty($this->procID)) {
+                    $this->activeTab = 2;
+                }
+                break;
+            case 3:
+                if (!empty($this->procID) && ($this->hasSuccessfulBidOrNtf || $this->hasProcurementMode(5))) {
+                    $this->activeTab = 3;
+                }
+                break;
+            default:
+                // Allow or disallow switching to other tabs
+                // $this->activeTab = $tab;
+                break;
+        }
+    }
+
+    protected function update1(Procurement $procurement)
+    {
+        $this->form = array_merge($this->form, [
+            'pr_number' => $procurement->pr_number,
+            'procurement_program_project' => $procurement->procurement_program_project,
+            'date_receipt_advance' => $procurement->date_receipt_advance,
+            'date_receipt_signed' => $procurement->date_receipt_signed,
+            'rbac_sbac' => $procurement->rbac_sbac,
+            'dtrack_no' => $procurement->dtrack_no,
+            'unicode' => $procurement->unicode,
+            'divisions_id' => $procurement->divisions_id,
+            'cluster_committees_id' => $procurement->cluster_committees_id,
+            'category_id' => $procurement->category_id,
+            'venue_specific_id' => $procurement->venue_specific_id ?? '',
+            'venue_province_huc_id' => $procurement->venue_province_huc_id ?? '',
+            'category_venue' => $procurement->category_venue,
+            'immediate_date_needed' => $procurement->immediate_date_needed,
+            'date_needed' => $procurement->date_needed,
+            'end_users_id' => $procurement->end_users_id,
+            'early_procurement' => (bool) $procurement->early_procurement,
+            'fund_source_id' => $procurement->fund_source_id,
+            'expense_class' => $procurement->expense_class,
+            'abc' => $procurement->abc,
+            'abc_50k' => $procurement->abc >= 50000 ? 'above_50k' : '50k_or_less',
+        ]);
+
+        // Handle approved_ppmp field
+        $this->otherPPMP = '';
+        if (in_array($procurement->approved_ppmp, ['Yes', 'No'])) {
+            $this->form['approved_ppmp'] = $procurement->approved_ppmp;
+        } else {
+            $this->form['approved_ppmp'] = 'Others';
+            $this->otherPPMP = $procurement->approved_ppmp;
+        }
+
+        // Handle app_updated field
+        $this->otherAPP = '';
+        if (in_array($procurement->app_updated, ['Yes', 'No'])) {
+            $this->form['app_updated'] = $procurement->app_updated;
+            $this->otherAPP = '';
+        } else {
+            $this->form['app_updated'] = 'Others';
+            $this->otherAPP = $procurement->app_updated;
+        }
+    }
+
+    protected function update2()
+    {
         $modes = BidModeOfProcurement::where('procID', $this->procID)
-            ->orderByDesc('created_at')  // Order by the latest updated_at
+            ->orderByDesc('created_at')
             ->get();
 
-        // ✅ If there's more than one mode, exclude mode_id = 1
         if ($modes->count() > 1) {
             $modes = $modes->filter(fn($mode) => $mode->mode_of_procurement_id != 1);
         }
 
-        // Build the modes array with associated schedules
         $this->form['modes'] = $modes->map(function ($mode) {
             $schedules = BidSchedule::where('procID', $mode->procID)
                 ->where('uid', $mode->uid)
@@ -168,80 +285,12 @@ class ProcurementPage extends Component
                 'bid_schedules' => $schedules,
             ];
         })->values()->toArray();
-
-
-        // Populate other fields
-        $this->form = array_merge($this->form, [
-            'pr_number' => $procurement->pr_number,
-            'procurement_program_project' => $procurement->procurement_program_project,
-            'date_receipt_advance' => $procurement->date_receipt_advance,
-            'date_receipt_signed' => $procurement->date_receipt_signed,
-            'rbac_sbac' => $procurement->rbac_sbac,
-            'dtrack_no' => $procurement->dtrack_no,
-            'unicode' => $procurement->unicode,
-            'divisions_id' => $procurement->divisions_id,
-            'cluster_committees_id' => $procurement->cluster_committees_id,
-            'category_id' => $procurement->category_id,
-            'venue_specific_id' => $procurement->venue_specific_id ?? '',
-            'venue_province_huc_id' => $procurement->venue_province_huc_id ?? '',
-            'category_venue' => $procurement->category_venue,
-            'immediate_date_needed' => $procurement->immediate_date_needed,
-            'date_needed' => $procurement->date_needed,
-            'end_users_id' => $procurement->end_users_id,
-            'early_procurement' => (bool) $procurement->early_procurement,
-            'fund_source_id' => $procurement->fund_source_id,
-            'expense_class' => $procurement->expense_class,
-            'abc' => $procurement->abc,
-            'abc_50k' => $procurement->abc >= 50000 ? 'above_50k' : '50k_or_less',
-        ]);
-
-        // Handle custom approved_ppmp and app_updated
-        $this->otherPPMP = '';
-        if (in_array($procurement->approved_ppmp, ['Yes', 'No'])) {
-            $this->form['approved_ppmp'] = $procurement->approved_ppmp;
-        } else {
-            $this->form['approved_ppmp'] = 'Others';
-            $this->otherPPMP = $procurement->approved_ppmp;
-        }
-
-        $this->otherAPP = '';
-        if (in_array($procurement->app_updated, ['Yes', 'No'])) {
-            $this->form['app_updated'] = $procurement->app_updated;
-            $this->otherAPP = '';
-        } else {
-            $this->form['app_updated'] = 'Others';
-            $this->otherAPP = $procurement->app_updated;
-        }
-
-        $this->activeTab = 1;
-        if (!empty($this->form['modes'][0]['mode_of_procurement_id'] ?? null)) {
-            $this->activeTab = 2;
-        }
-        $this->showCreateModal = true;
     }
 
-
-    // Close the modal and reset the form
-    public function closeCreateModal()
+    protected function update3()
     {
-        $this->showCreateModal = false;  // Close the modal
-        $this->editingId = null; // Clear the editingId
-        $this->resetForm();              // Reset the form fields
+        $this->checkSuccessfulBidOrNtf();
     }
-
-    // Switch the active tab
-    public function switchTab($tab)
-    {
-        if (
-            $tab == 2 &&
-            !empty($this->procID)
-        ) {
-            $this->activeTab = 2;
-        } elseif ($tab == 1) {
-            $this->activeTab = 1;
-        }
-    }
-
     public function updatedFormAbc($value)
     {
         // Remove ₱ and commas if pasted
@@ -273,236 +322,6 @@ class ProcurementPage extends Component
             $this->form['category_venue'] = null;
         }
     }
-
-    public function updateProcurement()
-    {
-        try {
-            // Log the value before any processing
-            logger('Before update - approved_ppmp: ' . $this->form['approved_ppmp']);
-
-            // Handle override if "Others" is selected
-            if (($this->form['approved_ppmp'] ?? '') === 'Others') {
-                $this->form['approved_ppmp'] = $this->otherPPMP;
-            }
-
-            // Handle 'app_updated' override if "Others" is selected
-            if (($this->form['app_updated'] ?? '') === 'Others') {
-                $this->form['app_updated'] = $this->otherAPP;
-            }
-
-            // Handle and format the 'abc' value
-            $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
-
-            // Validate required fields
-            $this->validate([
-                'form.pr_number' => 'required',
-                'form.procurement_program_project' => 'required',
-                'form.rbac_sbac' => 'required',
-                'form.dtrack_no' => 'required',
-                'form.divisions_id' => 'required',
-                'form.cluster_committees_id' => 'required',
-                'form.category_id' => 'required',
-                'form.abc' => 'required',
-            ]);
-
-            // Handle optional fields
-            $optionalFields = [
-                'date_receipt_advance',
-                'date_receipt_signed',
-                'unicode',
-                'venue_specific_id',
-                'venue_province_huc_id',
-                'category_venue',
-                'immediate_date_needed',
-                'date_needed',
-                'end_users_id',
-                'fund_source_id',
-                'expense_class',
-            ];
-
-            foreach ($optionalFields as $field) {
-                $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
-            }
-
-            // Log the value after processing
-            logger('After update - approved_ppmp: ' . $this->form['approved_ppmp']);
-        } catch (ValidationException $e) {
-            LivewireAlert::title('ERROR!')
-                ->error()
-                ->text('Required Fields Missing!')
-                ->toast()
-                ->position('top-end')
-                ->show();
-            return;
-        }
-
-        // Update the procurement record
-        Procurement::findOrFail($this->editingId)->update($this->form);
-        // Restore radio button logic for 'Others'
-        if (!in_array($this->form['approved_ppmp'], ['Yes', 'No'])) {
-            $this->otherPPMP = $this->form['approved_ppmp'];
-            $this->form['approved_ppmp'] = 'Others';
-        }
-
-        if (!in_array($this->form['app_updated'], ['Yes', 'No'])) {
-            $this->otherAPP = $this->form['app_updated'];
-            $this->form['app_updated'] = 'Others';
-        }
-        // Show success toast
-        LivewireAlert::title('Updated!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
-    }
-
-    public function createProcurement()
-    {
-        try {
-            // Handle and format the 'abc' value to ensure it's a float
-            $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
-
-            // Validate required fields
-            $this->validate([
-                'form.pr_number' => 'required',
-                'form.procurement_program_project' => 'required',
-                'form.rbac_sbac' => 'required',
-                'form.dtrack_no' => 'required',
-                'form.divisions_id' => 'required',
-                'form.cluster_committees_id' => 'required',
-                'form.category_id' => 'required',
-                'form.abc' => 'required',
-            ]);
-
-            // Validate conditionally required fields if 'others' is selected
-            if ($this->form['approved_ppmp'] === 'others') {
-                $this->validate([
-                    'otherPPMP' => 'required|string|max:255', // Ensure otherPPMP is provided if 'others' is selected
-                ]);
-            }
-
-            if ($this->form['app_updated'] === 'others') {
-                $this->validate([
-                    'otherAPP' => 'required|string|max:255', // Ensure otherAPP is provided if 'others' is selected
-                ]);
-            }
-
-            // Handle optional fields (ensure they are null if not provided)
-            $this->form['date_receipt_advance'] = empty($this->form['date_receipt_advance']) ? null : $this->form['date_receipt_advance'];
-            $this->form['date_receipt_signed'] = empty($this->form['date_receipt_signed']) ? null : $this->form['date_receipt_signed'];
-            $this->form['unicode'] = empty($this->form['unicode']) ? null : $this->form['unicode'];
-            $this->form['venue_specific_id'] = empty($this->form['venue_specific_id']) ? null : $this->form['venue_specific_id'];
-            $this->form['venue_province_huc_id'] = empty($this->form['venue_province_huc_id']) ? null : $this->form['venue_province_huc_id'];
-            $this->form['category_venue'] = empty($this->form['category_venue']) ? null : $this->form['category_venue'];
-            $this->form['immediate_date_needed'] = empty($this->form['immediate_date_needed']) ? null : $this->form['immediate_date_needed'];
-            $this->form['date_needed'] = empty($this->form['date_needed']) ? null : $this->form['date_needed'];
-            $this->form['end_users_id'] = empty($this->form['end_users_id']) ? null : $this->form['end_users_id'];
-            $this->form['fund_source_id'] = empty($this->form['fund_source_id']) ? null : $this->form['fund_source_id'];
-            $this->form['expense_class'] = empty($this->form['expense_class']) ? null : $this->form['expense_class'];
-
-        } catch (ValidationException $e) {
-            // If validation fails, show the error alert
-            LivewireAlert::title('ERROR!')
-                ->error()
-                ->text('Required Fields Missing!')
-                ->toast()
-                ->position('top-end')
-                ->show();
-            return;
-        }
-        $this->procID = 'BAC' . now()->format('YmdHis');
-        // Create the procurement record
-        Procurement::create([
-            'procID' => $this->procID,
-            'pr_number' => $this->form['pr_number'],
-            'procurement_program_project' => $this->form['procurement_program_project'],
-            'date_receipt_advance' => $this->form['date_receipt_advance'],
-            'date_receipt_signed' => $this->form['date_receipt_signed'],
-            'rbac_sbac' => $this->form['rbac_sbac'],
-            'dtrack_no' => $this->form['dtrack_no'],
-            'unicode' => $this->form['unicode'],
-            'divisions_id' => $this->form['divisions_id'],
-            'cluster_committees_id' => $this->form['cluster_committees_id'],
-            'category_id' => $this->form['category_id'],
-            'venue_specific_id' => $this->form['venue_specific_id'],
-            'venue_province_huc_id' => $this->form['venue_province_huc_id'],
-            'category_venue' => $this->form['category_venue'],
-            'approved_ppmp' => $this->form['approved_ppmp'] === 'Others'
-                ? $this->otherPPMP
-                : $this->form['approved_ppmp'],
-            'app_updated' => $this->form['app_updated'] === 'Others'
-                ? $this->otherAPP
-                : $this->form['app_updated'],
-            'immediate_date_needed' => $this->form['immediate_date_needed'],
-            'date_needed' => $this->form['date_needed'],
-            'end_users_id' => $this->form['end_users_id'],
-            'early_procurement' => $this->form['early_procurement'],
-            'fund_source_id' => $this->form['fund_source_id'],
-            'expense_class' => $this->form['expense_class'],
-            'abc' => $this->form['abc'],
-            'abc_50k' => $this->form['abc'] >= 50000 ? 'above_50k' : '50k_or_less',
-        ]);
-
-
-        // Create a default mode of procurement
-        BidModeOfProcurement::create([
-            'procID' => $this->procID,
-            'uid' => 'MOP1-0', // uid based on default mode_of_procurement_id and mode_order
-            'mode_of_procurement_id' => 1,  // Default mode ID
-            'mode_order' => 0,
-        ]);
-
-        $this->loadModeOfProcurement();
-
-        // Set the active tab for the UI update
-        $this->activeTab = 2;
-
-        LivewireAlert::title('Saved!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
-    }
-
-    public function confirmDelete($id)
-    {
-        // Show confirmation alert
-        LivewireAlert::title('Are you sure you want to delete this item?')
-            ->warning()
-            ->withConfirmButton()
-            ->confirmButtonText('Confirm')
-            ->confirmButtonColor('red')
-            ->withCancelButton()
-            ->cancelButtonText('Cancel')
-            ->position('center')
-            ->onConfirm('deleteProcurement', ['id' => $id]) // Passing the ID to the deleteProcurement method
-            ->show();
-    }
-
-    public function deleteProcurement($id)
-    {
-        // Retrieve the procurement by ID and soft delete it
-        Procurement::where('id', '=', $id)->delete();
-
-
-        // Show success alert
-        LivewireAlert::title('Item deleted successfully!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
-    }
-    // Tab-2
-    public function reindexBiddingNumbers()
-    {
-        foreach ($this->form['modes'] as $modeIndex => $mode) {
-            if (isset($mode['bid_schedules']) && is_array($mode['bid_schedules'])) {
-                foreach ($mode['bid_schedules'] as $bidIndex => $schedule) {
-                    $this->form['modes'][$modeIndex]['bid_schedules'][$bidIndex]['bidding_number'] = $bidIndex + 1;
-                }
-            }
-        }
-    }
     public function loadModeOfProcurement()
     {
         $this->form['modes'] = BidModeOfProcurement::where('procID', $this->procID)
@@ -517,6 +336,417 @@ class ProcurementPage extends Component
             ->values()
             ->toArray();
 
+    }
+    public function toggleModeSelect()
+    {
+        $this->showModeSelect = true;
+    }
+    public function saveProcurement()
+    {
+        try {
+            // Handle 'Others' override values
+            if (($this->form['approved_ppmp'] ?? '') === 'Others') {
+                $this->form['approved_ppmp'] = $this->otherPPMP;
+            }
+            if (($this->form['app_updated'] ?? '') === 'Others') {
+                $this->form['app_updated'] = $this->otherAPP;
+            }
+
+            // Format the 'abc' field
+            $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
+
+            // Required validations
+            $this->validate([
+                'form.pr_number' => 'required',
+                'form.procurement_program_project' => 'required',
+                'form.rbac_sbac' => 'required',
+                'form.dtrack_no' => 'required',
+                'form.divisions_id' => 'required',
+                'form.cluster_committees_id' => 'required',
+                'form.category_id' => 'required',
+                'form.abc' => 'required',
+            ]);
+
+            // Conditional validation for 'Others'
+            if ($this->form['approved_ppmp'] === 'others') {
+                $this->validate(['otherPPMP' => 'required|string|max:255']);
+            }
+            if ($this->form['app_updated'] === 'others') {
+                $this->validate(['otherAPP' => 'required|string|max:255']);
+            }
+
+            // Nullify optional fields if empty
+            $optionalFields = [
+                'date_receipt_advance',
+                'date_receipt_signed',
+                'unicode',
+                'venue_specific_id',
+                'venue_province_huc_id',
+                'category_venue',
+                'immediate_date_needed',
+                'date_needed',
+                'end_users_id',
+                'fund_source_id',
+                'expense_class'
+            ];
+
+            foreach ($optionalFields as $field) {
+                $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
+            }
+
+        } catch (ValidationException $e) {
+            LivewireAlert::title('ERROR!')
+                ->error()
+                ->text('Required Fields Missing!')
+                ->toast()
+                ->position('top-end')
+                ->show();
+            return;
+        }
+
+        // If editing: update record
+        if ($this->editingId) {
+            Procurement::findOrFail($this->editingId)->update($this->form);
+
+            // Restore 'Others' state for UI
+            if (!in_array($this->form['approved_ppmp'], ['Yes', 'No'])) {
+                $this->otherPPMP = $this->form['approved_ppmp'];
+                $this->form['approved_ppmp'] = 'Others';
+            }
+            if (!in_array($this->form['app_updated'], ['Yes', 'No'])) {
+                $this->otherAPP = $this->form['app_updated'];
+                $this->form['app_updated'] = 'Others';
+            }
+
+            LivewireAlert::title('Updated!')
+                ->success()
+                ->toast()
+                ->position('top-end')
+                ->show();
+
+        } else {
+            // If creating: assign procID and create
+            $this->procID = 'BAC' . now()->format('YmdHis');
+
+            Procurement::create(array_merge($this->form, [
+                'procID' => $this->procID,
+                'early_procurement' => $this->form['early_procurement'] ?? null,
+                'abc_50k' => $this->form['abc'] >= 50000 ? 'above_50k' : '50k_or_less',
+            ]));
+
+            // Create default mode of procurement
+            BidModeOfProcurement::create([
+                'procID' => $this->procID,
+                'uid' => 'MOP1-0',
+                'mode_of_procurement_id' => 1,
+                'mode_order' => 0,
+            ]);
+
+            $this->loadModeOfProcurement();
+            $this->activeTab = 2;
+
+            LivewireAlert::title('Saved!')
+                ->success()
+                ->toast()
+                ->position('top-end')
+                ->show();
+        }
+    }
+    public function saveTab2()
+    {
+        try {
+            \Log::info('Form Data:', $this->form);
+
+            $this->validateTab2();
+            $modesForProcessing = $this->prepareModes();
+
+            foreach ($modesForProcessing as $modeIndex => $mode) {
+                $this->processMode($mode, $modeIndex);
+            }
+
+            LivewireAlert::title('Saved Successfully!')
+                ->success()->toast()->position('top-end')->show();
+
+            // Check if any mode has mode_of_procurement_id == 5
+            $this->hasMode5 = collect($modesForProcessing)
+                ->pluck('mode_of_procurement_id')
+                ->contains(5);
+
+            if ($this->hasProcurementMode(5)) {
+                $this->activeTab = 3;
+            } else {
+                $this->checkSuccessfulBidOrNtf();
+
+                if ($this->hasSuccessfulBidOrNtf) {
+                    $this->activeTab = 3;
+                }
+            }
+        } catch (ValidationException $e) {
+            LivewireAlert::title('Validation Failed!')
+                ->error()->text($e->getMessage())->toast()->position('top-end')->show();
+        } catch (\Exception $e) {
+            \Log::error('Error Saving Data: ' . $e->getMessage());
+            LivewireAlert::title('Error Saving Data!')
+                ->error()->text($e->getMessage())->toast()->position('top-end')->show();
+        }
+    }
+
+    public function savePost()
+    {
+        try {
+            // Validate input
+            $this->validate([
+                'form.bidEvaluationDate' => 'nullable|date',
+                'form.postQualDate' => 'nullable|date',
+                'form.resolutionNumber' => 'nullable|string|max:255',
+                'form.recommendingForAward' => 'nullable|date',
+                'form.noticeOfAward' => 'nullable|date',
+                'form.awardedAmount' => 'nullable|numeric|min:0',
+                'form.dateOfPostingOfAwardOnPhilGEPS' => 'nullable|date',
+            ]);
+
+            // Normalize awardedAmount
+            if (!empty($this->form['awardedAmount'])) {
+                $this->form['awardedAmount'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['awardedAmount']));
+            }
+
+            $data = [
+                'bid_evaluation_date' => $this->form['bidEvaluationDate'] ?? null,
+                'post_qual_date' => $this->form['postQualDate'] ?? null,
+                'resolution_number' => $this->form['resolutionNumber'] ?? null,
+                'recommending_for_award' => $this->form['recommendingForAward'] ?? null,
+                'notice_of_award' => $this->form['noticeOfAward'] ?? null,
+                'awarded_amount' => $this->form['awardedAmount'] ?? null,
+                'date_of_posting_of_award_on_philgeps' => $this->form['dateOfPostingOfAwardOnPhilGEPS'] ?? null,
+            ];
+
+            if ($this->editingId) {
+                $procurement = Procurement::findOrFail($this->editingId);
+
+                PostProcurement::updateOrCreate(
+                    ['procID' => $procurement->procID],
+                    $data
+                );
+
+                LivewireAlert::title('Updated!')
+                    ->success()->toast()->position('top-end')->show();
+
+            } else {
+                PostProcurement::create([
+                    'procID' => $this->procID,
+                    ...$data,
+                ]);
+
+                LivewireAlert::title('Saved!')
+                    ->success()->toast()->position('top-end')->show();
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Error saving PostProcurement: ' . $e->getMessage());
+
+            LivewireAlert::title('Save Failed')
+                ->error()->text('An error occurred while saving.')->toast()->position('top-end')->show();
+        }
+    }
+
+
+    public function saveTabData()
+    {
+        switch ($this->activeTab) {
+            case 1:
+                $this->saveProcurement();
+                break;
+
+            case 2:
+                $this->saveTab2();
+                break;
+
+            case 3:
+                $this->savePost();
+                break;
+        }
+    }
+    public function deleteProcurement($id)
+    {
+        // Retrieve the procurement by ID and soft delete it
+        Procurement::where('id', '=', $id)->delete();
+
+
+        // Show success alert
+        LivewireAlert::title('Item deleted successfully!')
+            ->success()
+            ->toast()
+            ->position('top-end')
+            ->show();
+    }
+    public function confirmDelete($id)
+    {
+        // Show confirmation alert
+        LivewireAlert::title('Are you sure you want to delete this item?')
+            ->warning()
+            ->withConfirmButton()
+            ->confirmButtonText('Confirm')
+            ->confirmButtonColor('red')
+            ->withCancelButton()
+            ->cancelButtonText('Cancel')
+            ->position('center')
+            ->onConfirm('deleteProcurement', ['id' => $id]) // Passing the ID to the deleteProcurement method
+            ->show();
+    }
+    private function validateTab2()
+    {
+        $this->validate([
+            'form.modes' => 'required|array',
+            'form.modes.*.mode_of_procurement_id' => 'required|exists:mode_of_procurements,id',
+            'form.modes.*.bid_schedules' => 'nullable|array',
+            'form.modes.*.bid_schedules.*.ib_number' => 'nullable|string|max:255',
+            'form.modes.*.bid_schedules.*.pre_proc_conference' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.ads_post_ib' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.pre_bid_conf' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.eligibility_check' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.sub_open_bids' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.bidding_number' => 'nullable|integer|min:0|max:255',
+            'form.modes.*.bid_schedules.*.bidding_date' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.bidding_result' => 'nullable|string|max:255',
+            'form.modes.*.bid_schedules.*.ntf_no' => 'nullable|string|max:255',
+            'form.modes.*.bid_schedules.*.ntf_bidding_date' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.ntf_bidding_result' => 'nullable|string|max:255',
+            'form.modes.*.bid_schedules.*.rfq_no' => 'nullable|string|max:255',
+            'form.modes.*.bid_schedules.*.canvass_date' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.date_returned_of_canvass' => 'nullable|date',
+            'form.modes.*.bid_schedules.*.abstract_of_canvass_date' => 'nullable|date',
+        ]);
+    }
+
+    private function prepareModes()
+    {
+        $modes = $this->form['modes'];
+        usort($modes, fn($a, $b) => ($a['mode_order'] ?? 0) <=> ($b['mode_order'] ?? 0));
+        return $modes;
+    }
+
+    private function processMode(array $mode, int $modeIndex)
+    {
+        \Log::info("Processing Mode {$modeIndex}:", $mode);
+        $modeId = $mode['mode_of_procurement_id'];
+        $modeOrder = $mode['mode_order'] ?? ($modeIndex + 1);
+
+        $this->preventDuplicateMode($modeId, $mode);
+        $existingMode = $this->updateOrCreateBidMode($mode, $modeId, $modeOrder);
+        $this->syncModeUidToForm($mode, $existingMode->uid, $modeOrder);
+
+        if (!empty($mode['bid_schedules'])) {
+            $this->processSchedules($mode['bid_schedules'], $existingMode->uid, $modeId);
+        }
+    }
+
+    private function preventDuplicateMode($modeId, $mode)
+    {
+        if ($modeId == 1) {
+            $exists = BidModeOfProcurement::where('procID', $this->procID)
+                ->where('mode_of_procurement_id', 1)
+                ->exists();
+
+            if ($exists && (empty($mode['uid']) || str_starts_with($mode['uid'], 'TEMP-'))) {
+                throw new \Exception('Mode of procurement ID 1 is already added.');
+            }
+        }
+    }
+
+    private function updateOrCreateBidMode($mode, $modeId, $modeOrder)
+    {
+        $existingMode = !empty($mode['uid']) && !str_starts_with($mode['uid'], 'TEMP-')
+            ? BidModeOfProcurement::where('uid', $mode['uid'])->first()
+            : null;
+
+        if ($existingMode) {
+            $update = [
+                'mode_of_procurement_id' => $modeId,
+                'mode_order' => $modeOrder,
+            ];
+
+            if ($existingMode->mode_of_procurement_id == 1 && $modeId != 1) {
+                $update['uid'] = "MOP{$modeId}-{$modeOrder}";
+            }
+
+            $existingMode->update($update);
+        } else {
+            $uid = "MOP{$modeId}-{$modeOrder}";
+            $existingMode = BidModeOfProcurement::create([
+                'procID' => $this->procID,
+                'uid' => $uid,
+                'mode_of_procurement_id' => $modeId,
+                'mode_order' => $modeOrder,
+            ]);
+        }
+
+        return $existingMode;
+    }
+
+    private function syncModeUidToForm($mode, $uid, $modeOrder)
+    {
+        foreach ($this->form['modes'] as &$formMode) {
+            if (
+                (!empty($formMode['uid']) && $formMode['uid'] === $mode['uid']) ||
+                (empty($formMode['uid']) && $formMode['mode_of_procurement_id'] === $mode['mode_of_procurement_id'])
+            ) {
+                $formMode['uid'] = $uid;
+                $formMode['mode_order'] = $modeOrder;
+                break;
+            }
+        }
+    }
+
+    private function processSchedules(array $schedules, string $uid, int $modeId)
+    {
+        $reorderedSchedules = array_reverse($schedules);
+
+        foreach ($reorderedSchedules as $i => $schedule) {
+            $biddingNumber = $i + 1;
+            $scheduleUid = "{$uid}-{$biddingNumber}";
+
+            \Log::info("Processing Schedule for UID: {$scheduleUid}", $schedule);
+
+            $baseData = [
+                'procID' => $this->procID,
+                'uid' => $scheduleUid,
+                'ib_number' => $schedule['ib_number'] ?? null,
+                'pre_proc_conference' => $schedule['pre_proc_conference'] ?? null,
+                'ads_post_ib' => $schedule['ads_post_ib'] ?? null,
+                'pre_bid_conf' => $schedule['pre_bid_conf'] ?? null,
+                'eligibility_check' => $schedule['eligibility_check'] ?? null,
+                'sub_open_bids' => $schedule['sub_open_bids'] ?? null,
+                'bidding_number' => $biddingNumber,
+            ];
+
+            if ($modeId == 4) {
+                $ntfData = array_merge($baseData, [
+                    'ntf_no' => $schedule['ntf_no'] ?? null,
+                    'ntf_bidding_date' => $schedule['ntf_bidding_date'] ?? null,
+                    'ntf_bidding_result' => $schedule['ntf_bidding_result'] ?? null,
+                    'rfq_no' => $schedule['rfq_no'] ?? null,
+                    'canvass_date' => $schedule['canvass_date'] ?? null,
+                    'date_returned_of_canvass' => $schedule['date_returned_of_canvass'] ?? null,
+                    'abstract_of_canvass_date' => $schedule['abstract_of_canvass_date'] ?? null,
+                ]);
+
+                NtfBidSchedule::updateOrCreate(
+                    ['procID' => $this->procID, 'uid' => $scheduleUid],
+                    $ntfData
+                );
+
+            } else {
+                $bidData = array_merge($baseData, [
+                    'bidding_date' => $schedule['bidding_date'] ?? null,
+                    'bidding_result' => $schedule['bidding_result'] ?? null,
+                ]);
+
+                BidSchedule::updateOrCreate(
+                    ['procID' => $this->procID, 'uid' => $scheduleUid],
+                    $bidData
+                );
+            }
+        }
     }
     public function addMode()
     {
@@ -567,187 +797,36 @@ class ProcurementPage extends Component
             $existingSchedules
         );
     }
-
-
-    public function storeOrUpdateTab2()
+    public function reindexBiddingNumbers()
     {
-        try {
-            \Log::info('Form Data:', $this->form);
-
-            // Validate form data
-            $this->validate([
-                'form.modes' => 'required|array',
-                'form.modes.*.mode_of_procurement_id' => 'required|exists:mode_of_procurements,id',
-                'form.modes.*.bid_schedules' => 'nullable|array',
-                'form.modes.*.bid_schedules.*.ib_number' => 'nullable|string|max:255',
-                'form.modes.*.bid_schedules.*.pre_proc_conference' => 'nullable|date',
-                'form.modes.*.bid_schedules.*.ads_post_ib' => 'nullable|date',
-                'form.modes.*.bid_schedules.*.pre_bid_conf' => 'nullable|date',
-                'form.modes.*.bid_schedules.*.eligibility_check' => 'nullable|date',
-                'form.modes.*.bid_schedules.*.sub_open_bids' => 'nullable|date',
-                'form.modes.*.bid_schedules.*.bidding_number' => 'nullable|integer|min:0|max:255',
-                'form.modes.*.bid_schedules.*.bidding_date' => 'nullable|date',
-                'form.modes.*.bid_schedules.*.bidding_result' => 'nullable|string|max:255',
-            ]);
-
-            // Make a separate copy for sorting, so Livewire's original form data isn't mutated
-            $modesForProcessing = $this->form['modes'];
-
-            usort($modesForProcessing, function ($a, $b) {
-                return ($a['mode_order'] ?? 0) <=> ($b['mode_order'] ?? 0);
-            });
-
-            foreach ($modesForProcessing as $modeIndex => $mode) {
-                \Log::info("Processing Mode {$modeIndex}: ", $mode);
-
-                $modeId = $mode['mode_of_procurement_id'];
-
-                // Use existing mode_order or fallback to current index + 1
-                $modeOrder = $mode['mode_order'] ?? ($modeIndex + 1);
-
-                // Prevent duplicate entry of mode_id = 1
-                if ($modeId == 1) {
-                    $exists = BidModeOfProcurement::where('procID', $this->procID)
-                        ->where('mode_of_procurement_id', 1)
-                        ->exists();
-
-                    if ($exists && (empty($mode['uid']) || str_starts_with($mode['uid'], 'TEMP-'))) {
-                        throw new \Exception('Mode of procurement ID 1 is already added.');
-                    }
+        foreach ($this->form['modes'] as $modeIndex => $mode) {
+            if (isset($mode['bid_schedules']) && is_array($mode['bid_schedules'])) {
+                foreach ($mode['bid_schedules'] as $bidIndex => $schedule) {
+                    $this->form['modes'][$modeIndex]['bid_schedules'][$bidIndex]['bidding_number'] = $bidIndex + 1;
                 }
-
-                \Log::info("Mode Order for Mode ID {$modeId}: {$modeOrder}");
-
-                // Handle update or create based on UID
-                $existingMode = !empty($mode['uid']) && !str_starts_with($mode['uid'], 'TEMP-')
-                    ? BidModeOfProcurement::where('uid', $mode['uid'])->first()
-                    : null;
-
-                if ($existingMode) {
-                    if ($existingMode->mode_of_procurement_id == 1 && $modeId != 1) {
-                        // Special case: mode_id is changing from 1 to something else
-                        \Log::info("Changing mode from 1 to {$modeId}, updating UID");
-                        $existingMode->update([
-                            'mode_of_procurement_id' => $modeId,
-                            'mode_order' => $modeOrder,
-                            'uid' => "MOP{$modeId}-{$modeOrder}",
-                        ]);
-                        $uid = $existingMode->uid;
-                    } else {
-                        // Regular update
-                        \Log::info("Mode ID remains the same, using existing UID.");
-                        $existingMode->update([
-                            'mode_of_procurement_id' => $modeId,
-                            'mode_order' => $modeOrder,
-                        ]);
-                        $uid = $existingMode->uid;
-                    }
-                } else {
-                    // Create new record
-                    $uid = "MOP{$modeId}-{$modeOrder}";
-                    \Log::info("Creating new mode with UID: {$uid}");
-
-                    $existingMode = BidModeOfProcurement::create([
-                        'procID' => $this->procID,
-                        'uid' => $uid,
-                        'mode_of_procurement_id' => $modeId,
-                        'mode_order' => $modeOrder,
-                    ]);
-                }
-
-                // Update form reference for Livewire if needed
-                foreach ($this->form['modes'] as &$formMode) {
-                    if (
-                        (!empty($formMode['uid']) && $formMode['uid'] === $mode['uid']) ||
-                        (empty($formMode['uid']) && $formMode['mode_of_procurement_id'] === $mode['mode_of_procurement_id'])
-                    ) {
-                        $formMode['uid'] = $uid;
-                        $formMode['mode_order'] = $modeOrder;
-                        break;
-                    }
-                }
-
-                // ADD BID
-                if (!empty($mode['bid_schedules'])) {
-                    // Reverse the schedule list to match the top-to-bottom UI order
-                    $reorderedSchedules = array_reverse($mode['bid_schedules']); // Reverse the order
-
-                    foreach ($reorderedSchedules as $i => $schedule) {
-                        // Assign new bidding_number
-                        $biddingNumber = $i + 1; // Ensure bidding_number starts at 1 and increases
-                        $schedule['bidding_number'] = $biddingNumber;
-
-                        // Construct UID based on the current mode's UID and the bidding number
-                        $scheduleUid = "{$uid}-{$biddingNumber}";
-                        \Log::info("Processing Bid Schedule for Mode UID: {$scheduleUid}", $schedule);
-
-                        // Normalize date fields
-                        foreach (['pre_proc_conference', 'ads_post_ib', 'pre_bid_conf', 'eligibility_check', 'sub_open_bids', 'bidding_date'] as $field) {
-                            $schedule[$field] = empty($schedule[$field]) ? null : $schedule[$field];
-                        }
-
-                        // Prepare save data
-                        $data = [
-                            'procID' => $this->procID,
-                            'uid' => $scheduleUid,
-                            'ib_number' => $schedule['ib_number'] ?? null,
-                            'pre_proc_conference' => $schedule['pre_proc_conference'],
-                            'ads_post_ib' => $schedule['ads_post_ib'],
-                            'pre_bid_conf' => $schedule['pre_bid_conf'],
-                            'eligibility_check' => $schedule['eligibility_check'],
-                            'sub_open_bids' => $schedule['sub_open_bids'],
-                            'bidding_number' => $biddingNumber,
-                            'bidding_date' => $schedule['bidding_date'],
-                            'bidding_result' => $schedule['bidding_result'] ?? null,
-                        ];
-
-                        $existingSchedule = BidSchedule::where('procID', $this->procID)
-                            ->where('uid', $scheduleUid)
-                            ->first();
-
-                        if ($existingSchedule) {
-                            \Log::info("Updating existing schedule for bidding number {$biddingNumber}");
-                            $existingSchedule->update($data);
-                        } else {
-                            \Log::info("Creating new schedule for bidding number {$biddingNumber}");
-                            BidSchedule::create($data);
-                        }
-                    }
-                }
-
-
             }
-
-            LivewireAlert::title('Saved Successfully!')
-                ->success()
-                ->toast()
-                ->position('top-end')
-                ->show();
-
-        } catch (ValidationException $e) {
-            LivewireAlert::title('Validation Failed!')
-                ->error()
-                ->text($e->getMessage())
-                ->toast()
-                ->position('top-end')
-                ->show();
-        } catch (\Exception $e) {
-            \Log::error('Error Saving Data: ' . $e->getMessage());
-            LivewireAlert::title('Error Saving Data!')
-                ->error()
-                ->text($e->getMessage())
-                ->toast()
-                ->position('top-end')
-                ->show();
         }
     }
-
-    public function toggleModeSelect()
+    public function checkSuccessfulBidOrNtf()
     {
-        $this->showModeSelect = true;
+        if (empty($this->procID)) {
+            $this->hasSuccessfulBidOrNtf = false;
+            return;
+        }
+
+        $this->hasSuccessfulBidOrNtf = BidSchedule::where('procID', $this->procID)
+            ->where('bidding_result', 'SUCCESSFUL')
+            ->exists() || NtfBidSchedule::where('procID', $this->procID)
+                ->where('ntf_bidding_result', 'SUCCESSFUL')
+                ->exists();
+    }
+    public function hasProcurementMode(int $modeId): bool
+    {
+        return BidModeOfProcurement::where('procID', $this->procID)
+            ->where('mode_of_procurement_id', $modeId)
+            ->exists();
     }
 
-    // Reset the form fields
     private function resetForm()
     {
         $this->form = [
@@ -790,89 +869,7 @@ class ProcurementPage extends Component
         $this->editingId = null;
         $this->modeBidUid = null;
     }
-    // Save data for the active tab
-    public function saveTabData()
-    {
-        switch ($this->activeTab) {
-            case 1:
-                if ($this->editingId) {
-                    LivewireAlert::title('Update?')
-                        ->confirmButtonColor('green')
-                        ->withDenyButton('red')
-                        ->withConfirmButton('Update')
-                        ->withDenyButton('Cancel')
-                        ->timer(false)
-                        ->onConfirm('updateProcurement')
-                        ->show();
 
-                } else {
-                    LivewireAlert::title('Save?')
-                        ->confirmButtonColor('green')
-                        ->withDenyButton('red')
-                        ->withConfirmButton('Save')
-                        ->withDenyButton('Cancel')
-                        ->timer(false)
-                        ->onConfirm('createProcurement')
-                        ->show();
-                }
-                break;
-            case 2:
-                $this->storeOrUpdateTab2();
-            case 3:
-                break;
-        }
-
-    }
-    // Render the component view
-    public function render()
-    {
-        if (!isset($this->form['modes'])) {
-            $this->form['modes'] = [];
-        }
-        if (!isset($this->form['bid_schedules'])) {
-            $this->form['bid_schedules'] = [];
-        }
-        // Fetching required data for dropdowns and selects
-        $divisions = Division::all();
-        $suppliers = Supplier::all();
-        $categories = Category::all();
-        $clusterCommittees = ClusterCommittee::all();
-        $venueSpecifics = Venue::all();
-        $venueProvinces = Province::all();
-        $categoryVenues = CategoryVenue::all();
-        $endUsers = EndUser::all();
-        $fundSources = FundSource::all();
-        $modeOfProcurements = ModeOfProcurement::all();
-
-        if ($this->showCreateModal) {
-            return view('livewire.procurement.procurement-modal', [
-                'divisions' => $divisions,
-                'suppliers' => $suppliers,
-                'categories' => $categories,
-                'clusterCommittees' => $clusterCommittees,
-                'venueSpecifics' => $venueSpecifics,
-                'venueProvinces' => $venueProvinces,
-                'categoryVenues' => $categoryVenues,
-                'endUsers' => $endUsers,
-                'fundSources' => $fundSources,
-                'modeOfProcurements' => $modeOfProcurements,
-                'form' => $this->form,  // Pass the form data so it can be prefilled in the modal
-            ]);
-        }
-
-        // For searching procurements (when modal is not shown)
-        $query = Procurement::query()->latest();
-
-        if ($this->search) {
-            $query->where('pr_number', 'like', '%' . $this->search . '%')
-                ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
-        }
-
-        // Return the view for the procurement page with paginated results
-        return view('livewire.procurement-page', [
-            'procurements' => $query->paginate($this->perPage),
-        ]);
-    }
 
 }
 

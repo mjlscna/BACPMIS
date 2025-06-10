@@ -111,5 +111,9 @@ class Procurement extends Model
     {
         return $this->hasMany(BidSchedule::class, 'procID', 'procID');
     }
+    public function postProcurement()
+    {
+        return $this->hasOne(PostProcurement::class, 'procID');
+    }
 
 }
