@@ -936,10 +936,37 @@ class ProcurementPage extends Component
             'bidding_date' => '',
             'bidding_result' => '',
         ];
+
+        // General properties
         $this->activeTab = 1;
+        $this->procID = '';
         $this->editingId = null;
         $this->modeBidUid = null;
+        $this->isCreating = false;
+        $this->showCreateModal = false;
+
+        // Radio/text pairs
+        $this->approved_ppmp = '';
+        $this->otherPPMP = '';
+        $this->app_updated = '';
+        $this->otherAPP = '';
+
+        // Venue-related
+        $this->venue_province_huc_id = null;
+        $this->venue_specific_id = null;
+        $this->category_venue = null;
+
+        // Bid schedules
+        $this->bid_schedules = [];
+
+        // Tab and mode controls
+        $this->showModeSelect = false;
+        $this->hasSuccessfulBidOrNtf = false;
+        $this->hasMode5 = false;
+        $this->canAccessTab2 = false;
+        $this->canAccessTab3 = false;
     }
+
 
 
 }
