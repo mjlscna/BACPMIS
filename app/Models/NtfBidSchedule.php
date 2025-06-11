@@ -11,7 +11,7 @@ class NtfBidSchedule extends Model
     use HasFactory, SoftDeletes;
     protected $fillable = [
         'procID',
-        'modeproc',
+        'uid',
         'ib_number',
         'pre_proc_conference',
         'ads_post_ib',

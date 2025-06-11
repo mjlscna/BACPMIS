@@ -17,6 +17,13 @@
         <div class="relative ">
             <!-- Tab Navigation (within modal content area) -->
             <!-- Stepper Navigation -->
+
+            @php
+                $canAccessTab2 = !empty($form['modes'][0]['mode_of_procurement_id'] ?? null) && !empty($procID);
+                $canAccessTab3 = !empty($procID) && ($hasSuccessfulBidOrNtf || $hasMode5);
+            @endphp
+
+
             <ul class="relative flex justify-center gap-x-2 px-4 py-3 pt-2 bg-white border-b border-emerald-500 dark:bg-neutral-800 dark:border-neutral-700"
                 data-hs-stepper='{"isCompleted": true}'>
 
@@ -25,40 +32,21 @@
                     data-hs-stepper-nav-item='{"index": 1, "isCompleted": {{ $activeTab > 1 ? 'true' : 'false' }} }'>
                     <button type="button" wire:click="switchTab(1)"
                         class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-                {{ $activeTab == 1 ? 'bg-green-600 text-white' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
-                        @if ($activeTab > 1)
-                            <!-- Completed check icon -->
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3"
-                                viewBox="0 0 24 24">
-                                <path d="M20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        @else
-                            1
-                        @endif
+            {{ $activeTab == 1 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
+                        1
                     </button>
                     <span class="text-sm font-medium text-gray-800 dark:text-white">PR Details</span>
                     <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
                 </li>
 
                 <!-- Step 2: Mode of Procurement -->
-                @php
-                    $canAccessTab2 = !empty($form['modes'][0]['mode_of_procurement_id'] ?? null) && !empty($procID);
-                @endphp
                 <li class="flex items-center gap-x-2 shrink basis-0 flex-1 group"
                     data-hs-stepper-nav-item='{"index": 2, "isCompleted": {{ $activeTab > 2 ? 'true' : 'false' }} }'>
                     <button type="button" @if ($canAccessTab2) wire:click="switchTab(2)" @endif
                         class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-                {{ $activeTab == 2 ? 'bg-green-600 text-white' : ($activeTab > 2 ? 'bg-emerald-600 text-white' : ($canAccessTab2 ? 'bg-gray-100 text-gray-800' : 'bg-gray-100 text-neutral-400 cursor-not-allowed')) }}"
+            {{ $activeTab == 2 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab2 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
                         @if (!$canAccessTab2) disabled @endif>
-                        @if ($activeTab > 2)
-                            <!-- Completed check icon -->
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3"
-                                viewBox="0 0 24 24">
-                                <path d="M20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        @else
-                            2
-                        @endif
+                        2
                     </button>
                     <span
                         class="text-sm font-medium {{ $canAccessTab2 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
@@ -69,18 +57,23 @@
 
                 <!-- Step 3: Post -->
                 <li class="flex items-center gap-x-2 shrink basis-0 flex-1 group"
-                    data-hs-stepper-nav-item='{"index": 3}'>
-                    <button type="button"
-                        class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition bg-gray-100 text-neutral-400 cursor-not-allowed"
-                        disabled>
+                    data-hs-stepper-nav-item='{"index": 3, "isCompleted": {{ $activeTab > 3 ? 'true' : 'false' }} }'>
+                    <button type="button" @if ($canAccessTab3) wire:click="switchTab(3)" @endif
+                        class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
+            {{ $activeTab == 3 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab3 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
+                        @if (!$canAccessTab3) disabled aria-disabled="true" title="You need a successful bid or Mode 5 to access this tab." @endif>
                         3
                     </button>
-                    <span class="text-sm font-medium text-neutral-400 dark:text-neutral-500">
+                    <span
+                        class="text-sm font-medium {{ $canAccessTab3 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
                         Post
                     </span>
+                    <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
                 </li>
 
             </ul>
+
+
 
             <!-- Tab Contents inside bordered div with padding and border -->
             <div class="border px-4 py-2 border-gray-200 dark:border-neutral-700 max-h-[65vh] overflow-y-auto">
@@ -153,8 +146,7 @@
                                 <label for="dtrack_no" class="block text-sm font-medium text-gray-700"> </br> <span
                                         class="text-red-500 mr-1">*</span>DTRACK
                                     #</label>
-                                <input type="text" id="dtrack_no" wire:model.defer="form.dtrack_no"
-                                    maxlength="12"
+                                <input type="text" id="dtrack_no" wire:model.defer="form.dtrack_no" maxlength="12"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                             </div>
 
@@ -638,7 +630,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">NTF
                                                                     No.</label>
                                                                 <input type="text"
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntfNumber"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_no"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -646,7 +638,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">NTF
                                                                     Bidding Date</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntfBiddingDate"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_date"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -654,7 +646,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">NTF
                                                                     Bidding Result</label>
                                                                 <select
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntfBiddingResult"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_result"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                                                                     <option value="">Select</option>
                                                                     <option value="SUCCESSFUL">SUCCESSFUL</option>
@@ -666,7 +658,7 @@
                                                                 <label class="text-sm font-medium text-gray-700">RFQ
                                                                     No.</label>
                                                                 <input type="text"
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfqNo"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -675,7 +667,7 @@
                                                                     class="text-sm font-medium text-gray-700">Canvass
                                                                     Date</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.postQualDate"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -684,7 +676,7 @@
                                                                     class="text-sm font-medium text-gray-700">Returned
                                                                     of Canvass</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.dateReturnedOfCanvass"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
 
@@ -693,7 +685,7 @@
                                                                     class="text-sm font-medium text-gray-700">Abstract
                                                                     of Canvass</label>
                                                                 <input type="date"
-                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstractOfCanvassDate"
+                                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
                                                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                                             </div>
                                                         @endif
@@ -707,7 +699,6 @@
                         @endforeach
                     </div>
                 </div>
-
                 {{-- TAB 3 --}}
                 <div id="card-type-tab-3" class="{{ $activeTab === 3 ? '' : 'hidden' }} mb-4" role="tabpanel"
                     aria-labelledby="card-type-tab-item-3">
@@ -732,7 +723,7 @@
                                 <div class="col-span-1">
                                     <label class="text-sm font-medium text-gray-700">Resolution Number</label>
                                     <input type="text" wire:model.defer="form.resolutionNumber"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-right" />
                                 </div>
                                 <div class="col-span-1">
                                     <label class="text-sm font-medium text-gray-700">Recommending for Award</label>
@@ -744,11 +735,30 @@
                                     <input type="date" wire:model.defer="form.noticeOfAward"
                                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
                                 </div>
-                                <div class="col-span-1">
-                                    <label class="text-sm font-medium text-gray-700">Awarded Amount</label>
-                                    <input type="number" wire:model.defer="form.awardedAmount"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                                <div class="col-span-1" x-data="{ displayAwardedAmount: '{{ number_format((float) ($form['awardedAmount'] ?? 0), 2) }}' }">
+                                    <label for="awardedAmount" class="block text-sm font-medium text-gray-700 pl-5">
+                                        <span class="text-red-500 mr-1">*</span>Awarded Amount
+                                    </label>
+                                    <div class="relative">
+                                        <span
+                                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₱</span>
+                                        <input type="text" id="awardedAmount" x-model="displayAwardedAmount"
+                                            @input="displayAwardedAmount = $event.target.value.replace(/[^0-9.]/g, '')"
+                                            @blur="
+                let num = parseFloat(displayAwardedAmount.replace(/,/g, ''));
+                if (!isNaN(num)) {
+                    displayAwardedAmount = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+                    $wire.set('form.awardedAmount', num);
+                } else {
+                    displayAwardedAmount = '';
+                    $wire.set('form.awardedAmount', null);
+                }
+            "
+                                            class="mt-1 block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-right"
+                                            inputmode="decimal" />
+                                    </div>
                                 </div>
+
                                 <div class="col-span-">
                                     <label class="text-sm font-medium text-gray-700">Posting of Award on
                                         PhilGEPS</label>
