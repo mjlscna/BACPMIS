@@ -17,20 +17,12 @@
         <div class="relative ">
             <!-- Tab Navigation (within modal content area) -->
             <!-- Stepper Navigation -->
+
             @php
                 $canAccessTab2 = !empty($form['modes'][0]['mode_of_procurement_id'] ?? null) && !empty($procID);
-
-                $hasSuccessfulBidOrNtf = false;
-                if (!empty($procID)) {
-                    $hasSuccessfulBidOrNtf =
-                        \App\Models\BidSchedule::where('procID', $procID)
-                            ->where('bidding_result', 'SUCCESSFUL')
-                            ->exists() ||
-                        \App\Models\NtfBidSchedule::where('procID', $procID)
-                            ->where('ntf_bidding_result', 'SUCCESSFUL')
-                            ->exists();
-                }
+                $canAccessTab3 = !empty($procID) && ($hasSuccessfulBidOrNtf || $hasMode5);
             @endphp
+
 
             <ul class="relative flex justify-center gap-x-2 px-4 py-3 pt-2 bg-white border-b border-emerald-500 dark:bg-neutral-800 dark:border-neutral-700"
                 data-hs-stepper='{"isCompleted": true}'>
@@ -40,15 +32,8 @@
                     data-hs-stepper-nav-item='{"index": 1, "isCompleted": {{ $activeTab > 1 ? 'true' : 'false' }} }'>
                     <button type="button" wire:click="switchTab(1)"
                         class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-            {{ $activeTab == 1 ? 'bg-green-600 text-white' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
-                        @if ($activeTab > 1)
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3"
-                                viewBox="0 0 24 24">
-                                <path d="M20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        @else
-                            1
-                        @endif
+            {{ $activeTab == 1 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
+                        1
                     </button>
                     <span class="text-sm font-medium text-gray-800 dark:text-white">PR Details</span>
                     <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
@@ -59,16 +44,9 @@
                     data-hs-stepper-nav-item='{"index": 2, "isCompleted": {{ $activeTab > 2 ? 'true' : 'false' }} }'>
                     <button type="button" @if ($canAccessTab2) wire:click="switchTab(2)" @endif
                         class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-            {{ $activeTab == 2 ? 'bg-green-600 text-white' : ($activeTab > 2 ? 'bg-emerald-600 text-white' : ($canAccessTab2 ? 'bg-gray-100 text-gray-800' : 'bg-gray-100 text-neutral-400 cursor-not-allowed')) }}"
+            {{ $activeTab == 2 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab2 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
                         @if (!$canAccessTab2) disabled @endif>
-                        @if ($activeTab > 2)
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3"
-                                viewBox="0 0 24 24">
-                                <path d="M20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        @else
-                            2
-                        @endif
+                        2
                     </button>
                     <span
                         class="text-sm font-medium {{ $canAccessTab2 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
@@ -80,28 +58,21 @@
                 <!-- Step 3: Post -->
                 <li class="flex items-center gap-x-2 shrink basis-0 flex-1 group"
                     data-hs-stepper-nav-item='{"index": 3, "isCompleted": {{ $activeTab > 3 ? 'true' : 'false' }} }'>
-                    <button type="button" @if ($hasSuccessfulBidOrNtf) wire:click="switchTab(3)" @endif
+                    <button type="button" @if ($canAccessTab3) wire:click="switchTab(3)" @endif
                         class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-            {{ $activeTab == 3 ? 'bg-green-600 text-white' : ($activeTab > 3 ? 'bg-emerald-600 text-white' : ($hasSuccessfulBidOrNtf ? 'bg-gray-100 text-gray-800 hover:bg-green-100 cursor-pointer' : 'bg-gray-100 text-neutral-400 cursor-not-allowed')) }}"
-                        @if (!$hasSuccessfulBidOrNtf) disabled aria-disabled="true" title="You need a successful bid to access this tab." @endif>
-                        @if ($activeTab > 3)
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3"
-                                viewBox="0 0 24 24">
-                                <path d="M20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        @else
-                            3
-                        @endif
+            {{ $activeTab == 3 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab3 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
+                        @if (!$canAccessTab3) disabled aria-disabled="true" title="You need a successful bid or Mode 5 to access this tab." @endif>
+                        3
                     </button>
                     <span
-                        class="text-sm font-medium {{ $hasSuccessfulBidOrNtf ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
+                        class="text-sm font-medium {{ $canAccessTab3 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
                         Post
                     </span>
                     <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
                 </li>
 
-
             </ul>
+
 
 
             <!-- Tab Contents inside bordered div with padding and border -->
@@ -175,8 +146,7 @@
                                 <label for="dtrack_no" class="block text-sm font-medium text-gray-700"> </br> <span
                                         class="text-red-500 mr-1">*</span>DTRACK
                                     #</label>
-                                <input type="text" id="dtrack_no" wire:model.defer="form.dtrack_no"
-                                    maxlength="12"
+                                <input type="text" id="dtrack_no" wire:model.defer="form.dtrack_no" maxlength="12"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                             </div>
 
