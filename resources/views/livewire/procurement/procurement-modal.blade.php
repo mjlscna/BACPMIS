@@ -1,10 +1,10 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-emerald-600/20 backdrop-blur-sm">
     <div
-        class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg w-full max-w-6xl mx-4 sm:mx-auto transition-all overflow-hidden max-h-[90vh]">
+        class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg w-full max-w-7xl mx-4 sm:mx-auto transition-all overflow-hidden max-h-[90vh]">
 
         <!-- Header -->
-        <div class="flex justify-between items-center p-4 border-gray-200 bg-emerald-600 dark:border-neutral-700">
-            <h2 class="text-lg font-semibold text-white">Procurement</h2>
+        <div class="flex justify-between items-center p-1 border-gray-200 bg-emerald-600 dark:border-neutral-700">
+            <h2 class="text-lg font-semibold text-white ml-2">Procurement</h2>
             <button wire:click="$set('showCreateModal', false)"
                 class="text-red-600 hover:text-red-700 dark:text-white dark:hover:text-gray-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -24,55 +24,60 @@
             @endphp
 
 
-            <ul class="relative flex justify-center gap-x-2 px-4 py-3 pt-2 bg-white border-b border-emerald-500 dark:bg-neutral-800 dark:border-neutral-700"
-                data-hs-stepper='{"isCompleted": true}'>
 
-                <!-- Step 1: PR Details -->
-                <li class="flex items-center gap-x-2 shrink basis-0 flex-1 group"
-                    data-hs-stepper-nav-item='{"index": 1, "isCompleted": {{ $activeTab > 1 ? 'true' : 'false' }} }'>
-                    <button type="button" wire:click="switchTab(1)"
-                        class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-            {{ $activeTab == 1 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
-                        1
-                    </button>
-                    <span class="text-sm font-medium text-gray-800 dark:text-white">PR Details</span>
-                    <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
-                </li>
+            <div class="flex justify-center w-full border-b border-emerald-500">
+                <ul class="flex items-center w-full max-w-5xl py-2 bg-white dark:bg-neutral-800 dark:border-neutral-700 mx-auto"
+                    data-hs-stepper='{"isCompleted": true}'>
 
-                <!-- Step 2: Mode of Procurement -->
-                <li class="flex items-center gap-x-2 shrink basis-0 flex-1 group"
-                    data-hs-stepper-nav-item='{"index": 2, "isCompleted": {{ $activeTab > 2 ? 'true' : 'false' }} }'>
-                    <button type="button" @if ($canAccessTab2) wire:click="switchTab(2)" @endif
-                        class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-            {{ $activeTab == 2 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab2 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
-                        @if (!$canAccessTab2) disabled @endif>
-                        2
-                    </button>
-                    <span
-                        class="text-sm font-medium {{ $canAccessTab2 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
-                        Mode of Procurement
-                    </span>
-                    <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
-                </li>
+                    <!-- Step 1 -->
+                    <li class="flex flex-col items-center text-center">
+                        <button type="button" wire:click="switchTab(1)"
+                            class="size-8 mb-1 flex justify-center items-center rounded-full font-medium text-sm transition
+            {{ $activeTab == 1 ? 'bg-emerald-700 text-white ring-4 ring-green-500 ring-offset-2 ring-offset-white' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
+                            1
+                        </button>
+                        <span class="text-sm font-medium text-gray-800 dark:text-white whitespace-nowrap">Purchase
+                            Request</span>
+                    </li>
 
-                <!-- Step 3: Post -->
-                <li class="flex items-center gap-x-2 shrink basis-0 flex-1 group"
-                    data-hs-stepper-nav-item='{"index": 3, "isCompleted": {{ $activeTab > 3 ? 'true' : 'false' }} }'>
-                    <button type="button" @if ($canAccessTab3) wire:click="switchTab(3)" @endif
-                        class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-            {{ $activeTab == 3 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab3 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
-                        @if (!$canAccessTab3) disabled aria-disabled="true" title="You need a successful bid or Mode 5 to access this tab." @endif>
-                        3
-                    </button>
-                    <span
-                        class="text-sm font-medium {{ $canAccessTab3 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
-                        Post
-                    </span>
-                    <div class="w-full h-px flex-1 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
-                </li>
+                    <!-- Line between Step 1 and 2 -->
+                    <li class="flex-1 h-px bg-gray-200 dark:bg-neutral-700 mx-2"></li>
 
-            </ul>
+                    <!-- Step 2 -->
+                    <li class="flex flex-col items-center text-center">
+                        <button type="button" @if ($canAccessTab2) wire:click="switchTab(2)" @endif
+                            class="size-8 mb-1 flex justify-center items-center rounded-full font-medium text-sm transition
+            {{ $activeTab == 2 ? 'bg-emerald-700 text-white ring-4 ring-green-500 ring-offset-2 ring-offset-white' : ($canAccessTab2 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
+                            @if (!$canAccessTab2) disabled @endif>
+                            2
+                        </button>
+                        <span
+                            class="text-sm font-medium {{ $canAccessTab2 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }} whitespace-nowrap">
+                            Mode of Procurement
+                        </span>
+                    </li>
 
+                    <!-- Line between Step 2 and 3 -->
+                    <li class="flex-1 h-px bg-gray-200 dark:bg-neutral-700 mx-2"></li>
+
+                    <!-- Step 3 -->
+                    <li class="flex flex-col items-center text-center">
+                        <button type="button" @if ($canAccessTab3) wire:click="switchTab(3)" @endif
+                            class="size-8 mb-1 flex justify-center items-center rounded-full font-medium text-sm transition
+            {{ $activeTab == 3 ? 'bg-emerald-700 text-white ring-4 ring-green-500 ring-offset-2 ring-offset-white' : ($canAccessTab3 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
+                            @if (!$canAccessTab3) disabled aria-disabled="true" title="You need a successful bid or Mode 5 to access this tab." @endif>
+                            3
+                        </button>
+                        <span
+                            class="text-sm font-medium {{ $canAccessTab3 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }} whitespace-nowrap">
+                            Post
+                        </span>
+                    </li>
+
+                </ul>
+
+
+            </div>
 
 
             <!-- Tab Contents inside bordered div with padding and border -->
@@ -285,7 +290,7 @@
                                         @if (!in_array($form['approved_ppmp'], ['Yes', 'No']))
                                             <textarea wire:model.defer="otherPPMP" placeholder="Please specify"
                                                 class="w-75 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:bg-neutral-700
-               dark:border-neutral-600 dark:text-white"
+                   dark:border-neutral-600 dark:text-white"
                                                 rows="3"></textarea>
                                         @endif
 
@@ -315,8 +320,8 @@
                                         <input type="radio" id="radio-others" wire:model.live="form.app_updated"
                                             value="Others" name="app-updated-group"
                                             class="shrink-0 mt-0.5 border-gray-200 rounded-full text-blue-600 focus:ring-blue-500 checked:border-blue-500
-                       dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-blue-500 dark:checked:border-blue-500
-                       dark:focus:ring-offset-gray-800">
+                     dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-blue-500 dark:checked:border-blue-500
+                     dark:focus:ring-offset-gray-800">
                                         <label for="radio-others"
                                             class="text-sm text-gray-500 dark:text-neutral-400">Others</label>
 
@@ -324,7 +329,7 @@
                                         @if (!in_array($form['app_updated'], ['Yes', 'No']))
                                             <textarea wire:model.defer="otherAPP" placeholder="Please specify"
                                                 class="w-75 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:bg-neutral-700
-               dark:border-neutral-600 dark:text-white"
+                   dark:border-neutral-600 dark:text-white"
                                                 rows="3"></textarea>
                                         @endif
 
