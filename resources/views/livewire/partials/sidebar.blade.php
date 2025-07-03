@@ -62,6 +62,8 @@
                                 Procurement
                             </a>
                         </li>
+                        <!-- User List Link -->
+
 
                     </ul>
                 </nav>
@@ -70,6 +72,23 @@
         </div>
         <!-- End Sidebar -->
         <!-- End Content -->
+        <!-- Admin Panel Button (static footer) -->
+        <div
+            class="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
+            <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
+                bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
+                dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
+                href="{{ url('/admin-panel') }}" target="_blank">
+                <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                </svg>
+                Admin Panel
+            </a>
+        </div>
         <!-- ========== END MAIN CONTENT ========== -->
     </div>
 </div>

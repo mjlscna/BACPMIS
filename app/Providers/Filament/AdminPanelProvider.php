@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->brandName('BAC Procurement Monitoring System')
             ->id('admin')
-            ->path('admin')
+            ->path('admin-panel')
             ->login()
             ->colors([
                 'primary' => Color::Green,
@@ -74,11 +74,11 @@ class AdminPanelProvider extends PanelProvider
             //     ->url(fn() => route('filament.admin.pages.dashboard')),
 
             // ✅ Automatically add resources **without a group** after the Dashboard
-            ...collect(Filament::getResources())
-                ->reject(fn($resource) => in_array($resource, $this->getAllGroupedResources())) // Exclude grouped resources
-                ->map(fn($resource) => $resource::getNavigationItems())
-                ->flatten(1)
-                ->all(),
+            // ...collect(Filament::getResources())
+            //     ->reject(fn($resource) => in_array($resource, $this->getAllGroupedResources())) // Exclude grouped resources
+            //     ->map(fn($resource) => $resource::getNavigationItems())
+            //     ->flatten(1)
+            //     ->all(),
         ];
     }
 
