@@ -26,58 +26,67 @@
 
 
             <div class="flex justify-center w-full border-b border-emerald-500">
-                <ul class="flex justify-between items-center w-full max-w-5xl py-2 pt-2 bg-white  dark:bg-neutral-800 dark:border-neutral-700 mx-48"
+                <ul class="flex items-center w-full max-w-7xl py-2 bg-white dark:bg-neutral-800 dark:border-neutral-700 mx-48"
                     data-hs-stepper='{"isCompleted": true}'>
 
-                    <!-- Step 1: PR Details -->
-                    <li class="flex items-center gap-x-1 shrink basis-0 flex-1 group"
+                    <!-- Step 1 -->
+                    <li class="flex items-center gap-x-2 basis-1/3 group"
                         data-hs-stepper-nav-item='{"index": 1, "isCompleted": {{ $activeTab > 1 ? 'true' : 'false' }} }'>
-
                         <button type="button" wire:click="switchTab(1)"
                             class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-                        {{ $activeTab == 1 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
+            {{ $activeTab == 1 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
                             1
                         </button>
-                        <span class="text-sm font-medium text-gray-800 dark:text-white">Purchase Request</span>
-                        <!-- Manually controlled line after step 1 -->
-                        <div class="h-px w-32 bg-gray-200 group-last:hidden dark:bg-neutral-700"></div>
+                        <span class="text-sm font-medium text-gray-800 dark:text-white whitespace-nowrap">
+                            Purchase Request
+                        </span>
+                        <!-- Dynamic Line -->
+                        <div
+                            class="h-px w-48 ml-3 mr-3 transition-colors duration-300
+            {{ $activeTab > 1 ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-700' }}">
+                        </div>
                     </li>
 
-                    <!-- Step 2: Mode of Procurement -->
-                    <li class="flex items-center gap-x-1 shrink basis-0 flex-1 group"
+                    <!-- Step 2 -->
+                    <li class="flex items-center gap-x-2 basis-1/3 group"
                         data-hs-stepper-nav-item='{"index": 2, "isCompleted": {{ $activeTab > 2 ? 'true' : 'false' }} }'>
-
                         <button type="button" @if ($canAccessTab2) wire:click="switchTab(2)" @endif
                             class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-                        {{ $activeTab == 2 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab2 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
+            {{ $activeTab == 2 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab2 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
                             @if (!$canAccessTab2) disabled @endif>
                             2
                         </button>
                         <span
-                            class="text-sm font-medium {{ $canAccessTab2 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
+                            class="text-sm font-medium whitespace-nowrap {{ $canAccessTab2 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
                             Mode of Procurement
                         </span>
+                        <!-- Dynamic Line -->
+                        <div
+                            class="h-px w-48 ml-3 mr-3 transition-colors duration-300
+            {{ $activeTab > 2 ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-700' }}">
+                        </div>
                     </li>
 
-                    <!-- Step 3: Post -->
-                    <li class="flex items-center gap-x-1 shrink basis-0 flex-1 group"
+                    <!-- Step 3 -->
+                    <li class="flex items-center gap-x-2 basis-1/3 group"
                         data-hs-stepper-nav-item='{"index": 3, "isCompleted": {{ $activeTab > 3 ? 'true' : 'false' }} }'>
-                        <!-- Manually controlled line before step 3 -->
-                        <div class="h-px w-64 bg-gray-200"></div>
                         <button type="button" @if ($canAccessTab3) wire:click="switchTab(3)" @endif
                             class="size-8 flex justify-center items-center rounded-full font-medium text-sm transition
-                        {{ $activeTab == 3 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab3 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
+            {{ $activeTab == 3 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($canAccessTab3 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-neutral-400 cursor-not-allowed') }}"
                             @if (!$canAccessTab3) disabled aria-disabled="true" title="You need a successful bid or Mode 5 to access this tab." @endif>
                             3
                         </button>
                         <span
-                            class="text-sm font-medium {{ $canAccessTab3 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
+                            class="text-sm font-medium whitespace-nowrap {{ $canAccessTab3 ? 'text-gray-800 dark:text-white' : 'text-neutral-400 dark:text-neutral-500' }}">
                             Post
                         </span>
-
                     </li>
                 </ul>
+
             </div>
+
+
+
 
 
             <!-- Tab Contents inside bordered div with padding and border -->
