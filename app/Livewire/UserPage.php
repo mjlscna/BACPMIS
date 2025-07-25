@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class UserPage extends Component
 {
@@ -14,13 +15,16 @@ class UserPage extends Component
     public $search = '';
     public $perPage = 10;
     public $showCreateModal = false;
+    public $showViewModal = false;
     public $editingId = null;
+    public $viewingId = null;
     public $form = [
         'name' => '',
         'email' => '',
         'email_verified_at' => '',
         'password' => '',
     ];
+    public $viewData = [];
 
     protected $rules = [
         'form.name' => 'required|string|max:255',
@@ -61,6 +65,19 @@ class UserPage extends Component
         $this->showCreateModal = true;
     }
 
+    public function view($id)
+    {
+        $user = User::findOrFail($id);
+        $this->viewData = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'created_at' => $user->created_at,
+        ];
+        $this->viewingId = $id;
+        $this->showViewModal = true;
+    }
+
     public function save()
     {
         $rules = $this->rules;
@@ -83,8 +100,10 @@ class UserPage extends Component
         if ($this->editingId) {
             $user = User::findOrFail($this->editingId);
             $user->update($data);
+            LivewireAlert::title('User updated!')->success()->toast()->position('top-end')->show();
         } else {
             User::create($data);
+            LivewireAlert::title('User created!')->success()->toast()->position('top-end')->show();
         }
         $this->showCreateModal = false;
         $this->resetForm();
@@ -93,6 +112,7 @@ class UserPage extends Component
     public function delete($id)
     {
         User::findOrFail($id)->delete();
+        LivewireAlert::title('User deleted!')->success()->toast()->position('top-end')->show();
     }
 
     public function confirmUserRemoval($id)

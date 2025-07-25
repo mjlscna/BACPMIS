@@ -4,6 +4,7 @@ namespace App\Livewire;
 use App\Models\Venue;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class VenuePage extends Component
 {
@@ -60,16 +61,17 @@ class VenuePage extends Component
     {
         $rules = $this->rules;
         if ($this->editingId) {
-            // Allow slug to be the same for the current record
-            $rules['form.slug'] .= ',' . $this->editingId;
+            $rules['form.slug'] = 'required|string|max:255|unique:venues,slug,' . $this->editingId . ',id';
         }
-        $this->validate($rules);
-        $data = $this->form;
+        $data = $this->validate($rules);
+        $data['form']['is_active'] = (bool) $data['form']['is_active'];
         if ($this->editingId) {
             $venue = Venue::findOrFail($this->editingId);
-            $venue->update($data);
+            $venue->update($data['form']);
+            LivewireAlert::title('Venue updated!')->success()->toast()->position('top-end')->show();
         } else {
-            Venue::create($data);
+            Venue::create($data['form']);
+            LivewireAlert::title('Venue created!')->success()->toast()->position('top-end')->show();
         }
         $this->showCreateModal = false;
         $this->resetForm();
@@ -78,6 +80,7 @@ class VenuePage extends Component
     public function delete($id)
     {
         Venue::findOrFail($id)->delete();
+        LivewireAlert::title('Venue deleted!')->success()->toast()->position('top-end')->show();
     }
 
     public function confirmVenueRemoval($id)

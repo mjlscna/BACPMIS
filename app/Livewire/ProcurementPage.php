@@ -51,6 +51,8 @@ class ProcurementPage extends Component
     protected $paginationTheme = 'tailwind';
     public bool $canAccessTab2 = false;
     public bool $canAccessTab3 = false;
+    public bool $viewOnly = false;
+
 
     public $form = [
         'pr_number' => '',
@@ -75,7 +77,7 @@ class ProcurementPage extends Component
         'fund_source_id' => '',
         'expense_class' => '',
         'abc' => '',
-        'abc_50k' => '50k_or_less',
+        'abc_50k' => '50k or less',
         // Tab 2 fields
         'mode_of_procurement_id' => '',
         'modes' => [],
@@ -144,6 +146,29 @@ class ProcurementPage extends Component
     {
         $this->isCreating = !$this->isCreating;
     }
+    public function openViewModal($id)
+    {
+        $this->resetForm();
+
+        $procurement = Procurement::findOrFail($id);
+        $this->form = $procurement->toArray();
+        $this->procID = $procurement->procID;
+
+        $this->update2();
+        $this->update3();
+        $this->updateTabAccess();
+
+        $this->viewOnly = true;
+
+        // 🔒 Force tab 1 always on view
+        $this->activeTab = 1;
+
+        $this->showCreateModal = true;
+    }
+
+
+
+
     public function openCreateModal()
     {
         // dd('BAC' . now()->format('YmdHis') . rand(100, 999));
@@ -179,6 +204,7 @@ class ProcurementPage extends Component
     }
     public function closeCreateModal()
     {
+        $this->viewOnly = true;
         $this->showCreateModal = false;  // Close the modal
         $this->editingId = null; // Clear the editingId
         $this->resetForm();              // Reset the form fields
@@ -208,7 +234,6 @@ class ProcurementPage extends Component
                 break;
         }
     }
-
     protected function update1(Procurement $procurement)
     {
         $this->form = array_merge($this->form, [
@@ -232,7 +257,7 @@ class ProcurementPage extends Component
             'fund_source_id' => $procurement->fund_source_id,
             'expense_class' => $procurement->expense_class,
             'abc' => $procurement->abc,
-            'abc_50k' => $procurement->abc >= 50000 ? 'above_50k' : '50k_or_less',
+            'abc_50k' => $procurement->abc >= 50000 ? 'above 50k' : '50k or less',
         ]);
 
         // Handle approved_ppmp field
@@ -332,12 +357,11 @@ class ProcurementPage extends Component
     }
     public function updatedFormAbc($value)
     {
-        // Remove ₱ and commas if pasted
         $cleaned = preg_replace('/[^0-9.]/', '', $value);
         $numericValue = floatval($cleaned);
-
-        $this->form['abc_50k'] = $numericValue >= 50000 ? 'above_50k' : '50k_or_less';
+        $this->form['abc_50k'] = $numericValue >= 50000 ? 'above 50k' : '50k or less';
     }
+
     public function updated($propertyName)
     {
         if (
@@ -359,6 +383,7 @@ class ProcurementPage extends Component
         } else {
             $this->form['category_venue'] = null;
         }
+        logger('Updated category_venue to: ' . $this->form['category_venue']);
     }
     public function loadModeOfProcurement()
     {
@@ -463,16 +488,21 @@ class ProcurementPage extends Component
                 ->show();
 
         } else {
-            // If creating: assign procID and create
+            // Assign procID
             $this->procID = 'BAC' . now()->format('YmdHis');
 
-            Procurement::create(array_merge($this->form, [
+            // Create procurement
+            $procurement = Procurement::create(array_merge($this->form, [
                 'procID' => $this->procID,
                 'early_procurement' => $this->form['early_procurement'] ?? null,
-                'abc_50k' => $this->form['abc'] >= 50000 ? 'above_50k' : '50k_or_less',
+                'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
             ]));
 
-            // Create default mode of procurement
+            // Track editing state
+            $this->editingId = $procurement->id;
+            $this->form = $procurement->toArray(); // Optional: rebind clean state
+
+            // Create default MOP
             BidModeOfProcurement::create([
                 'procID' => $this->procID,
                 'uid' => 'MOP1-0',
@@ -585,8 +615,6 @@ class ProcurementPage extends Component
                 ->error()->text('An error occurred while saving.')->toast()->position('top-end')->show();
         }
     }
-
-
     public function saveTabData()
     {
         switch ($this->activeTab) {
@@ -654,14 +682,12 @@ class ProcurementPage extends Component
             'form.modes.*.bid_schedules.*.abstract_of_canvass_date' => 'nullable|date',
         ]);
     }
-
     private function prepareModes()
     {
         $modes = $this->form['modes'];
         usort($modes, fn($a, $b) => ($a['mode_order'] ?? 0) <=> ($b['mode_order'] ?? 0));
         return $modes;
     }
-
     private function processMode(array $mode, int $modeIndex)
     {
         \Log::info("Processing Mode {$modeIndex}:", $mode);
@@ -676,7 +702,6 @@ class ProcurementPage extends Component
             $this->processSchedules($mode['bid_schedules'], $existingMode->uid, $modeId);
         }
     }
-
     private function preventDuplicateMode($modeId, $mode)
     {
         if ($modeId == 1) {
@@ -689,7 +714,6 @@ class ProcurementPage extends Component
             }
         }
     }
-
     private function updateOrCreateBidMode($mode, $modeId, $modeOrder)
     {
         $existingMode = !empty($mode['uid']) && !str_starts_with($mode['uid'], 'TEMP-')
@@ -732,10 +756,6 @@ class ProcurementPage extends Component
 
         return $existingMode;
     }
-
-
-
-
     private function syncModeUidToForm($mode, $uid, $modeOrder)
     {
         foreach ($this->form['modes'] as &$formMode) {
@@ -749,7 +769,6 @@ class ProcurementPage extends Component
             }
         }
     }
-
     private function processSchedules(array $schedules, string $uid, int $modeId)
     {
         $reorderedSchedules = array_reverse($schedules);
@@ -801,6 +820,13 @@ class ProcurementPage extends Component
             }
         }
     }
+    public function getShowAddModeButtonProperty()
+    {
+        // If any mode's `mode_of_procurement_id` is not 1
+        return !$this->viewOnly && collect($this->form['modes'])->contains(function ($mode) {
+            return ($mode['mode_of_procurement_id'] ?? null) != 1;
+        });
+    }
     public function addMode()
     {
         $newMode = [
@@ -818,7 +844,6 @@ class ProcurementPage extends Component
             $mode['mode_order'] = $total - $index; // Bottom = 1, top = N
         }
     }
-
     public function addBidSchedule($modeIndex)
     {
         $existingSchedules = $this->form['modes'][$modeIndex]['bid_schedules'] ?? [];
@@ -897,7 +922,6 @@ class ProcurementPage extends Component
 
         $this->canAccessTab3 = !empty($this->procID) && ($hasSuccessfulBid || $hasSuccessfulNtf || $hasMode5);
     }
-
     private function resetForm()
     {
         $this->form = [
@@ -923,7 +947,7 @@ class ProcurementPage extends Component
             'fund_source_id' => '',
             'expense_class' => '',
             'abc' => '',
-            'abc_50k' => '50k_or_less',
+            'abc_50k' => '50k or less',
             // Tab 2
             'mode_of_procurement_id' => '',
             'ib_number' => '',
@@ -944,6 +968,7 @@ class ProcurementPage extends Component
         $this->modeBidUid = null;
         $this->isCreating = false;
         $this->showCreateModal = false;
+        $this->viewOnly = false;
 
         // Radio/text pairs
         $this->approved_ppmp = '';
@@ -966,8 +991,6 @@ class ProcurementPage extends Component
         $this->canAccessTab2 = false;
         $this->canAccessTab3 = false;
     }
-
-
 
 }
 
