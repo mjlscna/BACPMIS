@@ -36,7 +36,7 @@
             {{ $maxlength ? "maxlength=$maxlength" : '' }} readonly {!! $attributes->merge([
                 'class' =>
                     $inputAttributes ?:
-                    'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-700',
+                    'mt-1 block w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-700',
             ]) !!} />
     @endif
 </div>

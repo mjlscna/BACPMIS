@@ -139,14 +139,14 @@
                                 <!-- Venue Specific -->
                                 <x-forms.select id="venue_specific_id" label="Venue (Specific)"
                                     model="form.venue_specific_id" :form="$form" :options="$venueSpecifics"
-                                    optionValue="id" optionLabel="venue" :required="false" :viewOnly="$viewOnly"
+                                    optionValue="id" optionLabel="name" :required="false" :viewOnly="$viewOnly"
                                     colspan="col-span-2" />
                             </div>
                             <div class="flex flex-col col-span-2">
                                 <!-- Venue Province/HUC -->
                                 <x-forms.select id="venue_province_huc_id" label="Venue Province/HUC"
                                     model="form.venue_province_huc_id" :form="$form" :options="$venueProvinces"
-                                    optionValue="id" optionLabel="province" :required="false" :viewOnly="$viewOnly"
+                                    optionValue="id" optionLabel="province_huc" :required="false" :viewOnly="$viewOnly"
                                     colspan="col-span-2" />
                             </div>
                             <div class="flex flex-col col-span-4">
