@@ -116,19 +116,20 @@ class AdminPanelProvider extends PanelProvider
     protected function getSystemManagementResources(): array
     {
         return [
+            \App\Filament\Resources\BACTypeResource::class,
             \App\Filament\Resources\CategoryResource::class,
             \App\Filament\Resources\CategoryTypeResource::class,
             \App\Filament\Resources\ClusterCommitteeResource::class,
             \App\Filament\Resources\DivisionResource::class,
+            \App\Filament\Resources\EndUserResource::class,
             \App\Filament\Resources\FundSourceResource::class,
             \App\Filament\Resources\ModeOfProcurementResource::class,
             \App\Filament\Resources\ProcurementStageResource::class,
-            \App\Filament\Resources\ProvinceResource::class,
+            \App\Filament\Resources\ProvinceHucResource::class,
             \App\Filament\Resources\RemarksResource::class,
-            \App\Filament\Resources\EndUserResource::class,
-            \App\Filament\Resources\VenueResource::class,
             \App\Filament\Resources\FundClassResource::class,
             \App\Filament\Resources\SupplierResource::class,
+            \App\Filament\Resources\VenueSpecificResource::class,
         ];
     }
 
