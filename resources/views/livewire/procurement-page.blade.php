@@ -121,24 +121,59 @@
                                     class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                                     @foreach ($procurements as $procurement)
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                                <!-- Edit Button -->
-                                                <button type="button"
-                                                    wire:click="openEditModal({{ $procurement->id }})"
-                                                    class="inline-flex items-center text-sm font-semibold sticky left-0 rounded-lg border border-transparent text-emerald-600 hover:text-yellow-300 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 mr-2"
-                                                    title="Edit">
-                                                    <x-heroicon-o-pencil class="w-5 h-5" />
-                                                </button>
+                                            <td class="text-center relative">
+                                                <div x-data="{ open: false }" class="inline-block">
+                                                    <button @click="open = !open" @click.away="open = false"
+                                                        class="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200 focus:outline-none">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                            class="w-5 h-5 text-emerald-600">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                                        </svg>
+                                                    </button>
 
-                                                <!-- Delete Button -->
-                                                <button type="button"
-                                                    wire:click="confirmDelete({{ $procurement->id }})"
-                                                    class="inline-flex items-center text-sm font-semibold rounded-lg border border-transparent text-red-600 hover:text-red-800 focus:outline-none disabled:opacity-50 disabled:pointer-events-none dark:text-red-500 dark:hover:text-red-400"
-                                                    title="Delete">
-                                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                                </button>
-
+                                                    <div x-show="open" x-transition
+                                                        class="absolute left-12 top-1/2 -translate-y-1/2 z-50 min-w-max bg-white border border-gray-200 rounded shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
+                                                        style="display: none;">
+                                                        <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                                                            <!-- View -->
+                                                            <li>
+                                                                <button
+                                                                    wire:click="openViewModal({{ $procurement->id }})"
+                                                                    @click="open = false" type="button"
+                                                                    class="w-full flex items-center gap-1 text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
+                                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500" />
+                                                                    View
+                                                                </button>
+                                                            </li>
+                                                            <!-- Edit -->
+                                                            <li>
+                                                                <button
+                                                                    wire:click="openEditModal({{ $procurement->id }})"
+                                                                    @click="open = false"
+                                                                    class="w-full flex items-center gap-1 text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-700 text-emerald-600">
+                                                                    <x-heroicon-o-pencil
+                                                                        class="w-4 h-4 text-emerald-600" />
+                                                                    Edit
+                                                                </button>
+                                                            </li>
+                                                            <!-- Delete -->
+                                                            <li>
+                                                                <button
+                                                                    wire:click="confirmDelete({{ $procurement->id }})"
+                                                                    @click="open = false"
+                                                                    class="w-full flex items-center gap-1 text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-700 text-red-600">
+                                                                    <x-heroicon-o-trash class="w-4 h-4 text-red-600" />
+                                                                    Delete
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
                                             </td>
+
+
 
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-800 dark:text-neutral-200">

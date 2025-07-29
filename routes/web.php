@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Livewire\LoginPage;
 use App\Livewire\HomePage;
 use App\Livewire\ProcurementPage;
+use App\Livewire\VenuePage;
 
 // ✅ Public login route (unauthenticated)
 Route::get('/login', LoginPage::class)
@@ -15,6 +16,12 @@ Route::get('/login', LoginPage::class)
 Route::middleware('auth')->group(function () {
     Route::get('/', HomePage::class)->name('dashboard.page');
     Route::get('/procurement', ProcurementPage::class)->name('procurement.page');
+
+    // UserPage route for sidebar Users button
+    \App\Livewire\UserPage::class;
+    Route::get('/users', \App\Livewire\UserPage::class)->name('user.page');
+
+    Route::get('/venues', VenuePage::class)->name('venue.page');
 
     Route::post('/logout', function () {
         Auth::logout();
