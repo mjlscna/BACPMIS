@@ -253,7 +253,10 @@
                         $hasDefaultMode = collect($form['modes'])->contains('mode_of_procurement_id', 1);
                         $hasPendingOrEmptySchedule = collect($form['modes'])->contains(function ($mode) {
                             $schedules = collect($mode['bid_schedules'] ?? []);
-                            return $schedules->isEmpty() || $schedules->contains(fn($s) => empty($s['bidding_result']));
+                            return $schedules->isEmpty() ||
+                                $schedules->contains(
+                                    fn($s) => empty($s['bidding_result']) && empty($s['ntf_bidding_result']),
+                                );
                         });
                     @endphp
 
@@ -276,9 +279,11 @@
                                     <div class="bg-white p-4 rounded-xl border border-gray-200 inline-block">
                                         @php
                                             $isModeLocked = collect($mode['bid_schedules'] ?? [])->contains(
-                                                fn($s) => !empty($s['bidding_result']),
+                                                fn($s) => !empty($s['bidding_result']) ||
+                                                    !empty($s['ntf_bidding_result']),
                                             );
                                         @endphp
+
 
                                         <x-forms.select id="mode_of_procurement_{{ $modeIndex }}"
                                             label="Mode of Procurement"
@@ -299,7 +304,7 @@
 
                                         $hasMissingBiddingResult = collect($mode['bid_schedules'] ?? [])->contains(
                                             function ($s) {
-                                                return empty($s['bidding_result']);
+                                                return empty($s['bidding_result']) && empty($s['ntf_bidding_result']);
                                             },
                                         );
 
@@ -327,7 +332,10 @@
                                 <div class="space-y-6">
                                     @foreach ($mode['bid_schedules'] ?? [] as $bidIndex => $schedule)
                                         @php
-                                            $isScheduleLocked = !empty($schedule['bidding_result']);
+                                            $isScheduleLocked =
+                                                !empty($schedule['bidding_result']) ||
+                                                !empty($schedule['ntf_bidding_result']);
+
                                         @endphp
 
                                         <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
@@ -413,7 +421,7 @@
                                                             'UNSUCCESSFUL' => 'UNSUCCESSFUL',
                                                         ]"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_result"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" wireModifier="defer" />
 
                                                     <x-forms.input
                                                         id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}"
