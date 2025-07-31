@@ -189,7 +189,9 @@
                                                 {{ $procurement->date_receipt_signed }}</td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                {{ $procurement->rbac_sbac }}</td>
+                                                {{ $procurement->category?->bacType?->abbreviation ?? '' }}
+                                            </td>
+
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
                                                 {{ $procurement->dtrack_no }}</td>
@@ -207,11 +209,13 @@
                                                 {{ $procurement->category->category }}</td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                {{ $procurement->venueSpecific ? $procurement->venueSpecific->venue : '' }}
+                                                {{ $procurement->venueSpecific?->name ?? '' }}
                                             </td>
+
+
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                {{ $procurement->venueProvince ? $procurement->venueProvince->province : '' }}
+                                                {{ $procurement->venueProvincesHUC?->province_huc ?? '' }}
                                             </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">

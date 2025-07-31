@@ -36,14 +36,13 @@
                         class="text-sm text-gray-500 dark:text-neutral-400">
                         {{ $option }}
                     </label>
-
-                    @if ($option === 'Others' && data_get($form, 'app_updated') === 'Others')
-                        <textarea wire:model.defer="{{ $othersModel }}" placeholder="Please specify" rows="3"
-                            class="ml-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:bg-neutral-700
-                    dark:border-neutral-600 dark:text-white resize-y w-96 h-[50px]"></textarea>
-                    @endif
                 </div>
             @endforeach
         </div>
+        @if ($option === 'Others' && data_get($form, 'app_updated') === 'Others')
+            <textarea wire:model.defer="{{ $othersModel }}" placeholder="Please specify" rows="3"
+                class="mt-2 ml-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:bg-neutral-700
+                    dark:border-neutral-600 dark:text-white resize-y w-96 h-[50px]"></textarea>
+        @endif
     @endif
 </div>

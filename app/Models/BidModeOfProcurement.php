@@ -10,7 +10,7 @@ class BidModeOfProcurement extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'bid_mode_of_procurement';
+    protected $table = 'bid_mode_of_procurements';
 
     protected $fillable = [
         'procID',

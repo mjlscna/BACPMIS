@@ -61,15 +61,15 @@ class ProcurementPage extends Component
         'procurement_program_project' => '',
         'date_receipt_advance' => '',
         'date_receipt_signed' => '',
-        'rbac_sbac' => '',
         'dtrack_no' => '',
         'unicode' => '',
         'divisions_id' => '',
         'cluster_committees_id' => '',
-        'category_id' => '',
+        'category_id' => null,
+        'category_type_id' => null,
+        'bac_type_id' => null,
         'venue_specific_id' => '',
         'venue_province_huc_id' => '',
-        'category_venue' => '',
         'approved_ppmp' => '',
         'app_updated' => '',
         'immediate_date_needed' => '',
@@ -104,10 +104,10 @@ class ProcurementPage extends Component
         // Fetching required data for dropdowns and selects
         $divisions = Division::all();
         $suppliers = Supplier::all();
-        $categories = Category::all();
+        $categories = Category::with(['categoryType', 'bacType'])->get();
         $clusterCommittees = ClusterCommittee::all();
         $venueSpecifics = VenueSpecific::all();
-        $venueProvinces = ProvinceHuc::all();
+        $venueProvincesHUC = ProvinceHuc::all();
         $categoryVenues = CategoryVenue::all();
         $endUsers = EndUser::all();
         $fundSources = FundSource::all();
@@ -122,8 +122,7 @@ class ProcurementPage extends Component
                 'categories' => $categories,
                 'clusterCommittees' => $clusterCommittees,
                 'venueSpecifics' => $venueSpecifics,
-                'venueProvinces' => $venueProvinces,
-                'categoryVenues' => $categoryVenues,
+                'venueProvinces' => $venueProvincesHUC,
                 'endUsers' => $endUsers,
                 'fundSources' => $fundSources,
                 'modeOfProcurements' => $modeOfProcurements,
@@ -167,10 +166,6 @@ class ProcurementPage extends Component
 
         $this->showCreateModal = true;
     }
-
-
-
-
     public function openCreateModal()
     {
         // dd('BAC' . now()->format('YmdHis') . rand(100, 999));
@@ -357,34 +352,68 @@ class ProcurementPage extends Component
             $this->form['dateOfPostingOfAwardOnPhilGEPS'] = $post->date_of_posting_of_award_on_philgeps;
         }
     }
-    public function updatedFormAbc($value)
+    public function updated($value)
     {
-        $cleaned = preg_replace('/[^0-9.]/', '', $value);
-        $numericValue = floatval($cleaned);
-        $this->form['abc_50k'] = $numericValue >= 50000 ? 'above 50k' : '50k or less';
-    }
-
-    public function updated($propertyName)
-    {
-        if (
-            $propertyName === 'form.venue_province_huc_id' ||
-            $propertyName === 'form.venue_specific_id'
-        ) {
+        if ($value === 'form.venue_province_huc_id' || $value === 'form.venue_specific_id') {
             $this->updateCategoryVenue();
         }
+
+        if ($value === 'form.category_id') {
+            $this->updatedFormCategoryId();
+        }
+
+        if ($value === 'form.abc') {
+            $cleaned = preg_replace('/[^0-9.]/', '', $this->form['abc']);
+            $numericValue = floatval($cleaned);
+            $this->form['abc_50k'] = $numericValue >= 50000 ? 'above 50k' : '50k or less';
+        }
     }
+    public function updatedFormCategoryId()
+    {
+        $category = Category::with(['categoryType', 'bacType'])
+            ->find($this->form['category_id']);
+
+        if ($category) {
+            $this->form['category_type'] = $category->categoryType?->category_type ?? null;
+            $this->form['rbac_sbac'] = $category->bacType?->abbreviation ?? null;
+
+            // ✅ Assign IDs for saving
+            $this->form['category_type_id'] = $category->category_type_id;
+            $this->form['bac_type_id'] = $category->bac_type_id;
+        } else {
+            $this->form['category_type'] = null;
+            $this->form['rbac_sbac'] = null;
+
+            $this->form['category_type_id'] = null;
+            $this->form['bac_type_id'] = null;
+        }
+    }
+
     public function updateCategoryVenue()
     {
-        if (!empty($this->form['venue_province_huc_id']) && !empty($this->form['venue_specific_id'])) {
-            $venueProvince = Province::find($this->form['venue_province_huc_id']);
-            $venueSpecific = Venue::find($this->form['venue_specific_id']);
+        if (!empty($this->form['category_id']) && !empty($this->form['venue_specific_id'])) {
+            $category = Category::find($this->form['category_id']);
+            $venueSpecific = VenueSpecific::find($this->form['venue_specific_id']);
 
-            if ($venueProvince && $venueSpecific) {
-                $this->form['category_venue'] = $venueSpecific->venue . ' ' . $venueProvince->province;
+            $provinceName = ''; // Default to empty
+            $venueProvinceHUC = null;
+
+            if (!empty($this->form['venue_province_huc_id'])) {
+                $venueProvinceHUC = ProvinceHuc::find($this->form['venue_province_huc_id']);
+                $provinceName = $venueProvinceHUC?->province_huc;
+            }
+
+            if ($category && $venueSpecific) {
+                $provinceText = $provinceName ? ', ' . $provinceName : ''; // 👈 conditionally prepend comma
+                $this->form['category_venue'] = $category->category . ' - ' . $venueSpecific->name . $provinceText;
+            } else {
+                $this->form['category_venue'] = null;
             }
         } else {
             $this->form['category_venue'] = null;
         }
+
+
         logger('Updated category_venue to: ' . $this->form['category_venue']);
     }
     public function loadModeOfProcurement()
@@ -424,7 +453,6 @@ class ProcurementPage extends Component
             $this->validate([
                 'form.pr_number' => 'required',
                 'form.procurement_program_project' => 'required',
-                'form.rbac_sbac' => 'required',
                 'form.dtrack_no' => 'required',
                 'form.divisions_id' => 'required',
                 'form.cluster_committees_id' => 'required',
@@ -447,7 +475,6 @@ class ProcurementPage extends Component
                 'unicode',
                 'venue_specific_id',
                 'venue_province_huc_id',
-                'category_venue',
                 'immediate_date_needed',
                 'date_needed',
                 'end_users_id',
@@ -458,6 +485,15 @@ class ProcurementPage extends Component
             foreach ($optionalFields as $field) {
                 $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
             }
+            // Fetch related fields from category relationships
+            $category = Category::with(['categoryType', 'bacType'])->find($this->form['category_id']);
+
+            $this->form['category_type_id'] = $category?->category_type_id ?? null;
+            $this->form['bac_type_id'] = $category?->bac_type_id ?? null;
+            $this->form['category_type'] = $category?->categoryType?->category_type ?? null;
+            $this->form['rbac_sbac'] = $category?->bacType?->abbreviation ?? null;
+
+            $this->updateCategoryVenue();
 
         } catch (ValidationException $e) {
             LivewireAlert::title('ERROR!')
@@ -758,6 +794,17 @@ class ProcurementPage extends Component
 
         return $existingMode;
     }
+    public function updatedForm()
+    {
+        foreach ($this->form['modes'] ?? [] as $index => $mode) {
+            $hasNonEmptyStatus = collect($mode['bid_schedules'] ?? [])->contains(function ($schedule) {
+                return !empty($schedule['status']);
+            });
+
+            $this->form['modes'][$index]['_view_only'] = $hasNonEmptyStatus;
+        }
+    }
+
     private function syncModeUidToForm($mode, $uid, $modeOrder)
     {
         foreach ($this->form['modes'] as &$formMode) {

@@ -15,4 +15,5 @@ class Supplier extends Model
     {
         return $this->hasMany(Procurement::class);
     }
+
 }

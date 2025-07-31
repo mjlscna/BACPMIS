@@ -5,7 +5,7 @@
     'form' => [],
     'required' => false,
     'viewOnly' => false,
-    'rows' => 2,
+    'rows' => 1,
     'maxlength' => null,
     'colspan' => 'col-span-full',
     'resizable' => true,

@@ -5,14 +5,16 @@
     'form' => [], // optional: for viewOnly display
     'viewOnly' => false,
     'required' => false,
-    'colspan' => '',
+    'colspan' => 'col-span-1',
+    'hint' => null,
 ])
 
 @php
     $value = data_get($form, str($model)->replace('form.', ''));
 @endphp
 
-<div class="flex flex-col {{ $colspan }}">
+<div {{ $attributes->merge(['class' => 'flex flex-col ' . $colspan]) }}>
+
     <label for="{{ $id }}"
         class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500' : 'text-gray-700 dark:text-gray-200' }} mb-1">
         @if ($required && !$viewOnly)

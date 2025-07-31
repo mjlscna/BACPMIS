@@ -16,4 +16,9 @@ class BACType extends Model
         'slug',
         'is_active',
     ];
+
+    public function procurements()
+    {
+        return $this->hasMany(Procurement::class);
+    }
 }

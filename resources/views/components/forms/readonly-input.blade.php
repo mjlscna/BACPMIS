@@ -8,7 +8,7 @@
     'required' => false,
     'type' => 'text',
     'maxlength' => null,
-    'colspan' => 'col-span-4',
+    'colspan' => 'col-span-1',
     'inputAttributes' => '',
 ])
 

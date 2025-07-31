@@ -100,25 +100,21 @@
                             <ul class="flex flex-col space-y-1">
                                 <!-- Users Menu Item -->
                                 <li>
-                                    <a href="{{ route('user.page') }}"
-                                        class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
-                            {{ request()->routeIs('user.page') ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white' }}
-                            focus:outline-none
-                            dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:text-neutral-200">
-                                        <svg class="shrink-0 size-4 {{ request()->routeIs('user.page') ? 'text-white' : '' }}"
-                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-                                            <circle cx="9" cy="7" r="4" />
-                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                    <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
+                    bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
+                    dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
+                                        href="{{ url('/admin-panel') }}" target="_blank">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                                         </svg>
-                                        Users
+
+                                        Admin Panel
                                     </a>
                                 </li>
                                 <!-- Venues Menu Item -->
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('venue.page') }}"
                                         class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
                             {{ request()->routeIs('venue.page') ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white' }}
@@ -133,23 +129,12 @@
                                         </svg>
                                         Venues
                                     </a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </div>
                     </li>
                 </ul>
-                <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
-                    bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
-                    dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
-                    href="{{ url('/admin-panel') }}" target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                    </svg>
 
-                    Admin Panel
-                </a>
             </div>
         </div>
         <!-- ========== END MAIN CONTENT ========== -->

@@ -9,6 +9,7 @@
     'optionValue' => 'id',
     'optionLabel' => 'name',
     'colspan' => '',
+    'wireModifier' => 'live',
 ])
 
 @php
@@ -38,7 +39,7 @@
             {{ $displayValue }}
         </div>
     @else
-        <select id="{{ $id }}" wire:model.defer="{{ $model }}"
+        <select id="{{ $id }}" wire:model.{{ $wireModifier }}="{{ $model }}"
             class="mt-1 block w-full px-3 py-2 border rounded-md text-sm
                 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
                 @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"

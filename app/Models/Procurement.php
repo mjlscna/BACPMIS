@@ -17,12 +17,13 @@ class Procurement extends Model
         'procurement_program_project',
         'date_receipt_advance',
         'date_receipt_signed',
-        'rbac_sbac',
         'dtrack_no',
         'unicode',
         'divisions_id',
         'cluster_committees_id',
         'category_id',
+        'category_type_id',
+        'bac_type_id',
         'venue_specific_id',
         'venue_province_huc_id',
         'category_venue',
@@ -53,15 +54,24 @@ class Procurement extends Model
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+    public function categoryType()
+    {
+        return $this->belongsTo(CategoryType::class, 'category_type_id');
+    }
+
+    public function bacType()
+    {
+        return $this->belongsTo(BacType::class, 'bac_type_id');
+    }
 
     public function venueSpecific()
     {
-        return $this->belongsTo(Venue::class, 'venue_specific_id');
+        return $this->belongsTo(VenueSpecific::class, 'venue_specific_id');
     }
 
-    public function venueProvince()
+    public function venueProvincesHUC()
     {
-        return $this->belongsTo(Province::class, 'venue_province_huc_id');
+        return $this->belongsTo(ProvinceHuc::class, 'venue_province_huc_id');
     }
 
     public function fundSource()
@@ -92,11 +102,6 @@ class Procurement extends Model
     public function fundClass()
     {
         return $this->belongsTo(FundClass::class, 'fund_class_id');
-    }
-
-    public function categoryVenue()
-    {
-        return $this->belongsTo(CategoryVenue::class, 'category_venue_id');
     }
 
     public function endUser()

@@ -1,11 +1,28 @@
-@props(['id', 'label', 'model', 'form' => [], 'required' => false, 'viewOnly' => false])
+@props([
+    'id',
+    'label',
+    'model',
+    'form' => [],
+    'required' => false,
+    'viewOnly' => false,
+    'colspan' => '',
+    'wireModifier' => 'live', // live, defer, lazy
+])
 
 @php
+    use Illuminate\Support\Str;
+
     $rawValue = data_get($form, Str::after($model, 'form.'), 0);
     $formattedValue = number_format((float) $rawValue, 2);
+
+    $wireAttribute = match ($wireModifier) {
+        'lazy' => 'wire:model.lazy',
+        'defer' => 'wire:model.defer',
+        default => 'wire:model',
+    };
 @endphp
 
-<div class="flex flex-col" x-data="{ display: '{{ $formattedValue }}' }">
+<div class="flex flex-col {{ $colspan }}" x-data="{ display: '{{ $formattedValue }}' }">
     <label for="{{ $id }}"
         class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500' : 'text-gray-700 dark:text-gray-200' }} mb-1">
         @if ($required && !$viewOnly)
@@ -21,6 +38,7 @@
     @else
         <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₱</span>
+
             <input type="text" id="{{ $id }}" x-model="display"
                 @input="display = $event.target.value.replace(/[^0-9.]/g, '')"
                 @blur="
