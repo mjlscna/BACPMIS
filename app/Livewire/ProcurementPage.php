@@ -54,7 +54,9 @@ class ProcurementPage extends Component
     public bool $canAccessTab2 = false;
     public bool $canAccessTab3 = false;
     public bool $viewOnly = false;
-
+    public bool $viewOnlyTab1 = false;
+    public bool $viewOnlyTab2 = false;
+    public bool $viewOnlyTab3 = false;
 
     public $form = [
         'pr_number' => '',
@@ -206,8 +208,10 @@ class ProcurementPage extends Component
         $this->editingId = null; // Clear the editingId
         $this->resetForm();              // Reset the form fields
     }
+
     public function switchTab(int $tab)
     {
+
         switch ($tab) {
             case 1:
                 $this->activeTab = 1;
@@ -231,6 +235,7 @@ class ProcurementPage extends Component
                 break;
         }
     }
+
     protected function update1(Procurement $procurement)
     {
         $this->form = array_merge($this->form, [
@@ -955,6 +960,7 @@ class ProcurementPage extends Component
     }
     protected function updateTabAccess()
     {
+        // Determine access
         $this->canAccessTab2 = !empty($this->procID) && !empty($this->form['modes'][0]['mode_of_procurement_id'] ?? null);
 
         $hasSuccessfulBid = BidSchedule::where('procID', $this->procID)
@@ -970,7 +976,13 @@ class ProcurementPage extends Component
             ->exists();
 
         $this->canAccessTab3 = !empty($this->procID) && ($hasSuccessfulBid || $hasSuccessfulNtf || $hasMode5);
+
+        // Set viewOnly flags
+        $this->viewOnlyTab1 = $this->canAccessTab2;  // If Tab 2 is accessible, Tab 1 is view-only
+        $this->viewOnlyTab2 = $this->canAccessTab3;  // If Tab 3 is accessible, Tab 2 is view-only
+        $this->viewOnlyTab3 = false;
     }
+
     private function resetForm()
     {
         $this->form = [

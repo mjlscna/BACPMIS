@@ -90,50 +90,51 @@
                 <!-- PR -->
                 <div id="card-type-tab-preview" role="tabpanel" aria-labelledby="card-type-tab-item-1"
                     class="{{ $activeTab === 1 ? '' : 'hidden' }} mb-4 mt-4">
+
                     <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <!-- PR Number -->
                             <x-forms.input id="pr_number" label="PR No." model="form.pr_number" :form="$form"
-                                :required="true" :viewOnly="$viewOnly" colspan="col-span-1" />
+                                :required="true" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
                             <!-- Procurement Program / Project -->
                             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
                                 model="form.procurement_program_project" :form="$form" :required="true"
-                                :viewOnly="$viewOnly" :maxlength="500" :rows="1" colspan="col-span-4" />
+                                :viewOnly="$viewOnlyTab1" :maxlength="500" :rows="1" colspan="col-span-4" />
                             <!-- Date Receipt (Advance Copy) -->
                             <x-forms.date id="date_receipt_advance" label="Date Receipt (Advance Copy)"
-                                model="form.date_receipt_advance" :form="$form" :viewOnly="$viewOnly" :required="false"
+                                model="form.date_receipt_advance" :form="$form" :viewOnly="$viewOnlyTab1" :required="false"
                                 colspan="col-span-1" />
                             <!-- Date Receipt (Signed Copy) -->
                             <x-forms.date id="date_receipt_signed" label="Date Receipt (Signed Copy)"
-                                model="form.date_receipt_signed" :form="$form" :viewOnly="$viewOnly"
+                                model="form.date_receipt_signed" :form="$form" :viewOnly="$viewOnlyTab1"
                                 :required="false" colspan="col-span-1" />
                             <!-- Category -->
                             <x-forms.select id="category_id" label="Category" model="form.category_id"
                                 :form="$form" :options="$categories" optionValue="id" optionLabel="category"
-                                :required="true" :viewOnly="$viewOnly" wireModifier="lazy" colspan="col-span-1" />
+                                :required="true" :viewOnly="$viewOnlyTab1" wireModifier="lazy" colspan="col-span-1" />
 
                             <!-- Category Type (Read-only) -->
                             <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type"
-                                :form="$form" :viewOnly="$viewOnly" :required="false" :colspan="1" />
+                                :form="$form" :viewOnly="$viewOnlyTab1" :required="false" :colspan="1" />
 
                             <!-- RBAC / SBAC (Read-only) -->
                             <x-forms.readonly-input id="rbac_sbac" label="RBAC / SBAC" model="form.rbac_sbac"
-                                :form="$form" :viewOnly="$viewOnly" :required="false" :colspan="1" />
+                                :form="$form" :viewOnly="$viewOnlyTab1" :required="false" :colspan="1" />
 
                             <!-- DTRACK Number -->
                             <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form"
-                                :required="true" :viewOnly="$viewOnly" colspan="col-span-1" />
+                                :required="true" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
                             <!-- UniCode -->
                             <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form"
-                                :required="false" :viewOnly="$viewOnly" />
+                                :required="false" :viewOnly="$viewOnlyTab1" />
                             <!-- Division -->
                             <x-forms.select id="divisions_id" label="Division" model="form.divisions_id"
                                 :form="$form" :options="$divisions" optionValue="id" optionLabel="divisions"
-                                :required="true" :viewOnly="$viewOnly" colspan="col-span-1" />
+                                :required="true" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
                             <!-- Cluster / Committee -->
                             <x-forms.select id="cluster_committees_id" label="Cluster / Committee"
                                 model="form.cluster_committees_id" :form="$form" :options="$clusterCommittees"
-                                optionValue="id" optionLabel="clustercommittee" :required="true" :viewOnly="$viewOnly"
+                                optionValue="id" optionLabel="clustercommittee" :required="true" :viewOnly="$viewOnlyTab1"
                                 colspan="col-span-1" />
 
                         </div>
@@ -145,24 +146,24 @@
                             <!-- Venue Specific -->
                             <x-forms.select id="venue_specific_id" label="Venue (Specific)"
                                 model="form.venue_specific_id" :form="$form" :options="$venueSpecifics" optionValue="id"
-                                optionLabel="name" :required="false" :viewOnly="$viewOnly" colspan="col-span-1" />
+                                optionLabel="name" :required="false" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
                             <!-- Venue Province/HUC -->
                             <x-forms.select id="venue_province_huc_id" label="Venue Province/HUC"
                                 model="form.venue_province_huc_id" :form="$form" :options="$venueProvinces"
-                                optionValue="id" optionLabel="province_huc" :required="false" :viewOnly="$viewOnly"
+                                optionValue="id" optionLabel="province_huc" :required="false" :viewOnly="$viewOnlyTab1"
                                 colspan="col-span-1" />
                             <!-- Category / Venue (Read-only) -->
                             <x-forms.readonly-input id="category_venue" label="Category / Venue"
-                                model="form.category_venue" :form="$form" :viewOnly="$viewOnly" :required="false"
+                                model="form.category_venue" :form="$form" :viewOnly="$viewOnlyTab1" :required="false"
                                 colspan="col-span-2" />
                             <!-- Approved PPMP -->
                             <div class="flex flex-col col-span-2">
-                                <x-forms.approved-ppmp :view-only="$viewOnly" :form="$form" model="form.approved_ppmp"
+                                <x-forms.approved-ppmp :view-only="$viewOnlyTab1" :form="$form" model="form.approved_ppmp"
                                     othersModel="otherPPMP" />
                             </div>
                             <div class="flex flex-col col-span-2">
                                 <!-- APP Updated -->
-                                <x-forms.app-updated :view-only="$viewOnly" :form="$form" model="form.app_updated"
+                                <x-forms.app-updated :view-only="$viewOnlyTab1" :form="$form" model="form.app_updated"
                                     othersModel="otherAPP" />
                             </div>
                         </div>
@@ -176,13 +177,13 @@
                                 <div class="flex-1">
                                     <x-forms.textarea id="immediate_date_needed" label="Immediate Date Needed"
                                         model="form.immediate_date_needed" :form="$form" :required="false"
-                                        :viewOnly="$viewOnly" :maxlength="500" rows="4" />
+                                        :viewOnly="$viewOnlyTab1" :maxlength="500" rows="4" />
                                 </div>
 
                                 <!-- Date Needed -->
                                 <div class="flex-1">
                                     <x-forms.textarea id="date_needed" label="Date Needed" model="form.date_needed"
-                                        :form="$form" :required="false" :viewOnly="$viewOnly" :maxlength="500"
+                                        :form="$form" :required="false" :viewOnly="$viewOnlyTab1" :maxlength="500"
                                         rows="4" />
                                 </div>
                             </div>
@@ -193,13 +194,13 @@
                                 <div>
                                     <x-forms.select id="end_users_id" label="PMO/End-User" model="form.end_users_id"
                                         :form="$form" :options="$endUsers" optionValue="id" optionLabel="endusers"
-                                        :required="false" :viewOnly="$viewOnly" />
+                                        :required="false" :viewOnly="$viewOnlyTab1" />
 
                                 </div>
                                 <!-- Early Procurement Toggle -->
                                 <div>
                                     <x-forms.early-procurement model="form.early_procurement" :form="$form"
-                                        :viewOnly="$viewOnly" />
+                                        :viewOnly="$viewOnlyTab1" />
                                 </div>
                             </div>
                         </div>
@@ -216,26 +217,26 @@
                                     <x-forms.select id="fund_source_id" label="Source of Funds"
                                         model="form.fund_source_id" :form="$form" :options="$fundSources"
                                         optionValue="id" optionLabel="fundsources" :required="false"
-                                        :viewOnly="$viewOnly" />
+                                        :viewOnly="$viewOnlyTab1" />
                                 </div>
 
                                 <!-- Expense Class -->
                                 <div class="col-span-1">
                                     <x-forms.input id="expense_class" label="Expense Class"
                                         model="form.expense_class" :form="$form" :required="false"
-                                        :viewOnly="$viewOnly" />
+                                        :viewOnly="$viewOnlyTab1" />
                                 </div>
 
                                 <!-- ABC Amount -->
                                 <x-forms.currency-input id="abc" label="ABC Amount" model="form.abc"
-                                    :form="$form" :required="true" :viewOnly="$viewOnly" colspan="col-span-1"
+                                    :form="$form" :required="true" :viewOnly="$viewOnlyTab1" colspan="col-span-1"
                                     wireModifier="live" />
 
 
                                 <!-- ABC ⇔ 50k -->
                                 <div class="col-span-1">
                                     <x-forms.abc50k id="abc_50k" label="ABC ⇔ 50k" model="form.abc_50k"
-                                        :form="$form" :viewOnly="$viewOnly" />
+                                        :form="$form" :viewOnly="$viewOnlyTab1" />
 
                                 </div>
 
@@ -260,7 +261,7 @@
                         });
                     @endphp
 
-                    @if (!$viewOnly && !$hasDefaultMode && !$hasPendingOrEmptySchedule)
+                    @if (!$viewOnlyTab2 && !$hasDefaultMode && !$hasPendingOrEmptySchedule)
                         <div class="flex justify-center mt-2">
                             <button type="button" wire:click.prevent="addMode"
                                 class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-medium shadow">
@@ -289,7 +290,7 @@
                                             label="Mode of Procurement"
                                             model="form.modes.{{ $modeIndex }}.mode_of_procurement_id"
                                             :form="$form" :options="$modeOfProcurements" optionValue="id"
-                                            optionLabel="modeofprocurements" :required="false" :viewOnly="$viewOnly || $isModeLocked"
+                                            optionLabel="modeofprocurements" :required="false" :viewOnly="$viewOnlyTab2 || $isModeLocked"
                                             wireModifier="defer" />
                                     </div>
                                 </div>
@@ -311,7 +312,7 @@
                                         $bidCount = count($mode['bid_schedules'] ?? []);
 
                                         $showAddBid =
-                                            !$viewOnly &&
+                                            !$viewOnlyTab2 &&
                                             $isLatestMode &&
                                             !$hasMissingBiddingResult &&
                                             ($mode['mode_of_procurement_id'] != 2 || $bidCount < 2);
@@ -343,44 +344,44 @@
                                                 <x-forms.input id="ib_number_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="IB No."
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
-                                                    :form="$form" :required="false" :viewOnly="$viewOnly || $isScheduleLocked"
+                                                    :form="$form" :required="false" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
                                                     inputAttributes="maxlength=12 class='text-right'" />
 
                                                 <x-forms.date
                                                     id="pre_proc_conference_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="Pre-Proc Conference"
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
-                                                    :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                 <x-forms.date
                                                     id="ads_post_ib_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="Ads/Post IB"
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
-                                                    :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                 <x-forms.date
                                                     id="pre_bid_conf_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="Pre-Bid Conference"
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
-                                                    :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                 <x-forms.date
                                                     id="eligibility_check_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="Eligibility Check"
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
-                                                    :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                 <x-forms.date
                                                     id="sub_open_bids_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="Sub/Open of Bids"
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
-                                                    :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                 <x-forms.input
                                                     id="bidding_number_{{ $modeIndex }}_{{ $bidIndex }}"
                                                     label="Bidding No."
                                                     model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_number"
-                                                    :form="$form" :viewOnly="true"
+                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
                                                     inputAttributes="class='text-right bg-gray-100 cursor-not-allowed'" />
 
                                                 @if ($mode['mode_of_procurement_id'] != 4)
@@ -388,7 +389,7 @@
                                                         id="bidding_date_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="Bidding Date"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_date"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                     <x-forms.select
                                                         id="bidding_result_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -397,7 +398,7 @@
                                                             'UNSUCCESSFUL' => 'UNSUCCESSFUL',
                                                         ]"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_result"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" wireModifier="defer" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" wireModifier="defer" />
                                                 @endif
 
                                                 @if ($mode['mode_of_procurement_id'] == 4)
@@ -405,14 +406,14 @@
                                                         id="ntf_no_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="NTF No."
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_no"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
                                                         inputAttributes="class='text-right bg-gray-100 cursor-not-allowed'" />
 
                                                     <x-forms.date
                                                         id="ntf_bidding_date_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="NTF Bidding Date"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_date"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                     <x-forms.select
                                                         id="ntf_bidding_result_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -421,32 +422,32 @@
                                                             'UNSUCCESSFUL' => 'UNSUCCESSFUL',
                                                         ]"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_result"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" wireModifier="defer" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" wireModifier="defer" />
 
                                                     <x-forms.input
                                                         id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="RFQ No."
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
                                                         inputAttributes="class='text-right bg-gray-100 cursor-not-allowed'" />
 
                                                     <x-forms.date
                                                         id="canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="Canvass Date"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                     <x-forms.date
                                                         id="date_returned_of_canvass_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="Returned of Canvass"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
                                                     <x-forms.date
                                                         id="abstract_of_canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="Abstract of Canvass"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
-                                                        :form="$form" :viewOnly="$viewOnly || $isScheduleLocked" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
                                                 @endif
                                             </div>
                                         </div>
@@ -456,7 +457,6 @@
                         @endforeach
                     </div>
                 </div>
-
                 {{-- TAB 3 --}}
                 <div id="card-type-tab-3" class="{{ $activeTab === 3 ? '' : 'hidden' }} mb-4" role="tabpanel"
                     aria-labelledby="card-type-tab-item-3">
@@ -466,43 +466,43 @@
                                 {{-- Bid Evaluation Date --}}
                                 <div class="col-span-1">
                                     <x-forms.date id="bidEvaluationDate" label="Bid Evaluation Date"
-                                        model="form.bidEvaluationDate" :form="$form" :viewOnly="$viewOnly"
+                                        model="form.bidEvaluationDate" :form="$form" :viewOnly="$viewOnlyTab3"
                                         :required="false" />
                                 </div>
 
                                 {{-- Post Qual Date --}}
                                 <div class="col-span-1">
                                     <x-forms.date id="postQualDate" label="Post Qual Date" model="form.postQualDate"
-                                        :form="$form" :viewOnly="$viewOnly" :required="false" />
+                                        :form="$form" :viewOnly="$viewOnlyTab3" :required="false" />
                                 </div>
 
                                 {{-- Resolution Number --}}
                                 <div class="col-span-1">
                                     <x-forms.input id="resolutionNumber" label="Resolution Number"
                                         model="form.resolutionNumber" :form="$form" :required="false"
-                                        :viewOnly="$viewOnly" />
+                                        :viewOnly="$viewOnlyTab3" />
                                 </div>
                                 <div class="col-span-1">
                                     <x-forms.date id="recommendingForAward" label="Recommending for Award"
-                                        model="form.recommendingForAward" :form="$form" :viewOnly="$viewOnly"
+                                        model="form.recommendingForAward" :form="$form" :viewOnly="$viewOnlyTab3"
                                         :required="false" />
                                 </div>
                                 <div class="col-span-1">
                                     <x-forms.date id="noticeOfAward" label="Notice of Award"
-                                        model="form.noticeOfAward" :form="$form" :viewOnly="$viewOnly"
+                                        model="form.noticeOfAward" :form="$form" :viewOnly="$viewOnlyTab3"
                                         :required="false" />
                                 </div>
                                 <div class="col-span-1">
                                     <x-forms.currency-input id="awardedAmount" label="Awarded Amount"
                                         model="form.awardedAmount" :form="$form" :required="false"
-                                        :viewOnly="$viewOnly" />
+                                        :viewOnly="$viewOnlyTab3" />
                                 </div>
 
                                 <div class="col-span-">
                                     <x-forms.date id="dateOfPostingOfAwardOnPhilGEPS"
                                         label="Posting of Award on PhilGEPS"
                                         model="form.dateOfPostingOfAwardOnPhilGEPS" :form="$form"
-                                        :viewOnly="$viewOnly" :required="false" />
+                                        :viewOnly="$viewOnlyTab3" :required="false" />
                                 </div>
                             </div>
                         </div>
