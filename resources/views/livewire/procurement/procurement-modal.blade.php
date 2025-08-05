@@ -20,7 +20,7 @@
 
             @php
                 $canAccessTab2 = !empty($form['modes'][0]['mode_of_procurement_id'] ?? null) && !empty($procID);
-                $canAccessTab3 = !empty($procID) && ($hasSuccessfulBidOrNtf || $hasMode5);
+                $canAccessTab3 = !empty($procID) && ($hasSuccessfulBidOrNtf || $hasSuccessfulSvp);
             @endphp
 
 
@@ -340,51 +340,58 @@
                                         @endphp
 
                                         <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                                                <x-forms.input id="ib_number_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="IB No."
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
-                                                    :form="$form" :required="false" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
-                                                    inputAttributes="maxlength=12 class='text-right'" />
+                                            <div class="grid grid-cols-5 gap-4">
+                                                @if ($mode['mode_of_procurement_id'] != 5)
+                                                    <div class="col-span-full">
+                                                        <div class="w-full md:w-16">
+                                                            <x-forms.input
+                                                                id="bidding_number_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                                label="Bidding #"
+                                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_number"
+                                                                :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight
+                                                                maxlength="2" />
+                                                        </div>
+                                                    </div>
 
-                                                <x-forms.date
-                                                    id="pre_proc_conference_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="Pre-Proc Conference"
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
-                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                    <x-forms.input
+                                                        id="ib_number_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="IB No."
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
+                                                        :form="$form" :required="false" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
+                                                        textRight />
 
-                                                <x-forms.date
-                                                    id="ads_post_ib_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="Ads/Post IB"
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
-                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                    <x-forms.date
+                                                        id="pre_proc_conference_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="Pre-Proc Conference"
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
-                                                <x-forms.date
-                                                    id="pre_bid_conf_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="Pre-Bid Conference"
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
-                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                    <x-forms.date
+                                                        id="ads_post_ib_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="Ads/Post IB"
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
-                                                <x-forms.date
-                                                    id="eligibility_check_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="Eligibility Check"
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
-                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                    <x-forms.date
+                                                        id="pre_bid_conf_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="Pre-Bid Conference"
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
-                                                <x-forms.date
-                                                    id="sub_open_bids_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="Sub/Open of Bids"
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
-                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                    <x-forms.date
+                                                        id="eligibility_check_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="Eligibility Check"
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
-                                                <x-forms.input
-                                                    id="bidding_number_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                    label="Bidding No."
-                                                    model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_number"
-                                                    :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
-                                                    inputAttributes="class='text-right bg-gray-100 cursor-not-allowed'" />
+                                                    <x-forms.date
+                                                        id="sub_open_bids_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="Sub/Open of Bids"
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                @endif
 
-                                                @if ($mode['mode_of_procurement_id'] != 4)
+                                                @if (!in_array($mode['mode_of_procurement_id'], [4, 5]))
                                                     <x-forms.date
                                                         id="bidding_date_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="Bidding Date"
@@ -402,18 +409,17 @@
                                                 @endif
 
                                                 @if ($mode['mode_of_procurement_id'] == 4)
-                                                    <x-forms.input
-                                                        id="ntf_no_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                        label="NTF No."
-                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_no"
-                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
-                                                        inputAttributes="class='text-right bg-gray-100 cursor-not-allowed'" />
-
                                                     <x-forms.date
                                                         id="ntf_bidding_date_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="NTF Bidding Date"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_date"
                                                         :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+
+                                                    <x-forms.input
+                                                        id="ntf_no_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                        label="NTF No."
+                                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_no"
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight />
 
                                                     <x-forms.select
                                                         id="ntf_bidding_result_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -423,13 +429,14 @@
                                                         ]"
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_result"
                                                         :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" wireModifier="defer" />
+                                                @endif
 
+                                                @if ($mode['mode_of_procurement_id'] == 4)
                                                     <x-forms.input
                                                         id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="RFQ No."
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
-                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
-                                                        inputAttributes="class='text-right bg-gray-100 cursor-not-allowed'" />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight />
 
                                                     <x-forms.date
                                                         id="canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -450,6 +457,48 @@
                                                         :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
                                                 @endif
                                             </div>
+                                            <div class="grid grid-cols-5 gap-4">
+                                                @if ($mode['mode_of_procurement_id'] == 5)
+                                                    <div class="col-span-5 flex justify-center gap-4 flex-wrap">
+                                                        <div class="w-full md:w-48">
+                                                            <x-forms.input
+                                                                id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                                label="RFQ No."
+                                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
+                                                                :form="$form" :required="true"
+                                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight />
+                                                        </div>
+
+                                                        <div class="w-full md:w-48">
+                                                            <x-forms.date
+                                                                id="canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                                label="Canvass Date"
+                                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
+                                                                :form="$form" :required="true"
+                                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                        </div>
+
+                                                        <div class="w-full md:w-48">
+                                                            <x-forms.date
+                                                                id="date_returned_of_canvass_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                                label="Returned of Canvass"
+                                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
+                                                                :form="$form" :required="true"
+                                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                        </div>
+
+                                                        <div class="w-full md:w-48">
+                                                            <x-forms.date
+                                                                id="abstract_of_canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
+                                                                label="Abstract of Canvass"
+                                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
+                                                                :form="$form" :required="true"
+                                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
+
                                         </div>
                                     @endforeach
                                 </div>

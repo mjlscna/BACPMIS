@@ -31,6 +31,7 @@
     @else
         <input type="{{ $type }}" id="{{ $id }}" wire:model.defer="{{ $model }}"
             {{ $maxlength ? "maxlength=$maxlength" : '' }}
+            {{ $type === 'number' ? 'min=0 max=999 oninput=this.value=this.value.slice(0,3)' : '' }}
             class="mt-1 block w-full px-3 py-2 rounded-md text-sm border {{ $textRight ? 'text-right' : '' }}
             @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
             @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
