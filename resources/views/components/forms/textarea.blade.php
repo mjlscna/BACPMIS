@@ -3,17 +3,21 @@
     'label',
     'model',
     'form' => [],
+    'type' => 'text',
     'required' => false,
     'viewOnly' => false,
-    'rows' => 1,
+    'textAlign' => null,
     'maxlength' => null,
-    'colspan' => 'col-span-full',
-    'resizable' => true,
+    'colspan' => 'col-span-1',
+    'placeholder' => null,
+    'step' => null,
+    'min' => null,
+    'max' => null,
 ])
 
 @php
     $fieldKey = str($model)->replace('form.', '');
-    $value = data_get($form, $fieldKey, '');
+    $value = data_get($form, $fieldKey);
 @endphp
 
 <div class="flex flex-col {{ $colspan }}">
@@ -26,18 +30,18 @@
     </label>
 
     @if ($viewOnly)
-        <div class="text-sm font-semibold text-gray-900 dark:text-white ms-0 whitespace-pre-wrap">
-            {{ $value ?: '—' }}
+        <div class="text-sm font-semibold text-gray-900 dark:text-white ms-1">
+            {{ $value ?? '—' }}
         </div>
     @else
-        <textarea id="{{ $id }}" wire:model.defer="{{ $model }}"
-            @if ($maxlength) maxlength="{{ $maxlength }}" @endif rows="{{ $rows }}"
-            {{ $required ? 'required' : '' }}
-            class="mt-1 block w-full px-3 py-2 rounded-md border text-sm
-                {{ $resizable ? 'resize-y' : 'resize-none' }}
+        <input id="{{ $id }}" type="{{ $type }}" wire:model.defer="{{ $model }}"
+            class="mt-1 block w-full px-4 py-2 rounded-md text-sm border
+                {{ $textAlign ? 'text-' . $textAlign : '' }}
                 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
-                @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror">
-        </textarea>
+                @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
+            {{ $maxlength ? "maxlength=$maxlength" : '' }} {{ $placeholder ? "placeholder=$placeholder" : '' }}
+            {{ $step ? "step=$step" : '' }} {{ $min !== null ? "min=$min" : '' }}
+            {{ $max !== null ? "max=$max" : '' }} {{ $required ? 'required' : '' }} />
 
         @error($model)
             <span class="mt-1 text-sm text-red-600">{{ $message }}</span>

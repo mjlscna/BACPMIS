@@ -20,7 +20,10 @@
         @if ($required && !$viewOnly)
             <span class="text-red-500 mr-1">*</span>
         @endif
-        {{ $label }}
+        {!! str($label)->contains('|')
+            ? explode('|', $label)[0] . ' <span class="text-xs text-gray-500">(' . explode('|', $label)[1] . ')</span>'
+            : $label !!}
+
     </label>
 
     @if ($viewOnly)
@@ -30,9 +33,9 @@
     @else
         <input type="date" id="{{ $id }}" wire:model.defer="{{ $model }}"
             {{ $required ? 'required' : '' }}
-            class="mt-1 block w-full px-3 py-2 border rounded-md text-sm
-                @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
-                @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
+            class="mt-1 block w-full px-4 py-2 border rounded-md text-sm text-center
+        @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
+        @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
             placeholder="MM/DD/YYYY">
     @endif
 

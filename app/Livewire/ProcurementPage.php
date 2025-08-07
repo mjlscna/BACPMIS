@@ -13,9 +13,11 @@ use App\Models\ModeOfProcurement;
 use App\Models\NtfBidSchedule;
 use App\Models\PostProcurement;
 use App\Models\Procurement;
+use App\Models\ProcurementStage;
 use App\Models\Province;
 use App\Models\ProvinceHuc;
 use App\Models\PrSvp;
+use App\Models\Remarks;
 use App\Models\Supplier;
 use App\Models\Venue;
 use App\Models\VenueSpecific;
@@ -112,10 +114,11 @@ class ProcurementPage extends Component
         $clusterCommittees = ClusterCommittee::all();
         $venueSpecifics = VenueSpecific::all();
         $venueProvincesHUC = ProvinceHuc::all();
-        $categoryVenues = CategoryVenue::all();
         $endUsers = EndUser::all();
         $fundSources = FundSource::all();
         $modeOfProcurements = ModeOfProcurement::all();
+        $procurementStages = ProcurementStage::all();
+        $remarks = Remarks::all();
 
         $this->checkSuccessfulBidOrNtf();
 
@@ -130,6 +133,8 @@ class ProcurementPage extends Component
                 'endUsers' => $endUsers,
                 'fundSources' => $fundSources,
                 'modeOfProcurements' => $modeOfProcurements,
+                'procurementStages' => $procurementStages,
+                'remarks' => $remarks,
                 'form' => $this->form,  // Pass the form data so it can be prefilled in the modal
             ]);
         }
@@ -238,8 +243,6 @@ class ProcurementPage extends Component
                 break;
         }
     }
-
-
     protected function update1(Procurement $procurement)
     {
         $this->form = array_merge($this->form, [
@@ -368,19 +371,23 @@ class ProcurementPage extends Component
         })->toArray();
     }
 
-
     protected function update3()
     {
         $post = PostProcurement::where('procID', $this->procID)->latest()->first();
 
         if ($post) {
+            $this->form['resolutionNumber'] = $post->resolution_number;
             $this->form['bidEvaluationDate'] = $post->bid_evaluation_date;
             $this->form['postQualDate'] = $post->post_qual_date;
-            $this->form['resolutionNumber'] = $post->resolution_number;
             $this->form['recommendingForAward'] = $post->recommending_for_award;
             $this->form['noticeOfAward'] = $post->notice_of_award;
             $this->form['awardedAmount'] = $post->awarded_amount;
             $this->form['dateOfPostingOfAwardOnPhilGEPS'] = $post->date_of_posting_of_award_on_philgeps;
+            $this->form['philgepsReferenceNo'] = $post->philgeps_reference_no;
+            $this->form['awardNoticeNumber'] = $post->award_notice_no;
+            $this->form['supplier_id'] = $post->supplier_id;
+            $this->form['procurement_stage_id'] = $post->procurement_stage_id;
+            $this->form['remarks_id'] = $post->remarks_id;
         }
     }
     public function updated($value)
@@ -419,7 +426,6 @@ class ProcurementPage extends Component
             $this->form['bac_type_id'] = null;
         }
     }
-
     public function updateCategoryVenue()
     {
         if (!empty($this->form['category_id']) && !empty($this->form['venue_specific_id'])) {
@@ -622,7 +628,6 @@ class ProcurementPage extends Component
                 ->error()->text($e->getMessage())->toast()->position('top-end')->show();
         }
     }
-
     public function savePost()
     {
         try {
@@ -635,6 +640,11 @@ class ProcurementPage extends Component
                 'form.noticeOfAward' => 'nullable|date',
                 'form.awardedAmount' => 'nullable|numeric|min:0',
                 'form.dateOfPostingOfAwardOnPhilGEPS' => 'nullable|date',
+                'form.philgepsReferenceNo' => 'nullable|string|max:255',
+                'form.awardNoticeNumber' => 'nullable|string|max:255',
+                'form.supplier_id' => 'nullable|exists:suppliers,id',
+                'form.procurement_stage_id' => 'nullable|exists:procurement_stages,id',
+                'form.remarks_id' => 'nullable|exists:remarks,id',
             ]);
 
             // Normalize awardedAmount
@@ -642,6 +652,7 @@ class ProcurementPage extends Component
                 $this->form['awardedAmount'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['awardedAmount']));
             }
 
+            // Prepare data
             $data = [
                 'bid_evaluation_date' => $this->form['bidEvaluationDate'] ?? null,
                 'post_qual_date' => $this->form['postQualDate'] ?? null,
@@ -650,8 +661,14 @@ class ProcurementPage extends Component
                 'notice_of_award' => $this->form['noticeOfAward'] ?? null,
                 'awarded_amount' => $this->form['awardedAmount'] ?? null,
                 'date_of_posting_of_award_on_philgeps' => $this->form['dateOfPostingOfAwardOnPhilGEPS'] ?? null,
+                'philgeps_reference_no' => $this->form['philgepsReferenceNo'] ?? null,
+                'award_notice_no' => $this->form['awardNoticeNumber'] ?? null,
+                'supplier_id' => $this->form['supplier_id'] ?? null,
+                'procurement_stage_id' => $this->form['procurement_stage_id'] ?? null,
+                'remarks_id' => $this->form['remarks_id'] ?? null,
             ];
 
+            // Save or update
             if ($this->editingId) {
                 $procurement = Procurement::findOrFail($this->editingId);
 
@@ -662,7 +679,6 @@ class ProcurementPage extends Component
 
                 LivewireAlert::title('Updated!')
                     ->success()->toast()->position('top-end')->show();
-
             } else {
                 PostProcurement::create([
                     'procID' => $this->procID,
@@ -680,6 +696,7 @@ class ProcurementPage extends Component
                 ->error()->text('An error occurred while saving.')->toast()->position('top-end')->show();
         }
     }
+
     public function saveTabData()
     {
         switch ($this->activeTab) {

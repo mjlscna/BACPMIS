@@ -348,7 +348,7 @@
                                                                 id="bidding_number_{{ $modeIndex }}_{{ $bidIndex }}"
                                                                 label="Bidding #"
                                                                 model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_number"
-                                                                :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight
+                                                                :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textAlign="right"
                                                                 maxlength="2" />
                                                         </div>
                                                     </div>
@@ -358,7 +358,7 @@
                                                         label="IB No."
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
                                                         :form="$form" :required="false" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
-                                                        textRight />
+                                                        textAlign="right" />
 
                                                     <x-forms.date
                                                         id="pre_proc_conference_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -419,7 +419,7 @@
                                                         id="ntf_no_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="NTF No."
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_no"
-                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textAlign="right" />
 
                                                     <x-forms.select
                                                         id="ntf_bidding_result_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -436,7 +436,7 @@
                                                         id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}"
                                                         label="RFQ No."
                                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
-                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight />
+                                                        :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textAlign="right" />
 
                                                     <x-forms.date
                                                         id="canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
@@ -466,7 +466,7 @@
                                                                 label="RFQ No."
                                                                 model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
                                                                 :form="$form" :required="true"
-                                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textRight />
+                                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textAlign="right" />
                                                         </div>
 
                                                         <div class="w-full md:w-48">
@@ -509,15 +509,21 @@
                 {{-- TAB 3 --}}
                 <div id="card-type-tab-3" class="{{ $activeTab === 3 ? '' : 'hidden' }} mb-4" role="tabpanel"
                     aria-labelledby="card-type-tab-item-3">
-                    <div class="flex justify-center gap-4 mt-6">
+                    {{-- Block 1 --}}
+                    <div class="justify-center gap-4 mt-6">
                         <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                            <div class="grid grid-cols-4 gap-4">
-                                {{-- Bid Evaluation Date --}}
+                            <div class="grid grid-cols-6 gap-4">
+                                {{-- Resolution Number --}}
                                 <div class="col-span-1">
-                                    <x-forms.date id="bidEvaluationDate" label="Bid Evaluation Date"
-                                        model="form.bidEvaluationDate" :form="$form" :viewOnly="$viewOnlyTab3"
-                                        :required="false" />
+                                    <x-forms.input id="resolutionNumber" label="Resolution Number"
+                                        model="form.resolutionNumber" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" textAlign="right" />
                                 </div>
+                                {{-- Bid Evaluation Date --}}
+                                <x-forms.date id="bidEvaluationDate" label="Bid Evaluation Date"
+                                    model="form.bidEvaluationDate" :form="$form" :viewOnly="$viewOnlyTab3"
+                                    :required="false" textAlign="center" />
+
 
                                 {{-- Post Qual Date --}}
                                 <div class="col-span-1">
@@ -525,52 +531,96 @@
                                         :form="$form" :viewOnly="$viewOnlyTab3" :required="false" />
                                 </div>
 
-                                {{-- Resolution Number --}}
-                                <div class="col-span-1">
-                                    <x-forms.input id="resolutionNumber" label="Resolution Number"
-                                        model="form.resolutionNumber" :form="$form" :required="false"
-                                        :viewOnly="$viewOnlyTab3" />
-                                </div>
+                                {{-- Recommending for Award --}}
                                 <div class="col-span-1">
                                     <x-forms.date id="recommendingForAward" label="Recommending for Award"
                                         model="form.recommendingForAward" :form="$form" :viewOnly="$viewOnlyTab3"
                                         :required="false" />
                                 </div>
+
+                                {{-- Notice of Award --}}
                                 <div class="col-span-1">
                                     <x-forms.date id="noticeOfAward" label="Notice of Award"
                                         model="form.noticeOfAward" :form="$form" :viewOnly="$viewOnlyTab3"
                                         :required="false" />
                                 </div>
+                                {{-- Awarded Amount --}}
                                 <div class="col-span-1">
                                     <x-forms.currency-input id="awardedAmount" label="Awarded Amount"
                                         model="form.awardedAmount" :form="$form" :required="false"
                                         :viewOnly="$viewOnlyTab3" />
                                 </div>
-
-                                <div class="col-span-">
-                                    <x-forms.date id="dateOfPostingOfAwardOnPhilGEPS"
-                                        label="Posting of Award on PhilGEPS"
-                                        model="form.dateOfPostingOfAwardOnPhilGEPS" :form="$form"
-                                        :viewOnly="$viewOnlyTab3" :required="false" />
-                                </div>
                             </div>
                         </div>
                     </div>
+
+                    {{-- Block 2 --}}
+                    <div class="justify-center gap-4 mt-6">
+                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                            <div class="grid grid-cols-6 gap-4">
+                                {{-- PhilGEPS Posting Ref --}}
+                                <div class="col-span-1">
+                                    <x-forms.input id="philgepsReferenceNo" label="PhilGEPS Posting Reference #"
+                                        model="form.philgepsReferenceNo" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" textAlign="right" />
+                                </div>
+
+                                {{-- Award Notice Number --}}
+                                <div class="col-span-1">
+                                    <x-forms.input id="awardNoticeNumber" label="Award Notice Number"
+                                        model="form.awardNoticeNumber" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" textAlign="right" />
+                                </div>
+
+                                {{-- Posting of Award on PhilGEPS --}}
+                                <div class="col-span-1">
+                                    <x-forms.date id="dateOfPostingOfAwardOnPhilGEPS"
+                                        label="Posting of Award|PhilGEPS" model="form.dateOfPostingOfAwardOnPhilGEPS"
+                                        :form="$form" :viewOnly="$viewOnlyTab3" :required="false" />
+
+                                </div>
+                                {{-- Supplier --}}
+                                <div class="col-span-1">
+                                    <x-forms.select id="supplier_id" label="Supplier" model="form.supplier_id"
+                                        :form="$form" :options="$suppliers" optionValue="id" optionLabel="name"
+                                        :required="false" :viewOnly="$viewOnlyTab3" />
+                                </div>
+
+                                {{-- Process Stage --}}
+                                <div class="col-span-1">
+                                    <x-forms.select id="procurement_stage_id" label="Procurement Stage"
+                                        model="form.procurement_stage_id" :form="$form" :options="$procurementStages"
+                                        optionValue="id" optionLabel="procurementstage" :required="false"
+                                        :viewOnly="$viewOnlyTab3" />
+                                </div>
+
+                                {{-- Remarks --}}
+                                <div class="col-span-1">
+                                    <x-forms.select id="remarks_id" label="Remarks" model="form.remarks_id"
+                                        :form="$form" :options="$remarks" optionValue="id" optionLabel="remarks"
+                                        :required="false" :viewOnly="$viewOnlyTab3" />
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            <!-- Footer -->
-            <div class="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-neutral-700">
-                <button wire:click="$set('showCreateModal', false)"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
-                    Cancel
+        </div>
+        <!-- Footer -->
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-neutral-700">
+            <button wire:click="$set('showCreateModal', false)"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
+                Cancel
+            </button>
+            @if (!$viewOnly)
+                <button wire:click="saveTabData"
+                    class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
+                    {{ $editingId ? 'Update' : 'Save' }}
                 </button>
-                @if (!$viewOnly)
-                    <button wire:click="saveTabData"
-                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
-                        {{ $editingId ? 'Update' : 'Save' }}
-                    </button>
-                @endif
+            @endif
 
-            </div>
         </div>
     </div>
+</div>
