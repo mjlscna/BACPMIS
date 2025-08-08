@@ -2,51 +2,68 @@
     'id',
     'label',
     'model',
-    'options' => [],
-    'optionValue' => 'id',
-    'optionLabel' => 'name',
     'form' => [],
     'viewOnly' => false,
     'required' => false,
-    'colspan' => 'col-span-1',
+    'options' => [],
+    'optionValue' => 'id',
+    'optionLabel' => 'name',
+    'colspan' => '',
+    'wireModifier' => 'live',
 ])
 
 @php
-    $value = data_get($form, str($model)->replace('form.', ''));
+    $fieldKey = str($model)->replace('form.', '');
+    $value = data_get($form, $fieldKey);
+    $isAssoc = is_array($options) && array_keys($options) !== range(0, count($options) - 1);
+
+    if ($isAssoc) {
+        $displayValue = $options[$value] ?? '—';
+    } else {
+        $match = collect($options)->firstWhere($optionValue, $value);
+        $displayValue = $match[$optionLabel] ?? '—';
+    }
 @endphp
 
-<div {{ $attributes->merge(['class' => 'flex flex-col ' . $colspan]) }}>
+<div class="flex flex-col {{ $colspan }}">
     @if ($label)
         <label for="{{ $id }}"
             class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500' : 'text-gray-700 dark:text-gray-200' }} mb-1">
             @if ($required && !$viewOnly)
                 <span class="text-red-500 mr-1">*</span>
             @endif
-            {{ $label }}
+            {!! str($label)->contains('|')
+                ? explode('|', $label)[0] . ' <span class="text-xs text-gray-500">(' . explode('|', $label)[1] . ')</span>'
+                : $label !!}
         </label>
     @endif
 
     @if ($viewOnly)
         <div class="text-sm font-semibold text-gray-900 dark:text-white ms-3">
-            {{ collect($options)->firstWhere($optionValue, $value)[$optionLabel] ?? '—' }}
+            {{ $displayValue }}
         </div>
     @else
-        <select id="{{ $id }}" wire:model.defer="{{ $model }}"
-            class="mt-1 block w-full px-4 py-2 border rounded-md text-sm
-        @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
-        @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
+        <select id="{{ $id }}" wire:model.{{ $wireModifier }}="{{ $model }}"
+            class="mt-1 block w-full px-3 py-2 border rounded-md text-sm
+                @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
+                @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
             {{ $required ? 'required' : '' }}>
+
             <option value="">Select</option>
-            @foreach ($options as $option)
-                <option value="{{ $option[$optionValue] }}" {{ $value == $option[$optionValue] ? 'selected' : '' }}>
-                    {{ $option[$optionLabel] }}
-                </option>
-            @endforeach
+
+            @if ($isAssoc)
+                @foreach ($options as $key => $text)
+                    <option value="{{ $key }}">{{ $text }}</option>
+                @endforeach
+            @else
+                @foreach ($options as $option)
+                    <option value="{{ $option[$optionValue] }}">{{ $option[$optionLabel] }}</option>
+                @endforeach
+            @endif
         </select>
 
+        @error($model)
+            <span class="mt-1 text-sm text-red-600">{{ $message }}</span>
+        @enderror
     @endif
-
-    @error($model)
-        <span class="mt-1 text-sm text-red-600">{{ $message }}</span>
-    @enderror
 </div>

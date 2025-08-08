@@ -30,7 +30,9 @@
         @if ($required && !$viewOnly)
             <span class="text-red-500 mr-1">*</span>
         @endif
-        {{ $label }}
+        {!! str($label)->contains('|')
+            ? explode('|', $label)[0] . ' <span class="text-xs text-gray-500">(' . explode('|', $label)[1] . ')</span>'
+            : $label !!}
     </label>
 
     @if ($viewOnly)

@@ -101,26 +101,23 @@
                                 model="form.procurement_program_project" :form="$form" :required="true"
                                 :viewOnly="$viewOnlyTab1" :maxlength="500" :rows="1" colspan="col-span-4" />
                             <!-- Date Receipt (Advance Copy) -->
-                            <x-forms.date id="date_receipt_advance" label="Date Receipt (Advance Copy)"
+                            <x-forms.date id="date_receipt_advance" label="Date Receipt|Advance Copy"
                                 model="form.date_receipt_advance" :form="$form" :viewOnly="$viewOnlyTab1" :required="false"
                                 colspan="col-span-1" />
                             <!-- Date Receipt (Signed Copy) -->
-                            <x-forms.date id="date_receipt_signed" label="Date Receipt (Signed Copy)"
+                            <x-forms.date id="date_receipt_signed" label="Date Receipt|Signed Copy"
                                 model="form.date_receipt_signed" :form="$form" :viewOnly="$viewOnlyTab1"
                                 :required="false" colspan="col-span-1" />
                             <!-- Category -->
                             <x-forms.select id="category_id" label="Category" model="form.category_id"
                                 :form="$form" :options="$categories" optionValue="id" optionLabel="category"
                                 :required="true" :viewOnly="$viewOnlyTab1" wireModifier="lazy" colspan="col-span-1" />
-
                             <!-- Category Type (Read-only) -->
                             <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type"
                                 :form="$form" :viewOnly="$viewOnlyTab1" :required="false" :colspan="1" />
-
                             <!-- RBAC / SBAC (Read-only) -->
                             <x-forms.readonly-input id="rbac_sbac" label="RBAC / SBAC" model="form.rbac_sbac"
                                 :form="$form" :viewOnly="$viewOnlyTab1" :required="false" :colspan="1" />
-
                             <!-- DTRACK Number -->
                             <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form"
                                 :required="true" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
@@ -144,9 +141,9 @@
                         <!-- Simple Form Fields in Landscape Layout -->
                         <div class="grid grid-cols-4 gap-4">
                             <!-- Venue Specific -->
-                            <x-forms.select id="venue_specific_id" label="Venue (Specific)"
-                                model="form.venue_specific_id" :form="$form" :options="$venueSpecifics" optionValue="id"
-                                optionLabel="name" :required="false" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
+                            <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id"
+                                :form="$form" :options="$venueSpecifics" optionValue="id" optionLabel="name"
+                                :required="false" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
                             <!-- Venue Province/HUC -->
                             <x-forms.select id="venue_province_huc_id" label="Venue Province/HUC"
                                 model="form.venue_province_huc_id" :form="$form" :options="$venueProvinces"
@@ -176,8 +173,9 @@
                                 <!-- Immediate Date Needed -->
                                 <div class="flex-1">
                                     <x-forms.textarea id="immediate_date_needed" label="Immediate Date Needed"
-                                        model="form.immediate_date_needed" :form="$form" :required="false"
-                                        :viewOnly="$viewOnlyTab1" :maxlength="500" rows="4" />
+                                        model="form.immediate_date_needed" :form="$form" :maxlength="500"
+                                        rows="4" :viewOnly="$viewOnlyTab1" />
+
                                 </div>
 
                                 <!-- Date Needed -->
@@ -216,7 +214,7 @@
                                 <div class="col-span-1">
                                     <x-forms.select id="fund_source_id" label="Source of Funds"
                                         model="form.fund_source_id" :form="$form" :options="$fundSources"
-                                        optionValue="id" optionLabel="fundsources" :required="false"
+                                        optionValue="id" optionLabel="fundsources" :required="true"
                                         :viewOnly="$viewOnlyTab1" />
                                 </div>
 
@@ -224,7 +222,7 @@
                                 <div class="col-span-1">
                                     <x-forms.input id="expense_class" label="Expense Class"
                                         model="form.expense_class" :form="$form" :required="false"
-                                        :viewOnly="$viewOnlyTab1" />
+                                        :viewOnly="$viewOnlyTab1" textAlign="right" />
                                 </div>
 
                                 <!-- ABC Amount -->
@@ -284,8 +282,6 @@
                                                     !empty($s['ntf_bidding_result']),
                                             );
                                         @endphp
-
-
                                         <x-forms.select id="mode_of_procurement_{{ $modeIndex }}"
                                             label="Mode of Procurement"
                                             model="form.modes.{{ $modeIndex }}.mode_of_procurement_id"

@@ -3,16 +3,13 @@
     'label',
     'model',
     'form' => [],
-    'type' => 'text',
     'required' => false,
     'viewOnly' => false,
     'textAlign' => null,
     'maxlength' => null,
     'colspan' => 'col-span-1',
     'placeholder' => null,
-    'step' => null,
-    'min' => null,
-    'max' => null,
+    'rows' => 4,
 ])
 
 @php
@@ -26,7 +23,9 @@
         @if ($required && !$viewOnly)
             <span class="text-red-500 mr-1">*</span>
         @endif
-        {{ $label }}
+        {!! str($label)->contains('|')
+            ? explode('|', $label)[0] . ' <span class="text-xs text-gray-500">(' . explode('|', $label)[1] . ')</span>'
+            : $label !!}
     </label>
 
     @if ($viewOnly)
@@ -34,14 +33,13 @@
             {{ $value ?? '—' }}
         </div>
     @else
-        <input id="{{ $id }}" type="{{ $type }}" wire:model.defer="{{ $model }}"
+        <textarea id="{{ $id }}" wire:model.defer="{{ $model }}" rows="{{ $rows }}"
             class="mt-1 block w-full px-4 py-2 rounded-md text-sm border
                 {{ $textAlign ? 'text-' . $textAlign : '' }}
                 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
                 @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror"
             {{ $maxlength ? "maxlength=$maxlength" : '' }} {{ $placeholder ? "placeholder=$placeholder" : '' }}
-            {{ $step ? "step=$step" : '' }} {{ $min !== null ? "min=$min" : '' }}
-            {{ $max !== null ? "max=$max" : '' }} {{ $required ? 'required' : '' }} />
+            {{ $required ? 'required' : '' }}>{{ $value }}</textarea>
 
         @error($model)
             <span class="mt-1 text-sm text-red-600">{{ $message }}</span>
