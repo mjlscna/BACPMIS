@@ -13,9 +13,14 @@ use App\Models\ModeOfProcurement;
 use App\Models\NtfBidSchedule;
 use App\Models\PostProcurement;
 use App\Models\Procurement;
+use App\Models\ProcurementStage;
 use App\Models\Province;
+use App\Models\ProvinceHuc;
+use App\Models\PrSvp;
+use App\Models\Remarks;
 use App\Models\Supplier;
 use App\Models\Venue;
+use App\Models\VenueSpecific;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
@@ -34,6 +39,7 @@ class ProcurementPage extends Component
 
     public $tab1Data, $tab2Data, $tab3Data; // Data for each tab
     public $isCreating = false;
+    public $isEditing = false;
     public $editingId;
     public $modeBidUid;
     public $earlyProcurement = false;
@@ -46,26 +52,31 @@ class ProcurementPage extends Component
     public $bid_schedules = [];
     public bool $showModeSelect = false;
 
-    public $hasSuccessfulBidOrNtf = false;
-    public bool $hasMode5 = false;
+    public bool $hasSuccessfulBidOrNtf = false;
+    public bool $hasSuccessfulSvp = false;
+
     protected $paginationTheme = 'tailwind';
     public bool $canAccessTab2 = false;
     public bool $canAccessTab3 = false;
+    public bool $viewOnly = false;
+    public bool $viewOnlyTab1 = false;
+    public bool $viewOnlyTab2 = false;
+    public bool $viewOnlyTab3 = false;
 
     public $form = [
         'pr_number' => '',
         'procurement_program_project' => '',
         'date_receipt_advance' => '',
         'date_receipt_signed' => '',
-        'rbac_sbac' => '',
         'dtrack_no' => '',
         'unicode' => '',
         'divisions_id' => '',
         'cluster_committees_id' => '',
-        'category_id' => '',
+        'category_id' => null,
+        'category_type_id' => null,
+        'bac_type_id' => null,
         'venue_specific_id' => '',
         'venue_province_huc_id' => '',
-        'category_venue' => '',
         'approved_ppmp' => '',
         'app_updated' => '',
         'immediate_date_needed' => '',
@@ -75,7 +86,7 @@ class ProcurementPage extends Component
         'fund_source_id' => '',
         'expense_class' => '',
         'abc' => '',
-        'abc_50k' => '50k_or_less',
+        'abc_50k' => '50k or less',
         // Tab 2 fields
         'mode_of_procurement_id' => '',
         'modes' => [],
@@ -100,14 +111,15 @@ class ProcurementPage extends Component
         // Fetching required data for dropdowns and selects
         $divisions = Division::all();
         $suppliers = Supplier::all();
-        $categories = Category::all();
+        $categories = Category::with(['categoryType', 'bacType'])->get();
         $clusterCommittees = ClusterCommittee::all();
-        $venueSpecifics = Venue::all();
-        $venueProvinces = Province::all();
-        $categoryVenues = CategoryVenue::all();
+        $venueSpecifics = VenueSpecific::all();
+        $venueProvincesHUC = ProvinceHuc::all();
         $endUsers = EndUser::all();
         $fundSources = FundSource::all();
         $modeOfProcurements = ModeOfProcurement::all();
+        $procurementStages = ProcurementStage::all();
+        $remarks = Remarks::all();
 
         $this->checkSuccessfulBidOrNtf();
 
@@ -118,11 +130,12 @@ class ProcurementPage extends Component
                 'categories' => $categories,
                 'clusterCommittees' => $clusterCommittees,
                 'venueSpecifics' => $venueSpecifics,
-                'venueProvinces' => $venueProvinces,
-                'categoryVenues' => $categoryVenues,
+                'venueProvinces' => $venueProvincesHUC,
                 'endUsers' => $endUsers,
                 'fundSources' => $fundSources,
                 'modeOfProcurements' => $modeOfProcurements,
+                'procurementStages' => $procurementStages,
+                'remarks' => $remarks,
                 'form' => $this->form,  // Pass the form data so it can be prefilled in the modal
             ]);
         }
@@ -144,6 +157,25 @@ class ProcurementPage extends Component
     {
         $this->isCreating = !$this->isCreating;
     }
+    public function openViewModal($id)
+    {
+        $this->resetForm();
+
+        $procurement = Procurement::findOrFail($id);
+        $this->form = $procurement->toArray();
+        $this->procID = $procurement->procID;
+
+        $this->update2();
+        $this->update3();
+        $this->updateTabAccess();
+
+        $this->viewOnly = true;
+
+        // 🔒 Force tab 1 always on view
+        $this->activeTab = 1;
+
+        $this->showCreateModal = true;
+    }
     public function openCreateModal()
     {
         // dd('BAC' . now()->format('YmdHis') . rand(100, 999));
@@ -153,6 +185,27 @@ class ProcurementPage extends Component
         $this->showCreateModal = true;
     }
     public function openEditModal($id)
+    {
+        $this->resetForm();
+
+        $this->editingId = $id;
+        $this->isEditing = true;
+        $procurement = Procurement::findOrFail($id);
+        $this->procID = $procurement->procID;
+
+        $this->update1($procurement);
+        $this->update2(); // Populates $this->form['modes']
+        $this->update3();
+
+        $this->updateTabAccess();
+
+
+        $this->activeTab = 1;
+
+
+        $this->showCreateModal = true;
+    }
+    public function openUpdateModal($id)
     {
         $this->resetForm();
 
@@ -179,12 +232,18 @@ class ProcurementPage extends Component
     }
     public function closeCreateModal()
     {
+        $this->viewOnly = true;
         $this->showCreateModal = false;  // Close the modal
         $this->editingId = null; // Clear the editingId
         $this->resetForm();              // Reset the form fields
     }
+
     public function switchTab(int $tab)
     {
+
+        $this->updateTabAccess();
+
+
         switch ($tab) {
             case 1:
                 $this->activeTab = 1;
@@ -198,17 +257,15 @@ class ProcurementPage extends Component
                 break;
 
             case 3:
-                if (!empty($this->procID) && ($this->hasSuccessfulBidOrNtf || $this->hasProcurementMode(5))) {
+                if ($this->canAccessTab3) {
                     $this->activeTab = 3;
                 }
                 break;
 
             default:
-                // Do nothing or fallback logic
                 break;
         }
     }
-
     protected function update1(Procurement $procurement)
     {
         $this->form = array_merge($this->form, [
@@ -232,7 +289,7 @@ class ProcurementPage extends Component
             'fund_source_id' => $procurement->fund_source_id,
             'expense_class' => $procurement->expense_class,
             'abc' => $procurement->abc,
-            'abc_50k' => $procurement->abc >= 50000 ? 'above_50k' : '50k_or_less',
+            'abc_50k' => $procurement->abc >= 50000 ? 'above 50k' : '50k or less',
         ]);
 
         // Handle approved_ppmp field
@@ -270,18 +327,26 @@ class ProcurementPage extends Component
             })
             ->values();
 
+        // dd($modes->pluck('mode_of_procurement_id'));
         $this->form['modes'] = $modes->map(function ($mode) {
             $isNtf = $mode->mode_of_procurement_id == 4;
+            $isPrSvp = $mode->mode_of_procurement_id == 5;
 
-            $schedules = ($isNtf ? NtfBidSchedule::query() : BidSchedule::query())
+            $scheduleQuery = match (true) {
+                $isNtf => NtfBidSchedule::query(),
+                $isPrSvp => PrSvp::query(),
+                default => BidSchedule::query(),
+            };
+
+            $schedules = $scheduleQuery
                 ->where('procID', $mode->procID)
-                ->where('uid', 'LIKE', $mode->uid . '-%')
+                ->where('uid', 'LIKE', $mode->uid . '%')
                 ->get()
                 ->sortByDesc(function ($schedule) {
                     preg_match('/-(\d+)$/', $schedule->uid, $matches);
                     return isset($matches[1]) ? (int) $matches[1] : 0;
                 })
-                ->map(function ($schedule) use ($isNtf) {
+                ->map(function ($schedule) use ($isNtf, $isPrSvp) {
                     $base = [
                         'ib_number' => $schedule->ib_number,
                         'pre_proc_conference' => $schedule->pre_proc_conference,
@@ -292,8 +357,8 @@ class ProcurementPage extends Component
                         'bidding_number' => $schedule->bidding_number,
                     ];
 
-                    return $isNtf
-                        ? array_merge($base, [
+                    return match (true) {
+                        $isNtf => array_merge($base, [
                             'ntf_no' => $schedule->ntf_no,
                             'ntf_bidding_date' => $schedule->ntf_bidding_date,
                             'ntf_bidding_result' => $schedule->ntf_bidding_result,
@@ -301,12 +366,24 @@ class ProcurementPage extends Component
                             'canvass_date' => $schedule->canvass_date,
                             'date_returned_of_canvass' => $schedule->date_returned_of_canvass,
                             'abstract_of_canvass_date' => $schedule->abstract_of_canvass_date,
-                        ])
-                        : array_merge($base, [
+                        ]),
+
+                        $isPrSvp => array_merge($base, [
+                            'rfq_no' => $schedule->rfq_no,
+                            'canvass_date' => $schedule->canvass_date,
+                            'date_returned_of_canvass' => $schedule->date_returned_of_canvass,
+                            'abstract_of_canvass_date' => $schedule->abstract_of_canvass_date,
+                        ]),
+
+                        default => array_merge($base, [
                             'bidding_date' => $schedule->bidding_date,
                             'bidding_result' => $schedule->bidding_result,
-                        ]);
-                })->values()->toArray();
+                        ]),
+                    };
+                })
+                ->values()->toArray();
+
+            // dd($schedules);
 
             return [
                 'uid' => $mode->uid,
@@ -316,49 +393,88 @@ class ProcurementPage extends Component
             ];
         })->toArray();
     }
+
     protected function update3()
     {
         $post = PostProcurement::where('procID', $this->procID)->latest()->first();
 
         if ($post) {
+            $this->form['resolutionNumber'] = $post->resolution_number;
             $this->form['bidEvaluationDate'] = $post->bid_evaluation_date;
             $this->form['postQualDate'] = $post->post_qual_date;
-            $this->form['resolutionNumber'] = $post->resolution_number;
             $this->form['recommendingForAward'] = $post->recommending_for_award;
             $this->form['noticeOfAward'] = $post->notice_of_award;
             $this->form['awardedAmount'] = $post->awarded_amount;
             $this->form['dateOfPostingOfAwardOnPhilGEPS'] = $post->date_of_posting_of_award_on_philgeps;
+            $this->form['philgepsReferenceNo'] = $post->philgeps_reference_no;
+            $this->form['awardNoticeNumber'] = $post->award_notice_no;
+            $this->form['supplier_id'] = $post->supplier_id;
+            $this->form['procurement_stage_id'] = $post->procurement_stage_id;
+            $this->form['remarks_id'] = $post->remarks_id;
         }
     }
-    public function updatedFormAbc($value)
+    public function updated($value)
     {
-        // Remove ₱ and commas if pasted
-        $cleaned = preg_replace('/[^0-9.]/', '', $value);
-        $numericValue = floatval($cleaned);
-
-        $this->form['abc_50k'] = $numericValue >= 50000 ? 'above_50k' : '50k_or_less';
-    }
-    public function updated($propertyName)
-    {
-        if (
-            $propertyName === 'form.venue_province_huc_id' ||
-            $propertyName === 'form.venue_specific_id'
-        ) {
+        if ($value === 'form.venue_province_huc_id' || $value === 'form.venue_specific_id') {
             $this->updateCategoryVenue();
+        }
+
+        if ($value === 'form.category_id') {
+            $this->updatedFormCategoryId();
+        }
+
+        if ($value === 'form.abc') {
+            $cleaned = preg_replace('/[^0-9.]/', '', $this->form['abc']);
+            $numericValue = floatval($cleaned);
+            $this->form['abc_50k'] = $numericValue >= 50000 ? 'above 50k' : '50k or less';
+        }
+    }
+    public function updatedFormCategoryId()
+    {
+        $category = Category::with(['categoryType', 'bacType'])
+            ->find($this->form['category_id']);
+
+        if ($category) {
+            $this->form['category_type'] = $category->categoryType?->category_type ?? null;
+            $this->form['rbac_sbac'] = $category->bacType?->abbreviation ?? null;
+
+            // ✅ Assign IDs for saving
+            $this->form['category_type_id'] = $category->category_type_id;
+            $this->form['bac_type_id'] = $category->bac_type_id;
+        } else {
+            $this->form['category_type'] = null;
+            $this->form['rbac_sbac'] = null;
+
+            $this->form['category_type_id'] = null;
+            $this->form['bac_type_id'] = null;
         }
     }
     public function updateCategoryVenue()
     {
-        if (!empty($this->form['venue_province_huc_id']) && !empty($this->form['venue_specific_id'])) {
-            $venueProvince = Province::find($this->form['venue_province_huc_id']);
-            $venueSpecific = Venue::find($this->form['venue_specific_id']);
+        if (!empty($this->form['category_id']) && !empty($this->form['venue_specific_id'])) {
+            $category = Category::find($this->form['category_id']);
+            $venueSpecific = VenueSpecific::find($this->form['venue_specific_id']);
 
-            if ($venueProvince && $venueSpecific) {
-                $this->form['category_venue'] = $venueSpecific->venue . ' ' . $venueProvince->province;
+            $provinceName = ''; // Default to empty
+            $venueProvinceHUC = null;
+
+            if (!empty($this->form['venue_province_huc_id'])) {
+                $venueProvinceHUC = ProvinceHuc::find($this->form['venue_province_huc_id']);
+                $provinceName = $venueProvinceHUC?->province_huc;
+            }
+
+            if ($category && $venueSpecific) {
+                $provinceText = $provinceName ? ', ' . $provinceName : ''; // 👈 conditionally prepend comma
+                $this->form['category_venue'] = $category->category . ' - ' . $venueSpecific->name . $provinceText;
+            } else {
+                $this->form['category_venue'] = null;
             }
         } else {
             $this->form['category_venue'] = null;
         }
+
+
+        logger('Updated category_venue to: ' . $this->form['category_venue']);
     }
     public function loadModeOfProcurement()
     {
@@ -397,11 +513,11 @@ class ProcurementPage extends Component
             $this->validate([
                 'form.pr_number' => 'required',
                 'form.procurement_program_project' => 'required',
-                'form.rbac_sbac' => 'required',
                 'form.dtrack_no' => 'required',
                 'form.divisions_id' => 'required',
                 'form.cluster_committees_id' => 'required',
                 'form.category_id' => 'required',
+                'form.fund_source_id' => 'required',
                 'form.abc' => 'required',
             ]);
 
@@ -420,17 +536,24 @@ class ProcurementPage extends Component
                 'unicode',
                 'venue_specific_id',
                 'venue_province_huc_id',
-                'category_venue',
                 'immediate_date_needed',
                 'date_needed',
                 'end_users_id',
-                'fund_source_id',
                 'expense_class'
             ];
 
             foreach ($optionalFields as $field) {
                 $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
             }
+            // Fetch related fields from category relationships
+            $category = Category::with(['categoryType', 'bacType'])->find($this->form['category_id']);
+
+            $this->form['category_type_id'] = $category?->category_type_id ?? null;
+            $this->form['bac_type_id'] = $category?->bac_type_id ?? null;
+            $this->form['category_type'] = $category?->categoryType?->category_type ?? null;
+            $this->form['rbac_sbac'] = $category?->bacType?->abbreviation ?? null;
+
+            $this->updateCategoryVenue();
 
         } catch (ValidationException $e) {
             LivewireAlert::title('ERROR!')
@@ -463,16 +586,21 @@ class ProcurementPage extends Component
                 ->show();
 
         } else {
-            // If creating: assign procID and create
+            // Assign procID
             $this->procID = 'BAC' . now()->format('YmdHis');
 
-            Procurement::create(array_merge($this->form, [
+            // Create procurement
+            $procurement = Procurement::create(array_merge($this->form, [
                 'procID' => $this->procID,
                 'early_procurement' => $this->form['early_procurement'] ?? null,
-                'abc_50k' => $this->form['abc'] >= 50000 ? 'above_50k' : '50k_or_less',
+                'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
             ]));
 
-            // Create default mode of procurement
+            // Track editing state
+            $this->editingId = $procurement->id;
+            $this->form = $procurement->toArray(); // Optional: rebind clean state
+
+            // Create default MOP
             BidModeOfProcurement::create([
                 'procID' => $this->procID,
                 'uid' => 'MOP1-0',
@@ -493,9 +621,19 @@ class ProcurementPage extends Component
     public function saveTab2()
     {
         try {
-            \Log::info('Form Data:', $this->form);
+            // Ensure Mode 5 always has at least one schedule before validating
+            foreach ($this->form['modes'] as $modeIndex => $mode) {
+                if (
+                    isset($mode['mode_of_procurement_id']) &&
+                    $mode['mode_of_procurement_id'] == 5 &&
+                    (empty($mode['bid_schedules']) || !is_array($mode['bid_schedules']))
+                ) {
+                    $this->addBidSchedule($modeIndex);
+                }
+            }
 
             $this->validateTab2();
+
             $modesForProcessing = $this->prepareModes();
 
             foreach ($modesForProcessing as $modeIndex => $mode) {
@@ -505,20 +643,13 @@ class ProcurementPage extends Component
             LivewireAlert::title('Saved Successfully!')
                 ->success()->toast()->position('top-end')->show();
 
-            // Check if any mode has mode_of_procurement_id == 5
-            $this->hasMode5 = collect($modesForProcessing)
-                ->pluck('mode_of_procurement_id')
-                ->contains(5);
+            $this->checkSuccessfulBidOrNtf();
+            $this->checkSuccessfulSvp();
 
-            if ($this->hasProcurementMode(5)) {
+            if ($this->hasSuccessfulBidOrNtf || $this->hasSuccessfulSvp) {
                 $this->activeTab = 3;
-            } else {
-                $this->checkSuccessfulBidOrNtf();
-
-                if ($this->hasSuccessfulBidOrNtf) {
-                    $this->activeTab = 3;
-                }
             }
+
         } catch (ValidationException $e) {
             LivewireAlert::title('Validation Failed!')
                 ->error()->text($e->getMessage())->toast()->position('top-end')->show();
@@ -528,6 +659,7 @@ class ProcurementPage extends Component
                 ->error()->text($e->getMessage())->toast()->position('top-end')->show();
         }
     }
+
     public function savePost()
     {
         try {
@@ -540,6 +672,11 @@ class ProcurementPage extends Component
                 'form.noticeOfAward' => 'nullable|date',
                 'form.awardedAmount' => 'nullable|numeric|min:0',
                 'form.dateOfPostingOfAwardOnPhilGEPS' => 'nullable|date',
+                'form.philgepsReferenceNo' => 'nullable|string|max:255',
+                'form.awardNoticeNumber' => 'nullable|string|max:255',
+                'form.supplier_id' => 'nullable|exists:suppliers,id',
+                'form.procurement_stage_id' => 'nullable|exists:procurement_stages,id',
+                'form.remarks_id' => 'nullable|exists:remarks,id',
             ]);
 
             // Normalize awardedAmount
@@ -547,6 +684,7 @@ class ProcurementPage extends Component
                 $this->form['awardedAmount'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['awardedAmount']));
             }
 
+            // Prepare data
             $data = [
                 'bid_evaluation_date' => $this->form['bidEvaluationDate'] ?? null,
                 'post_qual_date' => $this->form['postQualDate'] ?? null,
@@ -555,8 +693,14 @@ class ProcurementPage extends Component
                 'notice_of_award' => $this->form['noticeOfAward'] ?? null,
                 'awarded_amount' => $this->form['awardedAmount'] ?? null,
                 'date_of_posting_of_award_on_philgeps' => $this->form['dateOfPostingOfAwardOnPhilGEPS'] ?? null,
+                'philgeps_reference_no' => $this->form['philgepsReferenceNo'] ?? null,
+                'award_notice_no' => $this->form['awardNoticeNumber'] ?? null,
+                'supplier_id' => $this->form['supplier_id'] ?? null,
+                'procurement_stage_id' => $this->form['procurement_stage_id'] ?? null,
+                'remarks_id' => $this->form['remarks_id'] ?? null,
             ];
 
+            // Save or update
             if ($this->editingId) {
                 $procurement = Procurement::findOrFail($this->editingId);
 
@@ -567,7 +711,6 @@ class ProcurementPage extends Component
 
                 LivewireAlert::title('Updated!')
                     ->success()->toast()->position('top-end')->show();
-
             } else {
                 PostProcurement::create([
                     'procID' => $this->procID,
@@ -585,8 +728,6 @@ class ProcurementPage extends Component
                 ->error()->text('An error occurred while saving.')->toast()->position('top-end')->show();
         }
     }
-
-
     public function saveTabData()
     {
         switch ($this->activeTab) {
@@ -632,10 +773,13 @@ class ProcurementPage extends Component
     }
     private function validateTab2()
     {
+        // Base rules for all modes and shared fields
         $this->validate([
             'form.modes' => 'required|array',
             'form.modes.*.mode_of_procurement_id' => 'required|exists:mode_of_procurements,id',
             'form.modes.*.bid_schedules' => 'nullable|array',
+
+            // Common optional fields
             'form.modes.*.bid_schedules.*.ib_number' => 'nullable|string|max:255',
             'form.modes.*.bid_schedules.*.pre_proc_conference' => 'nullable|date',
             'form.modes.*.bid_schedules.*.ads_post_ib' => 'nullable|date',
@@ -648,23 +792,49 @@ class ProcurementPage extends Component
             'form.modes.*.bid_schedules.*.ntf_no' => 'nullable|string|max:255',
             'form.modes.*.bid_schedules.*.ntf_bidding_date' => 'nullable|date',
             'form.modes.*.bid_schedules.*.ntf_bidding_result' => 'nullable|string|max:255',
-            'form.modes.*.bid_schedules.*.rfq_no' => 'nullable|string|max:255',
-            'form.modes.*.bid_schedules.*.canvass_date' => 'nullable|date',
-            'form.modes.*.bid_schedules.*.date_returned_of_canvass' => 'nullable|date',
-            'form.modes.*.bid_schedules.*.abstract_of_canvass_date' => 'nullable|date',
         ]);
-    }
 
+        // Mode 5 specific: require at least one schedule only if user actually filled something
+        foreach ($this->form['modes'] as $modeIndex => $mode) {
+            if ($mode['mode_of_procurement_id'] == 5) {
+
+                // Ensure at least one bid schedule exists
+                if (empty($mode['bid_schedules']) || !is_array($mode['bid_schedules'])) {
+                    throw ValidationException::withMessages([
+                        "form.modes.$modeIndex.bid_schedules" => 'Mode 5 requires at least one bid schedule.',
+                    ]);
+                }
+
+                // Check if this is just the auto-generated placeholder
+                $isPlaceholder = count($mode['bid_schedules']) === 1 &&
+                    empty($mode['bid_schedules'][0]['rfq_no']) &&
+                    empty($mode['bid_schedules'][0]['canvass_date']) &&
+                    empty($mode['bid_schedules'][0]['date_returned_of_canvass']) &&
+                    empty($mode['bid_schedules'][0]['abstract_of_canvass_date']);
+
+                if (!$isPlaceholder) {
+                    // Validate every filled-in schedule entry
+                    foreach ($mode['bid_schedules'] as $bidIndex => $schedule) {
+                        $this->validate([
+                            "form.modes.$modeIndex.bid_schedules.$bidIndex.rfq_no" => 'required|string|max:255',
+                            "form.modes.$modeIndex.bid_schedules.$bidIndex.canvass_date" => 'required|date',
+                            "form.modes.$modeIndex.bid_schedules.$bidIndex.date_returned_of_canvass" => 'required|date',
+                            "form.modes.$modeIndex.bid_schedules.$bidIndex.abstract_of_canvass_date" => 'required|date',
+                        ]);
+                    }
+                }
+            }
+        }
+    }
     private function prepareModes()
     {
         $modes = $this->form['modes'];
         usort($modes, fn($a, $b) => ($a['mode_order'] ?? 0) <=> ($b['mode_order'] ?? 0));
         return $modes;
     }
-
     private function processMode(array $mode, int $modeIndex)
     {
-        \Log::info("Processing Mode {$modeIndex}:", $mode);
+        Log::info("Processing Mode {$modeIndex}:", $mode);
         $modeId = $mode['mode_of_procurement_id'];
         $modeOrder = $mode['mode_order'] ?? ($modeIndex + 1);
 
@@ -673,10 +843,13 @@ class ProcurementPage extends Component
         $this->syncModeUidToForm($mode, $existingMode->uid, $modeOrder);
 
         if (!empty($mode['bid_schedules'])) {
-            $this->processSchedules($mode['bid_schedules'], $existingMode->uid, $modeId);
+            if ($modeId == 5) {
+                $this->processPrSvp($mode['bid_schedules'], $existingMode->uid);
+            } else {
+                $this->processSchedules($mode['bid_schedules'], $existingMode->uid, $modeId);
+            }
         }
     }
-
     private function preventDuplicateMode($modeId, $mode)
     {
         if ($modeId == 1) {
@@ -689,7 +862,6 @@ class ProcurementPage extends Component
             }
         }
     }
-
     private function updateOrCreateBidMode($mode, $modeId, $modeOrder)
     {
         $existingMode = !empty($mode['uid']) && !str_starts_with($mode['uid'], 'TEMP-')
@@ -732,10 +904,16 @@ class ProcurementPage extends Component
 
         return $existingMode;
     }
+    public function updatedForm()
+    {
+        foreach ($this->form['modes'] ?? [] as $index => $mode) {
+            $hasNonEmptyStatus = collect($mode['bid_schedules'] ?? [])->contains(function ($schedule) {
+                return !empty($schedule['status']);
+            });
 
-
-
-
+            $this->form['modes'][$index]['_view_only'] = $hasNonEmptyStatus;
+        }
+    }
     private function syncModeUidToForm($mode, $uid, $modeOrder)
     {
         foreach ($this->form['modes'] as &$formMode) {
@@ -749,7 +927,6 @@ class ProcurementPage extends Component
             }
         }
     }
-
     private function processSchedules(array $schedules, string $uid, int $modeId)
     {
         $reorderedSchedules = array_reverse($schedules);
@@ -801,6 +978,50 @@ class ProcurementPage extends Component
             }
         }
     }
+    private function processPrSvp(array $schedules, string $uid)
+    {
+        $schedule = $schedules[0] ?? null;
+
+        if (!$schedule)
+            return;
+
+        PrSvp::updateOrCreate(
+            ['procID' => $this->procID, 'uid' => $uid],
+            [
+                'rfq_no' => $schedule['rfq_no'] ?? null,
+                'canvass_date' => $schedule['canvass_date'] ?? null,
+                'date_returned_of_canvass' => $schedule['date_returned_of_canvass'] ?? null,
+                'abstract_of_canvass_date' => $schedule['abstract_of_canvass_date'] ?? null,
+            ]
+        );
+    }
+    private function checkIfAllSvpFieldsAreFilled()
+    {
+        $this->allSvpFieldsFilled = collect($this->form['modes'])->contains(function ($mode) {
+            if ($mode['mode_of_procurement_id'] != 5)
+                return false;
+
+            foreach ($mode['bid_schedules'] ?? [] as $schedule) {
+                if (
+                    empty($schedule['rfq_no']) ||
+                    empty($schedule['canvass_date']) ||
+                    empty($schedule['date_returned_of_canvass']) ||
+                    empty($schedule['abstract_of_canvass_date'])
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+    public function getShowAddModeButtonProperty()
+    {
+        // If any mode's `mode_of_procurement_id` is not 1
+        return !$this->viewOnly && collect($this->form['modes'])->contains(function ($mode) {
+            return ($mode['mode_of_procurement_id'] ?? null) != 1;
+        });
+    }
     public function addMode()
     {
         $newMode = [
@@ -818,13 +1039,12 @@ class ProcurementPage extends Component
             $mode['mode_order'] = $total - $index; // Bottom = 1, top = N
         }
     }
-
     public function addBidSchedule($modeIndex)
     {
         $existingSchedules = $this->form['modes'][$modeIndex]['bid_schedules'] ?? [];
-
         $newBiddingNumber = count($existingSchedules) + 1;
 
+        // Default structure matches validation rules exactly (snake_case keys)
         $newBidSchedule = [
             'ib_number' => '',
             'pre_proc_conference' => null,
@@ -835,16 +1055,26 @@ class ProcurementPage extends Component
             'bidding_date' => null,
             'bidding_result' => '',
             'bidding_number' => $newBiddingNumber,
-            'ntfNumber' => '',
-            'ntfBiddingDate' => null,
-            'ntfBiddingResult' => '',
-            'rfqNo' => '',
-            'postQualDate' => null,
-            'dateReturnedOfCanvass' => null,
-            'abstractOfCanvassDate' => null,
+            'ntf_no' => '',
+            'ntf_bidding_date' => null,
+            'ntf_bidding_result' => '',
+            'rfq_no' => '',
+            'canvass_date' => null,
+            'date_returned_of_canvass' => null,
+            'abstract_of_canvass_date' => null,
         ];
 
-        // Add to top (for UX), but with highest bidding_number
+        // If this is mode 5, ensure at least one schedule exists right away
+        if (
+            isset($this->form['modes'][$modeIndex]['mode_of_procurement_id']) &&
+            $this->form['modes'][$modeIndex]['mode_of_procurement_id'] == 5 &&
+            empty($existingSchedules)
+        ) {
+            $this->form['modes'][$modeIndex]['bid_schedules'][] = $newBidSchedule;
+            return;
+        }
+
+        // Otherwise, prepend new schedule to the list
         $this->form['modes'][$modeIndex]['bid_schedules'] = array_merge(
             [$newBidSchedule],
             $existingSchedules
@@ -873,6 +1103,22 @@ class ProcurementPage extends Component
                 ->where('ntf_bidding_result', 'SUCCESSFUL')
                 ->exists();
     }
+    public function checkSuccessfulSvp()
+    {
+        if (empty($this->procID)) {
+            $this->hasSuccessfulSvp = false;
+            return;
+        }
+
+        // Adjust the field below if you have a different indicator for SVP success
+        $this->hasSuccessfulSvp = PrSvp::where('procID', $this->procID)
+            ->whereNotNull('rfq_no')
+            ->whereNotNull('canvass_date')
+            ->whereNotNull('date_returned_of_canvass')
+            ->whereNotNull('abstract_of_canvass_date')
+            ->exists();
+    }
+
     public function hasProcurementMode(int $modeId): bool
     {
         return BidModeOfProcurement::where('procID', $this->procID)
@@ -883,19 +1129,21 @@ class ProcurementPage extends Component
     {
         $this->canAccessTab2 = !empty($this->procID) && !empty($this->form['modes'][0]['mode_of_procurement_id'] ?? null);
 
-        $hasSuccessfulBid = BidSchedule::where('procID', $this->procID)
-            ->where('bidding_result', 'SUCCESSFUL')
-            ->exists();
+        $this->checkSuccessfulBidOrNtf();
+        $this->checkSuccessfulSvp();
 
-        $hasSuccessfulNtf = NtfBidSchedule::where('procID', $this->procID)
-            ->where('ntf_bidding_result', 'SUCCESSFUL')
-            ->exists();
+        // ✅ Updated condition
+        $this->canAccessTab3 = $this->hasSuccessfulBidOrNtf || $this->hasSuccessfulSvp;
 
-        $hasMode5 = BidModeOfProcurement::where('procID', $this->procID)
-            ->where('mode_of_procurement_id', 5)
-            ->exists();
-
-        $this->canAccessTab3 = !empty($this->procID) && ($hasSuccessfulBid || $hasSuccessfulNtf || $hasMode5);
+        if ($this->isEditing === true) {
+            $this->viewOnlyTab1 = false;
+            $this->viewOnlyTab2 = false;
+            $this->viewOnlyTab3 = false;
+        } else {
+            $this->viewOnlyTab1 = $this->canAccessTab2;
+            $this->viewOnlyTab2 = $this->canAccessTab3;
+            $this->viewOnlyTab3 = false;
+        }
     }
 
     private function resetForm()
@@ -923,7 +1171,7 @@ class ProcurementPage extends Component
             'fund_source_id' => '',
             'expense_class' => '',
             'abc' => '',
-            'abc_50k' => '50k_or_less',
+            'abc_50k' => '50k or less',
             // Tab 2
             'mode_of_procurement_id' => '',
             'ib_number' => '',
@@ -943,7 +1191,9 @@ class ProcurementPage extends Component
         $this->editingId = null;
         $this->modeBidUid = null;
         $this->isCreating = false;
+        $this->isEditing = false;
         $this->showCreateModal = false;
+        $this->viewOnly = false;
 
         // Radio/text pairs
         $this->approved_ppmp = '';
@@ -962,12 +1212,13 @@ class ProcurementPage extends Component
         // Tab and mode controls
         $this->showModeSelect = false;
         $this->hasSuccessfulBidOrNtf = false;
-        $this->hasMode5 = false;
+        $this->hasSuccessfulSvp = false;
         $this->canAccessTab2 = false;
         $this->canAccessTab3 = false;
+        $this->viewOnlyTab1 = false;
+        $this->viewOnlyTab2 = false;
+        $this->viewOnlyTab3 = false;
     }
-
-
 
 }
 

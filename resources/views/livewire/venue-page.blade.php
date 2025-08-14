@@ -140,18 +140,19 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 dark:text-white">Slug</label>
                             <input type="text" wire:model.defer="form.slug"
-                                class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-neutral-900 dark:text-white bg-gray-100 dark:bg-neutral-700"
+                                class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-neutral-900 dark:text-white bg-gray-100"
                                 required disabled />
                             @error('form.slug')
-                                <span class="text-red-600 text-xs">{{ $message }}</span>
+                                <span class="text-red-600 text-xs">{{ $message ?? $errors->first('form.slug') }}</span>
                             @enderror
                         </div>
                         <div class="mb-4 flex items-center">
                             <label for="is_active_toggle"
                                 class="block text-sm font-medium text-gray-700 dark:text-white mr-4">Is active</label>
-                            <label for="is_active_toggle" class="relative inline-block w-15 h-8 cursor-pointer ml-2">
-                                <input type="checkbox" id="is_active_toggle" class="peer sr-only"
-                                    wire:model.defer="form.is_active">
+                            <label for="venue-active-toggle"
+                                class="relative inline-block w-15 h-8 cursor-pointer ml-2">
+                                <input type="checkbox" id="venue-active-toggle" class="peer sr-only"
+                                    wire:model.live="form.is_active">
                                 <span
                                     class="absolute inset-0 bg-red-500 rounded-full transition-colors duration-200 ease-in-out peer-checked:bg-emerald-600"></span>
                                 <span

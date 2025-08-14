@@ -3,38 +3,44 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 
 class LoginPage extends Component
 {
-    public $email = '';
-    public $password = '';
-    public $errorMessage = '';
+    #[Layout('components.layouts.login')]
 
+    public $email;
+    public $password;
+    public $errorMessage;
+
+    protected $rules = [
+        'email' => 'required|email',
+        'password' => 'required|min:6',
+    ];
     public function authenticate()
     {
-        \Log::debug('Attempting login: ' . $this->email);
+        // Clear previous error
+        session()->forget('errorMessage');
 
-        $this->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        \Log::info('Authenticate method called');
+
+        $this->validate();
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
             session()->regenerate();
-            \Log::debug('✅ Auth successful: ' . $this->email);
-            return redirect()->route('dashboard.page'); // make sure this exists!
+            \Log::info('Login successful');
+            return redirect()->route('dashboard.page');
+        } else {
+            \Log::info('Login failed - setting error message');
+            session(['errorMessage' => 'Invalid Credentials']);
+            \Log::info('Error message set in session');
         }
-
-        \Log::debug('❌ Auth failed: ' . $this->email);
-        $this->errorMessage = 'Invalid credentials. Please try again.';
     }
-
-
 
     public function render()
     {
-        return view('livewire.login-page')->layout('components.layouts.login');
+        \Log::info('Render method called. Session error: ' . session('errorMessage'));
+        return view('livewire.login-page');
     }
 }
-

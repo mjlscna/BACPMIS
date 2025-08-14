@@ -33,7 +33,7 @@ class CategoryResource extends Resource
             ->schema([
                 Section::make('Category Details')
                     ->schema([
-                        Grid::make(3) // Adjust grid for better layout
+                        Grid::make(4) // Adjust grid for better layout
                             ->schema([
                                 TextInput::make('category')
                                     ->label('Category Name')
@@ -54,6 +54,13 @@ class CategoryResource extends Resource
                                 Select::make('category_type_id')
                                     ->label('Category Type')
                                     ->relationship('categoryType', 'category_type')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+
+                                Select::make('bac_type_id') // 👈 Add this
+                                    ->label('BAC Type')
+                                    ->relationship('bacType', 'name') // or 'name' depending on your DB
                                     ->searchable()
                                     ->preload()
                                     ->required(),
@@ -78,6 +85,10 @@ class CategoryResource extends Resource
 
                 Tables\Columns\TextColumn::make('categoryType.category_type')
                     ->label('Category Type')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('bacType.abbreviation')
+                    ->label('BAC Type')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('slug')
