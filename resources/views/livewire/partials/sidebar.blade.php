@@ -35,13 +35,14 @@
                                 focus:outline-hidden focus:bg-gray-100
                                 dark:bg-neutral-700 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-white"
                                 href="{{ route('dashboard.page') }}">
-                                <svg class="shrink-0 size-4 {{ request()->routeIs('dashboard.page') ? 'text-white' : '' }}"
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path
+                                        d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
+                                    <path
+                                        d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
                                 </svg>
+
                                 Dashboard
                             </a>
                         </li>
@@ -52,13 +53,14 @@
                                 focus:outline-hidden focus:bg-gray-100
                                 dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
                                 href="{{ route('procurement.page') }}">
-                                <svg class="shrink-0 size-4 {{ request()->routeIs('procurement.page') ? 'text-white' : '' }}"
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path
+                                        d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z" />
+                                    <path
+                                        d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z" />
                                 </svg>
+
                                 Procurement
                             </a>
                         </li>
@@ -73,66 +75,27 @@
             <div
                 class="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
                 <ul class="flex flex-col space-y-1 mb-2"> <!-- Added mb-2 for spacing -->
-                    <li class="hs-accordion" id="admin-accordion" data-hs-accordion>
-                        <button type="button"
-                            class="hs-accordion-toggle flex items-center w-full gap-x-3.5 py-2 px-2.5 text-sm rounded-lg transition
-                                {{ request()->routeIs('user.page') || request()->routeIs('venue.page') ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white' }}
-                                focus:outline-none dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:text-neutral-200"
-                            aria-controls="admin-accordion-content"
-                            aria-expanded="{{ request()->routeIs('user.page') || request()->routeIs('venue.page') ? 'true' : 'false' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="size-6">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                            </svg>
+                    <li>
+                        <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
+        bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
+        dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
+                            href="{{ url('/administrator') }}" target="_blank">
 
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-6">
+                                <path fill-rule="evenodd"
+                                    d="M12 6.75a5.25 5.25 0 0 1 6.775-5.025.75.75 0 0 1 .313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.64l3.318-3.319a.75.75 0 0 1 1.248.313 5.25 5.25 0 0 1-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 1 1 2.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0 1 12 6.75ZM4.117 19.125a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75h-.008a.75.75 0 0 1-.75-.75v-.008Z"
+                                    clip-rule="evenodd" />
+                                <path
+                                    d="m10.076 8.64-2.201-2.2V4.874a.75.75 0 0 0-.364-.643l-3.75-2.25a.75.75 0 0 0-.916.113l-.75.75a.75.75 0 0 0-.113.916l2.25 3.75a.75.75 0 0 0 .643.364h1.564l2.062 2.062 1.575-1.297Z" />
+                                <path fill-rule="evenodd"
+                                    d="m12.556 17.329 4.183 4.182a3.375 3.375 0 0 0 4.773-4.773l-3.306-3.305a6.803 6.803 0 0 1-1.53.043c-.394-.034-.682-.006-.867.042a.589.589 0 0 0-.167.063l-3.086 3.748Zm3.414-1.36a.75.75 0 0 1 1.06 0l1.875 1.876a.75.75 0 1 1-1.06 1.06L15.97 17.03a.75.75 0 0 1 0-1.06Z"
+                                    clip-rule="evenodd" />
+                            </svg>
                             Administrator
-                            <svg class="ml-auto size-4 transition-transform hs-accordion-active:rotate-180"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div id="admin-accordion-content"
-                            class="hs-accordion-content {{ request()->routeIs('user.page') || request()->routeIs('venue.page') ? 'block' : 'hidden' }} pl-6 mt-1 w-full overflow-hidden transition-[height] duration-300">
-                            <ul class="flex flex-col space-y-1">
-                                <!-- Users Menu Item -->
-                                <li>
-                                    <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
-                    bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
-                    dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
-                                        href="{{ url('/admin-panel') }}" target="_blank">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                                        </svg>
-
-                                        Admin Panel
-                                    </a>
-                                </li>
-                                <!-- Venues Menu Item -->
-                                {{-- <li>
-                                    <a href="{{ route('venue.page') }}"
-                                        class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
-                            {{ request()->routeIs('venue.page') ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white' }}
-                            focus:outline-none
-                            dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:text-neutral-200">
-                                        <svg class="shrink-0 size-4 {{ request()->routeIs('venue.page') ? 'text-white' : '' }}"
-                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="10" width="18" height="8" rx="2" />
-                                            <path d="M7 10V6a5 5 0 0 1 10 0v4" />
-                                        </svg>
-                                        Venues
-                                    </a>
-                                </li> --}}
-                            </ul>
-                        </div>
+                        </a>
                     </li>
+
                 </ul>
 
             </div>

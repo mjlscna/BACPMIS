@@ -16,10 +16,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/', HomePage::class)->name('dashboard.page');
     Route::get('/procurement', ProcurementPage::class)->name('procurement.page');
 
-    // UserPage route for sidebar Users button
-    \App\Livewire\UserPage::class;
-    Route::get('/users', \App\Livewire\UserPage::class)->name('user.page');
-
     Route::post('/logout', function () {
         Auth::logout();
         session()->invalidate();

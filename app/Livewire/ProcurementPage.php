@@ -39,6 +39,7 @@ class ProcurementPage extends Component
 
     public $tab1Data, $tab2Data, $tab3Data; // Data for each tab
     public $isCreating = false;
+    public $isEditing = false;
     public $editingId;
     public $modeBidUid;
     public $earlyProcurement = false;
@@ -188,6 +189,27 @@ class ProcurementPage extends Component
         $this->resetForm();
 
         $this->editingId = $id;
+        $this->isEditing = true;
+        $procurement = Procurement::findOrFail($id);
+        $this->procID = $procurement->procID;
+
+        $this->update1($procurement);
+        $this->update2(); // Populates $this->form['modes']
+        $this->update3();
+
+        $this->updateTabAccess();
+
+
+        $this->activeTab = 1;
+
+
+        $this->showCreateModal = true;
+    }
+    public function openUpdateModal($id)
+    {
+        $this->resetForm();
+
+        $this->editingId = $id;
         $procurement = Procurement::findOrFail($id);
         $this->procID = $procurement->procID;
 
@@ -218,8 +240,9 @@ class ProcurementPage extends Component
 
     public function switchTab(int $tab)
     {
-        // Always update access before switching
+
         $this->updateTabAccess();
+
 
         switch ($tab) {
             case 1:
@@ -637,7 +660,6 @@ class ProcurementPage extends Component
         }
     }
 
-
     public function savePost()
     {
         try {
@@ -804,7 +826,6 @@ class ProcurementPage extends Component
             }
         }
     }
-
     private function prepareModes()
     {
         $modes = $this->form['modes'];
@@ -1059,7 +1080,6 @@ class ProcurementPage extends Component
             $existingSchedules
         );
     }
-
     public function reindexBiddingNumbers()
     {
         foreach ($this->form['modes'] as $modeIndex => $mode) {
@@ -1115,10 +1135,17 @@ class ProcurementPage extends Component
         // ✅ Updated condition
         $this->canAccessTab3 = $this->hasSuccessfulBidOrNtf || $this->hasSuccessfulSvp;
 
-        $this->viewOnlyTab1 = $this->canAccessTab2;
-        $this->viewOnlyTab2 = $this->canAccessTab3;
-        $this->viewOnlyTab3 = false;
+        if ($this->isEditing === true) {
+            $this->viewOnlyTab1 = false;
+            $this->viewOnlyTab2 = false;
+            $this->viewOnlyTab3 = false;
+        } else {
+            $this->viewOnlyTab1 = $this->canAccessTab2;
+            $this->viewOnlyTab2 = $this->canAccessTab3;
+            $this->viewOnlyTab3 = false;
+        }
     }
+
     private function resetForm()
     {
         $this->form = [
@@ -1164,6 +1191,7 @@ class ProcurementPage extends Component
         $this->editingId = null;
         $this->modeBidUid = null;
         $this->isCreating = false;
+        $this->isEditing = false;
         $this->showCreateModal = false;
         $this->viewOnly = false;
 
