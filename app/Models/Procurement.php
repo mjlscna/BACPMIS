@@ -39,6 +39,14 @@ class Procurement extends Model
         'abc_50k'
 
     ];
+    public static function generatePrNumber(bool $isEarly = false): string
+    {
+        $year = $isEarly ? now()->year + 1 : now()->year;
+
+        $count = self::whereYear('created_at', $year)->count() + 1;
+
+        return sprintf('%s-%04d', $year, $count);
+    }
 
     public function division()
     {

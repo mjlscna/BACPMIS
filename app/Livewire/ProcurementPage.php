@@ -21,6 +21,7 @@ use App\Models\Remarks;
 use App\Models\Supplier;
 use App\Models\Venue;
 use App\Models\VenueSpecific;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
@@ -34,7 +35,10 @@ class ProcurementPage extends Component
     public string $procID = '';
 
     public $perPage = 10;
-    public $showCreateModal = false; // Tracks modal state
+    public $showCreateModal = false;
+    public $showEarlyPrompt = false;
+    public $advanceYear = null;
+    public $isAdvanceProcurement = false;
     public $activeTab = 1; // Track the active tab
 
     public $tab1Data, $tab2Data, $tab3Data; // Data for each tab
@@ -108,7 +112,8 @@ class ProcurementPage extends Component
         if (!isset($this->form['bid_schedules'])) {
             $this->form['bid_schedules'] = [];
         }
-        // Fetching required data for dropdowns and selects
+
+        // Fetch common dropdowns (only if create modal is open)
         $divisions = Division::all();
         $suppliers = Supplier::all();
         $categories = Category::with(['categoryType', 'bacType'])->get();
@@ -136,11 +141,11 @@ class ProcurementPage extends Component
                 'modeOfProcurements' => $modeOfProcurements,
                 'procurementStages' => $procurementStages,
                 'remarks' => $remarks,
-                'form' => $this->form,  // Pass the form data so it can be prefilled in the modal
+                'form' => $this->form,
             ]);
         }
 
-        // For searching procurements (when modal is not shown)
+        // Normal page (when modal is closed)
         $query = Procurement::query()->latest();
 
         if ($this->search) {
@@ -148,11 +153,42 @@ class ProcurementPage extends Component
                 ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
         }
 
-        // Return the view for the procurement page with paginated results
         return view('livewire.procurement-page', [
             'procurements' => $query->paginate($this->perPage),
         ]);
     }
+
+
+    public function createProcurement()
+    {
+        // Step 1: Show the advance procurement question first
+        $this->showEarlyPrompt = true;
+    }
+
+    public function confirmEarly($isEarly)
+    {
+        $this->form['early_procurement'] = $isEarly;
+
+        $this->showEarlyPrompt = false;
+
+        $this->form['pr_number'] = Procurement::generatePrNumber($isEarly);
+
+        $this->showCreateModal = true;
+    }
+    public function refreshPrNumber()
+    {
+        $isEarlyProc= $this->form['early_procurement'];
+
+        $this->form['pr_number'] = Procurement::generatePrNumber($isEarlyProc);
+
+        LivewireAlert::title('PR Number Refreshed')
+            ->success()
+            ->toast()
+            ->position('top-end')
+            ->show();
+
+    }
+
     public function toggleCreateForm()
     {
         $this->isCreating = !$this->isCreating;
@@ -178,12 +214,12 @@ class ProcurementPage extends Component
     }
     public function openCreateModal()
     {
-        // dd('BAC' . now()->format('YmdHis') . rand(100, 999));
         $this->editingId = null;
         $this->resetForm();
         $this->activeTab = 1;
-        $this->showCreateModal = true;
+        $this->showEarlyPrompt = true;
     }
+
     public function openEditModal($id)
     {
         $this->resetForm();
@@ -370,6 +406,7 @@ class ProcurementPage extends Component
 
                         $isPrSvp => array_merge($base, [
                             'rfq_no' => $schedule->rfq_no,
+                            'resolution_number' => $schedule->resolution_number,
                             'canvass_date' => $schedule->canvass_date,
                             'date_returned_of_canvass' => $schedule->date_returned_of_canvass,
                             'abstract_of_canvass_date' => $schedule->abstract_of_canvass_date,
@@ -393,7 +430,6 @@ class ProcurementPage extends Component
             ];
         })->toArray();
     }
-
     protected function update3()
     {
         $post = PostProcurement::where('procID', $this->procID)->latest()->first();
@@ -495,6 +531,7 @@ class ProcurementPage extends Component
     {
         $this->showModeSelect = true;
     }
+
     public function saveProcurement()
     {
         try {
@@ -510,16 +547,34 @@ class ProcurementPage extends Component
             $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
 
             // Required validations
-            $this->validate([
-                'form.pr_number' => 'required',
-                'form.procurement_program_project' => 'required',
-                'form.dtrack_no' => 'required',
-                'form.divisions_id' => 'required',
-                'form.cluster_committees_id' => 'required',
-                'form.category_id' => 'required',
-                'form.fund_source_id' => 'required',
-                'form.abc' => 'required',
-            ]);
+            $this->validate(
+                [
+                    'form.pr_number' => [
+                        'required',
+                        'regex:/^\d{4}-\d{4}$/', // e.g. 2025-0001
+                        'unique:procurements,pr_number',
+                    ],
+                    'form.procurement_program_project' => 'required|string|max:255',
+                    'form.dtrack_no' => 'required|string|max:50',
+                    'form.divisions_id' => 'required|integer|exists:divisions,id',
+                    'form.cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
+                    'form.category_id' => 'required|integer|exists:categories,id',
+                    'form.fund_source_id' => 'required|integer|exists:fund_sources,id',
+                    'form.abc' => 'required|numeric|min:1',
+                ],
+                [], // messages (optional)
+                [   // custom attribute names
+                    'form.pr_number' => 'PR Number',
+                    'form.procurement_program_project' => 'Procurement Project',
+                    'form.dtrack_no' => 'DTrack No.',
+                    'form.divisions_id' => 'Division',
+                    'form.cluster_committees_id' => 'Cluster Committee',
+                    'form.category_id' => 'Category',
+                    'form.fund_source_id' => 'Fund Source',
+                    'form.abc' => 'ABC',
+                ]
+            );
+
 
             // Conditional validation for 'Others'
             if ($this->form['approved_ppmp'] === 'others') {
@@ -556,9 +611,12 @@ class ProcurementPage extends Component
             $this->updateCategoryVenue();
 
         } catch (ValidationException $e) {
+
+            $messages = collect($e->validator->errors()->all())->implode("\n");
+
             LivewireAlert::title('ERROR!')
                 ->error()
-                ->text('Required Fields Missing!')
+                ->text($messages)
                 ->toast()
                 ->position('top-end')
                 ->show();
@@ -618,6 +676,7 @@ class ProcurementPage extends Component
                 ->show();
         }
     }
+
     public function saveTab2()
     {
         try {
@@ -807,6 +866,7 @@ class ProcurementPage extends Component
 
                 // Check if this is just the auto-generated placeholder
                 $isPlaceholder = count($mode['bid_schedules']) === 1 &&
+                    empty($mode['bid_schedules'][0]['resolution_number']) &&
                     empty($mode['bid_schedules'][0]['rfq_no']) &&
                     empty($mode['bid_schedules'][0]['canvass_date']) &&
                     empty($mode['bid_schedules'][0]['date_returned_of_canvass']) &&
@@ -816,6 +876,7 @@ class ProcurementPage extends Component
                     // Validate every filled-in schedule entry
                     foreach ($mode['bid_schedules'] as $bidIndex => $schedule) {
                         $this->validate([
+                            "form.modes.$modeIndex.bid_schedules.$bidIndex.resolution_number" => 'required|string|max:255',
                             "form.modes.$modeIndex.bid_schedules.$bidIndex.rfq_no" => 'required|string|max:255',
                             "form.modes.$modeIndex.bid_schedules.$bidIndex.canvass_date" => 'required|date',
                             "form.modes.$modeIndex.bid_schedules.$bidIndex.date_returned_of_canvass" => 'required|date',
@@ -988,6 +1049,7 @@ class ProcurementPage extends Component
         PrSvp::updateOrCreate(
             ['procID' => $this->procID, 'uid' => $uid],
             [
+                'resolution_number' => $schedule['resolution_number'] ?? null,
                 'rfq_no' => $schedule['rfq_no'] ?? null,
                 'canvass_date' => $schedule['canvass_date'] ?? null,
                 'date_returned_of_canvass' => $schedule['date_returned_of_canvass'] ?? null,
@@ -1003,6 +1065,7 @@ class ProcurementPage extends Component
 
             foreach ($mode['bid_schedules'] ?? [] as $schedule) {
                 if (
+                    empty($schedule['resolution_number']) ||
                     empty($schedule['rfq_no']) ||
                     empty($schedule['canvass_date']) ||
                     empty($schedule['date_returned_of_canvass']) ||
@@ -1112,6 +1175,7 @@ class ProcurementPage extends Component
 
         // Adjust the field below if you have a different indicator for SVP success
         $this->hasSuccessfulSvp = PrSvp::where('procID', $this->procID)
+            ->whereNotNull('resolution_number')
             ->whereNotNull('rfq_no')
             ->whereNotNull('canvass_date')
             ->whereNotNull('date_returned_of_canvass')

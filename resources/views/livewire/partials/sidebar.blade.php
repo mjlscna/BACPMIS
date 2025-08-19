@@ -1,15 +1,13 @@
 <div>
     <!-- Sidebar -->
-    <div id="navbar-collapse-with-animation"
-        class="hs-overlay  [--auto-close:lg]
+    <div id="navbar-collapse-with-animation" class="hs-overlay  [--auto-close:lg]
     hs-overlay-open:translate-x-0 transition-all duration-100 transform
     w-55 h-full
     hidden
     fixed inset-y-0 start-0 z-50
     bg-white border-e border-white
     lg:block lg:translate-x-0 lg:end-auto lg:bottom-0
-    dark:bg-neutral-800 dark:border-neutral-700"
-        role="dialog" tabindex="-1" aria-label="Sidebar">
+    dark:bg-neutral-800 dark:border-neutral-700" role="dialog" tabindex="-1" aria-label="Sidebar">
         <div class="relative flex flex-col h-full max-h-full">
             <div class="px-4 pt-4 flex items-center bg-emerald-600 pb-10">
                 <!-- Logo -->
@@ -31,7 +29,7 @@
                     <ul class="flex flex-col space-y-1">
                         <li>
                             <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
-                                {{ request()->routeIs('dashboard.page') ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white ?>' }}
+                                {{ request()->routeIs('dashboard.page') ? 'bg-emerald-600 text-white font-semibold ' : 'bg-gray-100 text-gray-800 font-semibold hover:bg-emerald-600 hover:text-white ?>' }}
                                 focus:outline-hidden focus:bg-gray-100
                                 dark:bg-neutral-700 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-white"
                                 href="{{ route('dashboard.page') }}">
@@ -49,7 +47,7 @@
 
                         <li>
                             <a class="w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg
-                                {{ request()->routeIs('procurement.page') ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white ?>' }}
+                                {{ request()->routeIs('procurement.page') ? 'bg-emerald-600 text-white font-semibold' : 'bg-gray-100 font-semibold text-gray-800 hover:bg-emerald-600 hover:text-white ?>' }}
                                 focus:outline-hidden focus:bg-gray-100
                                 dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
                                 href="{{ route('procurement.page') }}">
@@ -74,10 +72,11 @@
             <!-- Admin Panel Button (static footer) -->
             <div
                 class="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
-                <ul class="flex flex-col space-y-1 mb-2"> <!-- Added mb-2 for spacing -->
+                <ul class="flex flex-col space-y-1 mb-2">
+                    <!-- Added mb-2 for spacing -->
                     <li>
                         <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
-        bg-gray-100 text-gray-800 hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
+        bg-gray-100 text-gray-800 font-semibold hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
         dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
                             href="{{ url('/administrator') }}" target="_blank">
 

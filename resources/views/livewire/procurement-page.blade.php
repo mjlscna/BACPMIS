@@ -276,19 +276,36 @@
                         </div>
 
                     </div>
-                    <!-- Procurement Modal -->
-                    @if ($showCreateModal)
-                    <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-                        <div class="bg-white p-6 rounded-lg shadow-lg w-screen max-w-lg mx-4">
-                            <h2 class="text-xl font-semibold mb-4">Create Procurement</h2>
 
-                            @include('livewire.procurement.procurement-modal')
-                            <!-- This should be the form for procurement creation -->
+                    @if($showEarlyPrompt)
+                    <div class="fixed inset-0 flex items-center justify-center bg-emerald-600/20 z-50 backdrop-blur-sm">
+                        <div class="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
+                            <h2 class="text-lg font-bold mb-4">Is this an Early Procurement?</h2>
 
-
+                            <div class="flex justify-center gap-4">
+                                <button wire:click="confirmEarly(false)"
+                                    class="px-4 py-2 bg-red-500 text-white rounded-lg">
+                                    No
+                                </button>
+                                <button wire:click="confirmEarly(true)"
+                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg">
+                                    Yes
+                                </button>
+                            </div>
                         </div>
                     </div>
                     @endif
+
+                    <!-- Procurement Modal -->
+                    @if($showCreateModal)
+                    <div class="fixed inset-0 flex items-center justify-center bg-black/50 z-40">
+                        <div class="bg-white rounded-xl shadow-xl p-6 w-[600px]">
+                            @include('livewire.procurement.procurement-modal')
+                        </div>
+                    </div>
+                    @endif
+
+
                 </div>
             </div>
         </div>

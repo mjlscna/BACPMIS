@@ -3,11 +3,11 @@
         class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg w-full max-w-7xl mx-4 sm:mx-auto transition-all overflow-hidden max-h-[90vh]">
 
         <!-- Header -->
-        <div class="flex justify-between items-center p-1 border-gray-200 bg-emerald-600 dark:border-neutral-700">
+        <div class="flex justify-between items-center p-2 border-gray-200 bg-emerald-600 dark:border-neutral-700">
             <h2 class="text-lg font-semibold text-white ml-2">Procurement</h2>
             <button wire:click="$set('showCreateModal', false)"
-                class="text-red-600 hover:text-red-700 dark:text-white dark:hover:text-gray-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                class="text-red-600 hover:text-red-700 dark:text-white dark:hover:text-gray-100 ">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -94,8 +94,29 @@
                     <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <!-- PR Number -->
-                            <x-forms.input id="pr_number" label="PR No." model="form.pr_number" :form="$form"
-                                :required="true" :viewOnly="$viewOnlyTab1" colspan="col-span-1" />
+                            <div class="col-span-1">
+                                <label for="pr_number" class="block text-sm font-medium text-gray-700 mb-1">
+                                    PR No.
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form"
+                                        :viewOnly="$viewOnlyTab1" :required="true" :colspan="1" textAlign="right"
+                                        class="flex-1" />
+
+                                    @if (!$viewOnlyTab1 && !$isEditing)
+                                    <button type="button" wire:click="refreshPrNumber" wire:loading.attr="disabled"
+                                        class="text-gray-500 hover:text-gray-700" title="Refresh PR No.">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                        </svg>
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
+
+
                             <!-- Procurement Program / Project -->
                             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
                                 model="form.procurement_program_project" :form="$form" :required="true"
@@ -198,7 +219,7 @@
                                 <!-- Early Procurement Toggle -->
                                 <div>
                                     <x-forms.early-procurement model="form.early_procurement" :form="$form"
-                                        :viewOnly="$viewOnlyTab1" />
+                                        :viewOnly="$viewOnlyTab1" :clickable="false" />
                                 </div>
                             </div>
                         </div>
@@ -283,7 +304,6 @@
                                     !empty($s['ntf_bidding_result']),
                                     );
                                     @endphp
-
 
                                     <x-forms.select id="mode_of_procurement_{{ $modeIndex }}"
                                         label="Mode of Procurement"
@@ -416,6 +436,7 @@
                                     @endif
 
                                     @if ($mode['mode_of_procurement_id'] == 4)
+
                                     <x-forms.input id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}" label="RFQ No."
                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
                                         :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
@@ -435,42 +456,37 @@
                                         label="Abstract of Canvass"
                                         model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
                                         :form="$form" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+
                                     @endif
                                 </div>
                                 <div class="grid grid-cols-5 gap-4">
                                     @if ($mode['mode_of_procurement_id'] == 5)
-                                    <div class="col-span-5 flex justify-center gap-4 flex-wrap">
-                                        <div class="w-full md:w-48">
-                                            <x-forms.input id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}" label="RFQ No."
-                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
-                                                :form="$form" :required="true"
-                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" textAlign="right" />
-                                        </div>
+                                    {{-- Resolution Number --}}
+                                    <x-forms.input id="resolution_number_{{ $modeIndex }}_{{ $bidIndex }}"
+                                        label="Resolution Number"
+                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.resolution_number"
+                                        :form="$form" :required="true" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
+                                        textAlign="right" />
 
-                                        <div class="w-full md:w-48">
-                                            <x-forms.date id="canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                label="Canvass Date"
-                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
-                                                :form="$form" :required="true"
-                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
-                                        </div>
+                                    <x-forms.input id="rfq_no_{{ $modeIndex }}_{{ $bidIndex }}" label="RFQ No."
+                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
+                                        :form="$form" :required="true" :viewOnly="$viewOnlyTab2 || $isScheduleLocked"
+                                        textAlign="right" />
 
-                                        <div class="w-full md:w-48">
-                                            <x-forms.date id="date_returned_of_canvass_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                label="Returned of Canvass"
-                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
-                                                :form="$form" :required="true"
-                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
-                                        </div>
+                                    <x-forms.date id="canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
+                                        label="Canvass Date"
+                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
+                                        :form="$form" :required="true" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
 
-                                        <div class="w-full md:w-48">
-                                            <x-forms.date id="abstract_of_canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
-                                                label="Abstract of Canvass"
-                                                model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
-                                                :form="$form" :required="true"
-                                                :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
-                                        </div>
-                                    </div>
+                                    <x-forms.date id="date_returned_of_canvass_{{ $modeIndex }}_{{ $bidIndex }}"
+                                        label="Returned of Canvass"
+                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
+                                        :form="$form" :required="true" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
+
+                                    <x-forms.date id="abstract_of_canvass_date_{{ $modeIndex }}_{{ $bidIndex }}"
+                                        label="Abstract of Canvass"
+                                        model="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
+                                        :form="$form" :required="true" :viewOnly="$viewOnlyTab2 || $isScheduleLocked" />
                                     @endif
                                 </div>
 
@@ -602,4 +618,7 @@
 
     </div>
 </div>
+{{-- Advance Procurement Prompt --}}
+
+
 </div>

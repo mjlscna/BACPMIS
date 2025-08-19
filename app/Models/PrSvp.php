@@ -12,6 +12,7 @@ class PrSvp extends Model
     protected $fillable = [
         'procID',
         'uid',
+        'resolution_number',
         'rfq_no',
         'canvass_date',
         'date_returned_of_canvass',

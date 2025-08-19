@@ -24,7 +24,8 @@
     @livewire('partials.footer')
 
     @livewireScripts()
-    @livewireAlert() <!-- Correct placement for LivewireAlert -->
+    @livewireAlert()
+    <!-- Correct placement for LivewireAlert -->
 </body>
 
 </html>
