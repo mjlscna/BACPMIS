@@ -32,7 +32,6 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('BAC Procurement Monitoring System')
             ->id('admin')
             ->path('administrator')
-            ->login()
             ->colors([
                 'primary' => Color::Green,
             ])
