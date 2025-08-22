@@ -98,22 +98,25 @@
                                 <label for="pr_number" class="block text-sm font-medium text-gray-700 mb-1">
                                     PR No.
                                 </label>
-                                <div class="flex items-center space-x-2">
-                                    <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form"
-                                        :viewOnly="$viewOnlyTab1" :required="true" :colspan="1" textAlign="right"
-                                        class="flex-1" />
+                                <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form"
+                                    :viewOnly="$viewOnlyTab1" :required="true" :colspan="1" textAlign="right"
+                                    class="flex-1" />
 
-                                    @if (!$viewOnlyTab1 && !$isEditing)
-                                    <button type="button" wire:click="refreshPrNumber" wire:loading.attr="disabled"
-                                        class="text-gray-500 hover:text-gray-700" title="Refresh PR No.">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                        </svg>
-                                    </button>
-                                    @endif
-                                </div>
+                                {{-- @if (!$viewOnlyTab1 && !$isEditing)
+                                <button type="button" wire:click="refreshPrNumber" wire:loading.attr="disabled"
+                                    class="inline-flex items-center justify-center text-emerald-600 hover:text-white hover:bg-emerald-600 rounded-md p-1 transition-colors duration-200"
+                                    title="Refresh PR No.">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0
+                                                           0h4.992m-4.993 0 3.181 3.183a8.25 8.25
+                                                           0 0 0 13.803-3.7M4.031 9.865a8.25
+                                                           8.25 0 0 1 13.803-3.7l3.181
+                                                           3.182m0-4.991v4.99" />
+                                    </svg>
+                                </button>
+                                @endif --}}
                             </div>
 
 

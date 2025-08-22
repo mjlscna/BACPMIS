@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Procurement extends Model
 {
@@ -39,14 +40,33 @@ class Procurement extends Model
         'abc_50k'
 
     ];
-    public static function generatePrNumber(bool $isEarly = false): string
+    public static function generatePrNumber(bool $isAdvance = false): string
     {
-        $year = $isEarly ? now()->year + 1 : now()->year;
+        $year = $isAdvance ? now()->year + 1 : now()->year;
 
-        $count = self::whereYear('created_at', $year)->count() + 1;
+        return DB::transaction(function () use ($year) {
+            // Ensure the row exists
+            DB::table('pr_counters')->updateOrInsert(
+                ['year' => $year],
+                ['last_number' => DB::raw('last_number')] // No change if it exists
+            );
 
-        return sprintf('%s-%04d', $year, $count);
+            // Lock the row for update
+            $counter = DB::table('pr_counters')
+                ->where('year', $year)
+                ->lockForUpdate()
+                ->first();
+
+            $next = $counter->last_number + 1;
+
+            DB::table('pr_counters')
+                ->where('year', $year)
+                ->update(['last_number' => $next]);
+
+            return sprintf('%s-%04d', $year, $next);
+        });
     }
+
 
     public function division()
     {

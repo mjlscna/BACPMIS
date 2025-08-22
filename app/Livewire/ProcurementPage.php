@@ -37,7 +37,6 @@ class ProcurementPage extends Component
     public $perPage = 10;
     public $showCreateModal = false;
     public $showEarlyPrompt = false;
-    public $advanceYear = null;
     public $isAdvanceProcurement = false;
     public $activeTab = 1; // Track the active tab
 
@@ -171,23 +170,21 @@ class ProcurementPage extends Component
 
         $this->showEarlyPrompt = false;
 
-        $this->form['pr_number'] = Procurement::generatePrNumber($isEarly);
-
         $this->showCreateModal = true;
     }
-    public function refreshPrNumber()
-    {
-        $isEarlyProc= $this->form['early_procurement'];
+    // public function refreshPrNumber()
+    // {
+    //     $isEarlyProc = $this->form['early_procurement'];
 
-        $this->form['pr_number'] = Procurement::generatePrNumber($isEarlyProc);
+    //     $this->form['pr_number'] = Procurement::generatePrNumber($isEarlyProc);
 
-        LivewireAlert::title('PR Number Refreshed')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+    //     LivewireAlert::title('PR Number Refreshed')
+    //         ->success()
+    //         ->toast()
+    //         ->position('top-end')
+    //         ->show();
 
-    }
+    // }
 
     public function toggleCreateForm()
     {
@@ -550,9 +547,10 @@ class ProcurementPage extends Component
             $this->validate(
                 [
                     'form.pr_number' => [
-                        'required',
-                        'regex:/^\d{4}-\d{4}$/', // e.g. 2025-0001
-                        'unique:procurements,pr_number',
+                        'form.pr_number' => [
+                            'regex:/^\d{4}-\d{4}$/', // e.g. 2025-0001
+                            'unique:procurements,pr_number',
+                        ],
                     ],
                     'form.procurement_program_project' => 'required|string|max:255',
                     'form.dtrack_no' => 'required|string|max:50',
@@ -645,8 +643,11 @@ class ProcurementPage extends Component
 
         } else {
             // Assign procID
-            $this->procID = 'BAC' . now()->format('YmdHis');
 
+            if (!$this->editingId && empty($this->form['pr_number'])) {
+                $this->form['pr_number'] = Procurement::generatePrNumber($this->form['early_procurement'] ?? false);
+            }
+            $this->procID = 'BAC' . $this->form['pr_number'] . now()->format('YmdHis');
             // Create procurement
             $procurement = Procurement::create(array_merge($this->form, [
                 'procID' => $this->procID,
