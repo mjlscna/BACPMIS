@@ -71,11 +71,11 @@
 
             <!-- Admin Panel Button (static footer) -->
             <div
-                class="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
-                <ul class="flex flex-col space-y-1 mb-2">
+                class="absolute bottom-0 left-0 w-full p-5 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
+                <ul class="flex flex-col space-y-1 mb-1">
                     <!-- Added mb-2 for spacing -->
                     <li>
-                        <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg w-full justify-center
+                        <a class="flex items-center gap-x-3 py-2 px-1 text-sm rounded-lg w-full justify-center
         bg-gray-100 text-gray-800 font-semibold hover:bg-emerald-600 hover:text-white focus:outline-hidden focus:bg-gray-100
         dark:bg-neutral-800 dark:hover:bg-emerald-300 dark:focus:bg-neutral-700 dark:text-neutral-200"
                             href="{{ url('/administrator') }}" target="_blank">

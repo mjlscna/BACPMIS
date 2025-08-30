@@ -10,22 +10,25 @@
     @livewireStyles()
 </head>
 
-<body>
+<body class="flex flex-col min-h-screen">
+
     @livewire('partials.header')
     @livewire('partials.navbar')
     @livewire('partials.sidebar')
-    <!-- Content -->
-    <div class="w-full lg:ps-60 pt-45">
 
+    <!-- Content -->
+    <div class="w-full pt-45 flex-grow lg:max-w-[calc(100vw-14rem)] lg:ml-[14rem]">
         <main>
             {{ $slot }}
         </main>
     </div>
+
+    <!-- Footer sticks to bottom -->
     @livewire('partials.footer')
 
     @livewireScripts()
     @livewireAlert()
-    <!-- Correct placement for LivewireAlert -->
 </body>
+
 
 </html>

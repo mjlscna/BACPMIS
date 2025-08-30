@@ -1,8 +1,10 @@
 <!-- ========== FOOTER ========== -->
 <footer class="w-full relative overflow-hidden">
     <div
-        class="w-full bg-gradient-to-r from-emerald-100 to-white max-w-[110rem] py-10 px-4 sm:px-6 lg:px-8 lg:pt-20 mx-auto">
-        <svg class="absolute -bottom-10 start-1/2 w-[1900px] transform -translate-x-1/2" width="2745" height="388"
+        class="w-full bg-gradient-to-r from-emerald-100 to-white max-w-[110rem] py-2 px-1 sm:px-6 lg:px-8 mx-auto flex justify-center">
+
+
+        <svg class="absolute bottom-0 start-1/2 w-[1900px] transform -translate-x-1/2" width="2745" height="388"
             viewBox="0 0 2745 488" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
                 d="M0.5 330.864C232.505 403.801 853.749 527.683 1482.69 439.719C2111.63 351.756 2585.54 434.588 2743.87 487"
@@ -39,18 +41,11 @@
                 class="stroke-green-800/50" stroke="currentColor" />
         </svg>
 
-        <div class="relative z-10">
-            <div class="w-full max-w-5xl px-4 xl:px-0 py-10 lg:pt-10 mx-auto">
-                <div class="inline-flex items-center">
-                    <h1 class="text-neutral-500 font-bold">DOH WV CHD</h1>
-
-                    <div class="border-s border-gray-400 ps-5 ms-5">
-                        <p class="text-md font-bold text-neutral-400">
-                            © 2025 Information Communication Technology Unit.
-                        </p>
-                    </div>
-                </div>
-            </div>
+        <div class="relative z-10 w-full max-w-5xl mx-auto flex items-center justify-between">
+            <h1 class="text-neutral-500 font-bold">DOH WV CHD</h1>
+            <p class="text-sm font-semibold text-neutral-400">
+                © 2025 Information Communication Technology Unit.
+            </p>
         </div>
     </div>
 </footer>
