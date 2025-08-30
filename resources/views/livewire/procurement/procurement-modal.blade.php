@@ -273,296 +273,621 @@
                     {{-- TAB 2 --}}
                     <div id="card-type-tab-2" class="{{ $activeTab === 2 ? '' : 'hidden' }} mb-4" role="tabpanel"
                         aria-labelledby="card-type-tab-item-2">
-                        <!-- Collapsible Mode of Procurement section with arrow/caret button and Add Mode support -->
 
-                        <div class="w-full" x-data="{
-        modes: [ { showBids: false, mode: '' } ],
-        addMode() { this.modes.push({ showBids: false, mode: '' }); },
-        toggleBids(idx) { this.modes[idx].showBids = !this.modes[idx].showBids; }
-     }">
+                        {{-- Add Mode Button (same gating logic) --}}
+                        @php
+                        $hasDefaultMode = collect($form['modes'])->contains('mode_of_procurement_id', 1);
+                        $hasPendingOrEmptySchedule = collect($form['modes'])->contains(function ($mode) {
+                        $schedules = collect($mode['bid_schedules'] ?? []);
+                        return $schedules->isEmpty() ||
+                        $schedules->contains(fn($s) => empty($s['bidding_result']) && empty($s['ntf_bidding_result']));
+                        });
+                        @endphp
 
-                            <div class="flex justify-end mb-4">
-                                <button type="button" @click="addMode()"
-                                    class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-hidden focus:bg-emerald-700">
-                                    <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24"
-                                        height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M5 12h14" />
-                                        <path d="M12 5v14" />
-                                    </svg> Add Mode
-                                </button>
-                            </div>
+                        @if (!$viewOnlyTab2 && !$hasDefaultMode && !$hasPendingOrEmptySchedule)
+                        <div class="flex justify-end mb-4">
+                            <button type="button" wire:click.prevent="addMode"
+                                class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
+                                <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M5 12h14" />
+                                    <path d="M12 5v14" />
+                                </svg>
+                                Add Mode
+                            </button>
+                        </div>
+                        @endif
 
-                            <!-- SINGLE CARD -->
+                        {{-- Modes --}}
+                        <div class="space-y-6">
+                            @foreach (collect($form['modes'])->values() as $modeIndex => $mode)
+                            @php
+                            $isModeLocked = !$isEditing &&
+                            collect($mode['bid_schedules'] ?? [])->contains(
+                            fn($s) => !empty($s['bidding_result']) || !empty($s['ntf_bidding_result'])
+                            );
+                            $schedules = $mode['bid_schedules'] ?? [];
+                            @endphp
+
                             <div class="mb-8 bg-white p-6 rounded-xl shadow border border-emerald-600">
-                                <template x-for="(mode, idx) in modes" :key="idx">
-                                    <div class="border border-emerald-600 rounded-xl p-4 mb-4">
-                                        <div class="flex items-center gap-2 mb-4">
-                                            <button type="button" @click="toggleBids(idx)"
-                                                class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
-                                                <svg x-show="!mode.showBids" xmlns="http://www.w3.org/2000/svg"
-                                                    class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M9 5l7 7-7 7" />
-                                                </svg>
-                                                <svg x-show="mode.showBids" xmlns="http://www.w3.org/2000/svg"
-                                                    class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </button>
-                                            <label class="font-semibold text-gray-700">Mode of Procurement:</label>
-                                            <select x-model="mode.mode"
-                                                class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-emerald-500 focus:border-emerald-500">
-                                                <option value="">Select</option>
-                                                <option value="Public Bidding">Public Bidding</option>
-                                                <option value="Shopping">Shopping</option>
-                                                <option value="Direct Contracting">Direct Contracting</option>
-                                            </select>
-                                        </div>
+                                {{-- Header row --}}
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-2">
+                                        {{-- Collapse toggle --}}
+                                        <button type="button" wire:click="toggleBids({{ $modeIndex }})"
+                                            class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
+                                            @if (!($mode['showBids'] ?? false))
+                                            {{-- Expand icon --}}
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
+                                            @else
+                                            {{-- Collapse icon --}}
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                            @endif
+                                        </button>
 
-                                        <template x-if="mode.showBids">
-                                            <div>
-                                                <div class="flex justify-end mb-2">
-                                                    <button type="button"
-                                                        class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700">
-                                                        <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg"
-                                                            width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M5 12h14" />
-                                                            <path d="M12 5v14" />
-                                                        </svg> Bid
-                                                    </button>
-                                                </div>
-                                                <div class="overflow-x-auto">
-                                                    <table
-                                                        class="min-w-[1500px] divide-y divide-gray-200 dark:divide-neutral-700 rounded-xl">
-                                                        <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
-                                                            <tr>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Bidding #</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    IB No.</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Pre-Proc Conference</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Ads/Post IB</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Pre-Bid Conference</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Eligibility Check</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Sub/Open of Bids</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Bidding Date</th>
-                                                                <th
-                                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                                                    Bidding Result</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody
-                                                            class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
-                                                            <tr>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="text"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:ring-emerald-500 focus:border-emerald-500"
-                                                                        placeholder="#">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="text"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-24 focus:ring-emerald-500 focus:border-emerald-500"
-                                                                        placeholder="IB No.">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="date"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="date"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="date"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="date"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="date"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <input type="date"
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                </td>
-                                                                <td
-                                                                    class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                                                    <select
-                                                                        class="border border-gray-300 rounded-lg px-2 py-1 w-28 focus:ring-emerald-500 focus:border-emerald-500">
-                                                                        <option value="">Select</option>
-                                                                        <option value="SUCCESSFUL">SUCCESSFUL</option>
-                                                                        <option value="UNSUCCESSFUL">UNSUCCESSFUL
-                                                                        </option>
-                                                                    </select>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                    </div>
-                    {{-- TAB 3 --}}
-                    <div id="card-type-tab-3" class="{{ $activeTab === 3 ? '' : 'hidden' }} mb-4" role="tabpanel"
-                        aria-labelledby="card-type-tab-item-3">
-                        {{-- Block 1 --}}
-                        <div class="justify-center gap-4 mt-6">
-                            <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                                <div class="grid grid-cols-6 gap-4">
-                                    {{-- Resolution Number --}}
-                                    <div class="col-span-1">
-                                        <x-forms.input id="resolutionNumber" label="Resolution Number"
-                                            model="form.resolutionNumber" :form="$form" :required="false"
-                                            :viewOnly="$viewOnlyTab3" textAlign="right" />
-                                    </div>
-                                    {{-- Bid Evaluation Date --}}
-                                    <x-forms.date id="bidEvaluationDate" label="Bid Evaluation Date"
-                                        model="form.bidEvaluationDate" :form="$form" :viewOnly="$viewOnlyTab3"
-                                        :required="false" textAlign="center" />
-
-
-                                    {{-- Post Qual Date --}}
-                                    <div class="col-span-1">
-                                        <x-forms.date id="postQualDate" label="Post Qual Date" model="form.postQualDate"
-                                            :form="$form" :viewOnly="$viewOnlyTab3" :required="false" />
-                                    </div>
-
-                                    {{-- Recommending for Award --}}
-                                    <div class="col-span-1">
-                                        <x-forms.date id="recommendingForAward" label="Recommending for Award"
-                                            model="form.recommendingForAward" :form="$form" :viewOnly="$viewOnlyTab3"
-                                            :required="false" />
-                                    </div>
-
-                                    {{-- Notice of Award --}}
-                                    <div class="col-span-1">
-                                        <x-forms.date id="noticeOfAward" label="Notice of Award"
-                                            model="form.noticeOfAward" :form="$form" :viewOnly="$viewOnlyTab3"
-                                            :required="false" />
-                                    </div>
-                                    {{-- Awarded Amount --}}
-                                    <div class="col-span-1">
-                                        <x-forms.currency-input id="awardedAmount" label="Awarded Amount"
-                                            model="form.awardedAmount" :form="$form" :required="false"
-                                            :viewOnly="$viewOnlyTab3" />
+                                        <label class="font-semibold text-gray-700">Mode of Procurement:</label>
+                                        <x-forms.select id="mode_of_procurement_{{ $modeIndex }}" label=""
+                                            model="form.modes.{{ $modeIndex }}.mode_of_procurement_id" :form="$form"
+                                            :options="$modeOfProcurements" optionValue="id"
+                                            optionLabel="modeofprocurements" :required="false"
+                                            :viewOnly="$viewOnlyTab2 || $isModeLocked" wireModifier="defer" />
                                     </div>
                                 </div>
+
+                                {{-- Collapsible content --}}
+                                @if ($mode['showBids'] ?? true)
+                                {{-- Add Bid Button --}}
+                                @if (!in_array($mode['mode_of_procurement_id'], [null, '', 1, 5]))
+                                @php
+                                $latestModeOrder = collect($form['modes'])->max('mode_order');
+                                $isLatestMode = ($mode['mode_order'] ?? null) === $latestModeOrder;
+                                $hasMissingBiddingResult = collect($schedules)->contains(
+                                fn($s) => empty($s['bidding_result']) && empty($s['ntf_bidding_result'])
+                                );
+                                $bidCount = count($schedules);
+                                $showAddBid = !$viewOnlyTab2 &&
+                                $isLatestMode &&
+                                !$hasMissingBiddingResult &&
+                                ($mode['mode_of_procurement_id'] != 2 || $bidCount < 2); @endphp @if ($showAddBid) <div
+                                    class="flex justify-end mb-2">
+                                    <button type="button" wire:click.prevent="addBidSchedule({{ $modeIndex }})"
+                                        class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700">
+                                        <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M5 12h14" />
+                                            <path d="M12 5v14" />
+                                        </svg>
+                                        Bid
+                                    </button>
                             </div>
-                        </div>
+                            @endif
+                            @endif
 
-                        {{-- Block 2 --}}
-                        <div class="justify-center gap-4 mt-6">
-                            <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                                <div class="grid grid-cols-6 gap-4">
-                                    {{-- PhilGEPS Posting Ref --}}
-                                    <div class="col-span-1">
-                                        <x-forms.input id="philgepsReferenceNo" label="PhilGEPS Posting Reference #"
-                                            model="form.philgepsReferenceNo" :form="$form" :required="false"
-                                            :viewOnly="$viewOnlyTab3" textAlign="right" />
-                                    </div>
+                            {{-- =========================
+                            TABLE LAYOUT: BID SCHEDULES
+                            ========================= --}}
+                            @if (!empty($schedules))
+                            @php
+                            $modeId = $mode['mode_of_procurement_id'];
+                            @endphp
 
-                                    {{-- Award Notice Number --}}
-                                    <div class="col-span-1">
-                                        <x-forms.input id="awardNoticeNumber" label="Award Notice Number"
-                                            model="form.awardNoticeNumber" :form="$form" :required="false"
-                                            :viewOnly="$viewOnlyTab3" textAlign="right" />
-                                    </div>
+                            {{-- CASE A: mode != 4 and mode != 5 --}}
+                            @if (!in_array($modeId, [4,5]))
+                            <div class="overflow-x-auto">
+                                <table class="min-w-[1500px] divide-y divide-gray-200 rounded-xl">
+                                    <thead class="bg-gray-50 sticky top-0 z-40">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Bidding #</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                IB No.</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Pre-Proc Conference</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Ads/Post IB</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Pre-Bid Conference</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Eligibility Check</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Sub/Open of Bids</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Bidding Date</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Bidding Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach ($schedules as $bidIndex => $schedule)
+                                        @php
+                                        $isScheduleLocked = !$isEditing &&
+                                        (!empty($schedule['bidding_result']) ||
+                                        !empty($schedule['ntf_bidding_result']));
+                                        $disabled = $viewOnlyTab2 || $isScheduleLocked;
+                                        @endphp
+                                        <tr>
+                                            {{-- Bidding # --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text" maxlength="2"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="#"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_number"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
 
-                                    {{-- Posting of Award on PhilGEPS --}}
-                                    <div class="col-span-1">
-                                        <x-forms.date id="dateOfPostingOfAwardOnPhilGEPS"
-                                            label="Posting of Award|PhilGEPS"
-                                            model="form.dateOfPostingOfAwardOnPhilGEPS" :form="$form"
-                                            :viewOnly="$viewOnlyTab3" :required="false" />
+                                            {{-- IB No. --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-24 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="IB No."
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
 
-                                    </div>
-                                    {{-- Supplier --}}
-                                    <div class="col-span-1">
-                                        <x-forms.select id="supplier_id" label="Supplier" model="form.supplier_id"
-                                            :form="$form" :options="$suppliers" optionValue="id" optionLabel="name"
-                                            :required="false" :viewOnly="$viewOnlyTab3" />
-                                    </div>
+                                            {{-- Pre-Proc Conference --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
 
-                                    {{-- Process Stage --}}
-                                    <div class="col-span-1">
-                                        <x-forms.select id="procurement_stage_id" label="Procurement Stage"
-                                            model="form.procurement_stage_id" :form="$form"
-                                            :options="$procurementStages" optionValue="id"
-                                            optionLabel="procurementstage" :required="false"
-                                            :viewOnly="$viewOnlyTab3" />
-                                    </div>
+                                            {{-- Ads/Post IB --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
 
-                                    {{-- Remarks --}}
-                                    <div class="col-span-1">
-                                        <x-forms.select id="remarks_id" label="Remarks" model="form.remarks_id"
-                                            :form="$form" :options="$remarks" optionValue="id" optionLabel="remarks"
-                                            :required="false" :viewOnly="$viewOnlyTab3" />
-                                    </div>
+                                            {{-- Pre-Bid Conference --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
 
-                                </div>
+                                            {{-- Eligibility Check --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+
+                                            {{-- Sub/Open of Bids --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+
+                                            {{-- Bidding Date --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_date"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+
+                                            {{-- Bidding Result --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <select
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_result"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                                    <option value="">Select</option>
+                                                    <option value="SUCCESSFUL">SUCCESSFUL</option>
+                                                    <option value="UNSUCCESSFUL">UNSUCCESSFUL</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
+                            @endif
 
+                            {{-- CASE B: mode == 4 (includes Bidding #..Sub/Open + NTF + RFQ/Canvass fields) --}}
+                            @if ($modeId == 4)
+                            <div class="overflow-x-auto">
+                                <table class="min-w-[1800px] divide-y divide-gray-200 rounded-xl">
+                                    <thead class="bg-gray-50 sticky top-0 z-40">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Bidding #</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                IB No.</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Pre-Proc Conference</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Ads/Post IB</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Pre-Bid Conference</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Eligibility Check</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Sub/Open of Bids</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                NTF Bidding Date</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                NTF No.</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                NTF Bidding Result</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                RFQ No.</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Canvass Date</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Returned of Canvass</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Abstract of Canvass</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach ($schedules as $bidIndex => $schedule)
+                                        @php
+                                        $isScheduleLocked = !$isEditing &&
+                                        (!empty($schedule['bidding_result']) ||
+                                        !empty($schedule['ntf_bidding_result']));
+                                        $disabled = $viewOnlyTab2 || $isScheduleLocked;
+                                        @endphp
+                                        <tr>
+                                            {{-- Bidding # --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text" maxlength="2"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="#"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.bidding_number"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- IB No. --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-24 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="IB No."
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ib_number"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Pre-Proc Conference --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_proc_conference"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Ads/Post IB --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ads_post_ib"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Pre-Bid Conference --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.pre_bid_conf"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Eligibility Check --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.eligibility_check"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Sub/Open of Bids --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.sub_open_bids"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+
+                                            {{-- NTF Bidding Date --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_date"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- NTF No. --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-28 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="NTF No."
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_no"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- NTF Bidding Result --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <select
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.ntf_bidding_result"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                                    <option value="">Select</option>
+                                                    <option value="SUCCESSFUL">SUCCESSFUL</option>
+                                                    <option value="UNSUCCESSFUL">UNSUCCESSFUL</option>
+                                                </select>
+                                            </td>
+
+                                            {{-- RFQ No. --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-28 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="RFQ No."
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Canvass Date --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Returned of Canvass --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Abstract of Canvass --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @endif
+
+                            {{-- CASE C: mode == 5 (resolution + RFQ/canvass-only set) --}}
+                            @if ($modeId == 5)
+                            <div class="overflow-x-auto">
+                                <table class="min-w-[1200px] divide-y divide-gray-200 rounded-xl">
+                                    <thead class="bg-gray-50 sticky top-0 z-40">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Resolution Number</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                RFQ No.</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Canvass Date</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Returned of Canvass</th>
+                                            <th
+                                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                                                Abstract of Canvass</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach ($schedules as $bidIndex => $schedule)
+                                        @php
+                                        $isScheduleLocked = !$isEditing &&
+                                        (!empty($schedule['bidding_result']) ||
+                                        !empty($schedule['ntf_bidding_result']));
+                                        $disabled = $viewOnlyTab2 || $isScheduleLocked;
+                                        @endphp
+                                        <tr>
+                                            {{-- Resolution Number --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="Resolution #"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.resolution_number"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- RFQ No. --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="text"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-32 focus:ring-emerald-500 focus:border-emerald-500 text-right"
+                                                    placeholder="RFQ No."
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.rfq_no"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Canvass Date --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-36 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.canvass_date"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Returned of Canvass --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.date_returned_of_canvass"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                            {{-- Abstract of Canvass --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800">
+                                                <input type="date"
+                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-40 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    wire:model.defer="form.modes.{{ $modeIndex }}.bid_schedules.{{ $bidIndex }}.abstract_of_canvass_date"
+                                                    {{ $disabled ? 'disabled' : '' }}>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @endif
+                            @endif
+                            {{-- /TABLE LAYOUT --}}
+                            @endif
+                        </div>
+                        @endforeach
                     </div>
                 </div>
-            </div>
-            <!-- Footer -->
-            <div class="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-neutral-700">
-                <button wire:click="$set('showCreateModal', false)"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
-                    Cancel
-                </button>
-                @if (!$viewOnly)
-                <button wire:click="saveTabData"
-                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Save
-                </button>
 
-                @endif
+                {{-- TAB 3 --}}
+                <div id="card-type-tab-3" class="{{ $activeTab === 3 ? '' : 'hidden' }} mb-4" role="tabpanel"
+                    aria-labelledby="card-type-tab-item-3">
+                    {{-- Block 1 --}}
+                    <div class="justify-center gap-4 mt-6">
+                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                            <div class="grid grid-cols-6 gap-4">
+                                {{-- Resolution Number --}}
+                                <div class="col-span-1">
+                                    <x-forms.input id="resolutionNumber" label="Resolution Number"
+                                        model="form.resolutionNumber" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" textAlign="right" />
+                                </div>
+                                {{-- Bid Evaluation Date --}}
+                                <x-forms.date id="bidEvaluationDate" label="Bid Evaluation Date"
+                                    model="form.bidEvaluationDate" :form="$form" :viewOnly="$viewOnlyTab3"
+                                    :required="false" textAlign="center" />
 
+
+                                {{-- Post Qual Date --}}
+                                <div class="col-span-1">
+                                    <x-forms.date id="postQualDate" label="Post Qual Date" model="form.postQualDate"
+                                        :form="$form" :viewOnly="$viewOnlyTab3" :required="false" />
+                                </div>
+
+                                {{-- Recommending for Award --}}
+                                <div class="col-span-1">
+                                    <x-forms.date id="recommendingForAward" label="Recommending for Award"
+                                        model="form.recommendingForAward" :form="$form" :viewOnly="$viewOnlyTab3"
+                                        :required="false" />
+                                </div>
+
+                                {{-- Notice of Award --}}
+                                <div class="col-span-1">
+                                    <x-forms.date id="noticeOfAward" label="Notice of Award" model="form.noticeOfAward"
+                                        :form="$form" :viewOnly="$viewOnlyTab3" :required="false" />
+                                </div>
+                                {{-- Awarded Amount --}}
+                                <div class="col-span-1">
+                                    <x-forms.currency-input id="awardedAmount" label="Awarded Amount"
+                                        model="form.awardedAmount" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Block 2 --}}
+                    <div class="justify-center gap-4 mt-6">
+                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                            <div class="grid grid-cols-6 gap-4">
+                                {{-- PhilGEPS Posting Ref --}}
+                                <div class="col-span-1">
+                                    <x-forms.input id="philgepsReferenceNo" label="PhilGEPS Posting Reference #"
+                                        model="form.philgepsReferenceNo" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" textAlign="right" />
+                                </div>
+
+                                {{-- Award Notice Number --}}
+                                <div class="col-span-1">
+                                    <x-forms.input id="awardNoticeNumber" label="Award Notice Number"
+                                        model="form.awardNoticeNumber" :form="$form" :required="false"
+                                        :viewOnly="$viewOnlyTab3" textAlign="right" />
+                                </div>
+
+                                {{-- Posting of Award on PhilGEPS --}}
+                                <div class="col-span-1">
+                                    <x-forms.date id="dateOfPostingOfAwardOnPhilGEPS" label="Posting of Award|PhilGEPS"
+                                        model="form.dateOfPostingOfAwardOnPhilGEPS" :form="$form"
+                                        :viewOnly="$viewOnlyTab3" :required="false" />
+
+                                </div>
+                                {{-- Supplier --}}
+                                <div class="col-span-1">
+                                    <x-forms.select id="supplier_id" label="Supplier" model="form.supplier_id"
+                                        :form="$form" :options="$suppliers" optionValue="id" optionLabel="name"
+                                        :required="false" :viewOnly="$viewOnlyTab3" />
+                                </div>
+
+                                {{-- Process Stage --}}
+                                <div class="col-span-1">
+                                    <x-forms.select id="procurement_stage_id" label="Procurement Stage"
+                                        model="form.procurement_stage_id" :form="$form" :options="$procurementStages"
+                                        optionValue="id" optionLabel="procurementstage" :required="false"
+                                        :viewOnly="$viewOnlyTab3" />
+                                </div>
+
+                                {{-- Remarks --}}
+                                <div class="col-span-1">
+                                    <x-forms.select id="remarks_id" label="Remarks" model="form.remarks_id"
+                                        :form="$form" :options="$remarks" optionValue="id" optionLabel="remarks"
+                                        :required="false" :viewOnly="$viewOnlyTab3" />
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-        {{-- Advance Procurement Prompt --}}
+        <!-- Footer -->
+        <div class="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-neutral-700">
+            <button wire:click="$set('showCreateModal', false)"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-600">
+                Cancel
+            </button>
+            @if (!$viewOnly)
+            <button wire:click="saveTabData"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Save
+            </button>
 
+            @endif
 
+        </div>
     </div>
+    {{-- Advance Procurement Prompt --}}
+
+
+</div>

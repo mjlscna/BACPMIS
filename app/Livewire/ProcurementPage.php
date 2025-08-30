@@ -102,6 +102,8 @@ class ProcurementPage extends Component
         'bidding_date' => '',
         'bidding_result' => '',
 
+
+
     ];
     public function render()
     {
@@ -1182,6 +1184,16 @@ class ProcurementPage extends Component
             ->whereNotNull('date_returned_of_canvass')
             ->whereNotNull('abstract_of_canvass_date')
             ->exists();
+    }
+    public function toggleBids($modeIndex)
+    {
+        // Initialize showBids if missing
+        if (!isset($this->form['modes'][$modeIndex]['showBids'])) {
+            $this->form['modes'][$modeIndex]['showBids'] = false;
+        }
+
+        // Toggle the value
+        $this->form['modes'][$modeIndex]['showBids'] = !$this->form['modes'][$modeIndex]['showBids'];
     }
 
     public function hasProcurementMode(int $modeId): bool
