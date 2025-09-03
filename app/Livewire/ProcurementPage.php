@@ -65,6 +65,8 @@ class ProcurementPage extends Component
     public bool $viewOnlyTab1 = false;
     public bool $viewOnlyTab2 = false;
     public bool $viewOnlyTab3 = false;
+    public $showTable = true; // default visible
+
 
     public $form = [];
 
@@ -79,6 +81,8 @@ class ProcurementPage extends Component
         return [
             'pr_number' => '',
             'procurement_program_project' => '',
+            'procurement_type' => 'lot', // default
+            'items' => [],
             'date_receipt_advance' => '',
             'date_receipt_signed' => '',
             'dtrack_no' => '',
@@ -515,6 +519,16 @@ class ProcurementPage extends Component
             $numericValue = floatval($cleaned);
             $this->form['abc_50k'] = $numericValue >= 50000 ? 'above 50k' : '50k or less';
         }
+
+        if ($value === 'form.procurement_type') {
+        if ($this->form['procurement_type'] === 'item' && empty($this->form['items'])) {
+            $this->addItem(); // automatically create 1 row
+        }
+
+        if ($this->form['procurement_type'] === 'lot') {
+            $this->form['items'] = []; // reset items if switching back
+        }
+    }
     }
     public function updatedFormCategoryId()
     {
@@ -1291,6 +1305,19 @@ class ProcurementPage extends Component
             $this->viewOnlyTab2 = $this->canAccessTab3;
             $this->viewOnlyTab3 = false;
         }
+    }
+    public function addItem()
+    {
+        $this->form['items'][] = [
+            'item_no' => '',
+            'description' => '',
+        ];
+    }
+
+    public function removeItem($index)
+    {
+        unset($this->form['items'][$index]);
+        $this->form['items'] = array_values($this->form['items']); // reindex
     }
 
 

@@ -93,6 +93,7 @@
                         class="{{ $activeTab === 1 ? '' : 'hidden' }} mb-4 mt-4">
 
                         <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                            <!-- Grid for PR No. + Program/Project -->
                             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <!-- PR Number -->
                                 <div class="col-span-1">
@@ -102,29 +103,126 @@
                                     <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form"
                                         :viewOnly="$viewOnlyTab1" :required="true" :colspan="1" textAlign="right"
                                         class="flex-1" />
-
-                                    {{-- @if (!$viewOnlyTab1 && !$isEditing)
-                                    <button type="button" wire:click="refreshPrNumber" wire:loading.attr="disabled"
-                                        class="inline-flex items-center justify-center text-emerald-600 hover:text-white hover:bg-emerald-600 rounded-md p-1 transition-colors duration-200"
-                                        title="Refresh PR No.">
-
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0
-                                                           0h4.992m-4.993 0 3.181 3.183a8.25 8.25
-                                                           0 0 0 13.803-3.7M4.031 9.865a8.25
-                                                           8.25 0 0 1 13.803-3.7l3.181
-                                                           3.182m0-4.991v4.99" />
-                                        </svg>
-                                    </button>
-                                    @endif --}}
                                 </div>
-
 
                                 <!-- Procurement Program / Project -->
                                 <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
                                     model="form.procurement_program_project" :form="$form" :required="true"
                                     :viewOnly="$viewOnlyTab1" :maxlength="500" :rows="1" colspan="col-span-4" />
+                            </div>
+
+                            <!-- Per Lot / Per Item Toggle + Table -->
+                            <div class="mt-6 flex flex-col md:flex-row md:items-start md:space-x-6">
+                                <!-- Toggle -->
+                                <div class="flex items-center gap-x-3">
+                                    <label class="text-sm text-gray-500">Per Lot</label>
+
+                                    <label class="relative inline-block w-11 h-6 cursor-pointer">
+                                        <input type="checkbox" class="peer sr-only"
+                                            wire:model.defer="form.procurement_type"
+                                            @change="$event.target.checked ? @this.set('form.procurement_type', 'item') : @this.set('form.procurement_type', 'lot')"
+                                            {{ $form['procurement_type']==='item' ? 'checked' : '' }}>
+                                        <span class="absolute inset-0 bg-blue-600 rounded-full transition-colors duration-200 ease-in-out
+                     peer-checked:bg-emerald-600"></span>
+                                        <span class="absolute top-1/2 start-0.5 -translate-y-1/2 size-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out
+                     peer-checked:translate-x-full"></span>
+                                    </label>
+
+                                    <label class="text-sm text-gray-500">Per Item</label>
+                                </div>
+
+
+                                <!-- Table shows only when "Per Item" is selected -->
+                                @if($form['procurement_type'] === 'item')
+                                <div class="flex-1">
+                                    {{-- Header row --}}
+                                    <div class="flex justify-between items-center mb-4">
+                                        <div class="flex items-center gap-x-2">
+                                            {{-- Show/Hide table button --}}
+                                            <button type="button" wire:click="$toggle('showTable')"
+                                                class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
+                                                @if (!$showTable)
+                                                {{-- Expand icon --}}
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                                @else
+                                                {{-- Collapse icon --}}
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                                @endif
+                                            </button>
+                                            <h3 class="font-semibold text-gray-700">Item List</h3>
+                                        </div>
+
+
+                                    </div>
+
+
+                                    {{-- Table --}}@if($showTable)
+                                    <div class="overflow-x-auto">
+                                        {{-- Add Item button --}}<div class="flex justify-end mb-2">
+                                            <button type="button" wire:click="addItem"
+                                                class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
+                                                <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M5 12h14" />
+                                                    <path d="M12 5v14" />
+                                                </svg>Item
+                                            </button>
+                                        </div>
+                                        <table class="min-w-[600px] divide-y divide-gray-200 rounded-xl w-full">
+                                            <thead class="bg-gray-50 sticky top-0 z-40">
+                                                <tr>
+                                                    <th
+                                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap w-28">
+                                                        Item No
+                                                    </th>
+                                                    <th
+                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                        Description
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                @foreach($form['items'] as $index => $item)
+                                                <tr>
+                                                    {{-- Item No --}}
+                                                    <td class="px-6 py-4 text-center text-sm text-gray-800">
+                                                        <input type="text"
+                                                            class="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:ring-emerald-500 focus:border-emerald-500 text-center"
+                                                            placeholder="#"
+                                                            wire:model.defer="form.items.{{ $index }}.item_no">
+                                                    </td>
+
+                                                    {{-- Description --}}
+                                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                                        <input type="text"
+                                                            class="border border-gray-300 rounded-lg px-2 py-1 w-full focus:ring-emerald-500 focus:border-emerald-500"
+                                                            placeholder="Item description"
+                                                            wire:model.defer="form.items.{{ $index }}.description">
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    @endif
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+
+
+                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 mt-6">
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <!-- Date Receipt (Advance Copy) -->
                                 <x-forms.date id="date_receipt_advance" label="Date Receipt|Advance Copy"
                                     model="form.date_receipt_advance" :form="$form" :viewOnly="$viewOnlyTab1"
@@ -294,7 +392,7 @@
                                     <path d="M5 12h14" />
                                     <path d="M12 5v14" />
                                 </svg>
-                                Add Mode
+                                Mode
                             </button>
                         </div>
                         @endif

@@ -42,15 +42,22 @@
                         <table class="min-w-[1500px] divide-y divide-gray-200 dark:divide-neutral-700">
                             <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
                                 <tr>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium sticky left-0 text-gray-500 uppercase dark:text-neutral-500">
+                                    <!-- Action Column -->
+                                    <th
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-neutral-500 uppercase sticky left-0 z-30 bg-gray-50 dark:bg-neutral-800">
                                     </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                        PR Number</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                        Procurement Program / Project</th>
+
+                                    <!-- PR Number -->
+                                    <th
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-neutral-500 uppercase sticky left-[56px] z-20 bg-gray-50 dark:bg-neutral-800 whitespace-nowrap">
+                                        PR Number
+                                    </th>
+
+                                    <!-- Procurement Program / Project -->
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-500 uppercase sticky left-[160px] z-10 bg-gray-50 dark:bg-neutral-800 whitespace-nowrap">
+                                        Procurement Program / Project
+                                    </th>
                                     <th scope="col"
                                         class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
                                         Date Receipt (Advance Copy)</th>
@@ -120,10 +127,11 @@
                                 class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                                 @foreach ($procurements as $procurement)
                                 <tr>
-                                    <td class="text-center relative">
-                                        <div x-data="{ open: false }" class="inline-block">
+                                    <td class="sticky left-0 z-30 bg-white dark:bg-neutral-900 text-center px-4 py-2">
+                                        <div x-data="{ open: false }" class="relative inline-block">
+                                            <!-- Button -->
                                             <button @click="open = !open" @click.away="open = false"
-                                                class="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200 focus:outline-none">
+                                                class="inline-flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 focus:outline-none">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                     stroke-width="1.5" stroke="currentColor"
                                                     class="w-5 h-5 text-emerald-600">
@@ -132,29 +140,25 @@
                                                 </svg>
                                             </button>
 
+                                            <!-- Dropdown -->
                                             <div x-show="open" x-transition
-                                                class="absolute left-12 top-1/2 -translate-y-1/2 z-50 min-w-max bg-white border border-gray-200 rounded shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
+                                                class="absolute left-full top-1/2 -translate-y-1/2 z-50 min-w-max bg-white border border-gray-200 rounded shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
                                                 style="display: none;">
                                                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                                                    <!-- View -->
                                                     <li>
                                                         <button wire:click="openViewModal({{ $procurement->id }})"
-                                                            @click="open = false" type="button"
+                                                            @click="open = false"
                                                             class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
-                                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-500" />
-                                                            View
+                                                            <x-heroicon-o-eye class="w-4 h-4 text-blue-500" /> View
                                                         </button>
                                                     </li>
-                                                    <!-- Edit -->
                                                     <li>
                                                         <button wire:click="openEditModal({{ $procurement->id }})"
                                                             @click="open = false"
                                                             class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-amber-600">
-                                                            <x-heroicon-o-pencil class="w-4 h-4 text-amber-600" />
-                                                            Edit
+                                                            <x-heroicon-o-pencil class="w-4 h-4 text-amber-600" /> Edit
                                                         </button>
                                                     </li>
-                                                    <!-- Update -->
                                                     <li>
                                                         <button wire:click="openUpdateModal({{ $procurement->id }})"
                                                             @click="open = false"
@@ -163,28 +167,23 @@
                                                             Update
                                                         </button>
                                                     </li>
-                                                    <!-- Delete -->
                                                     <li>
                                                         <button wire:click="confirmDelete({{ $procurement->id }})"
                                                             @click="open = false"
                                                             class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-red-600">
-                                                            <x-heroicon-o-trash class="w-4 h-4 text-red-600" />
-                                                            Delete
+                                                            <x-heroicon-o-trash class="w-4 h-4 text-red-600" /> Delete
                                                         </button>
                                                     </li>
                                                 </ul>
-
                                             </div>
                                         </div>
                                     </td>
 
-
-
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                        class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium sticky left-[56px] z-20 bg-white text-gray-800 dark:text-neutral-200">
                                         {{ $procurement->pr_number }}</td>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
+                                        class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium sticky left-[160px] z-10 bg-white text-gray-800 dark:text-neutral-200">
                                         {{ $procurement->procurement_program_project }}</td>
                                     <td
                                         class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
