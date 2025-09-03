@@ -66,45 +66,102 @@ class ProcurementPage extends Component
     public bool $viewOnlyTab2 = false;
     public bool $viewOnlyTab3 = false;
 
-    public $form = [
-        'pr_number' => '',
-        'procurement_program_project' => '',
-        'date_receipt_advance' => '',
-        'date_receipt_signed' => '',
-        'dtrack_no' => '',
-        'unicode' => '',
-        'divisions_id' => '',
-        'cluster_committees_id' => '',
-        'category_id' => null,
-        'category_type_id' => null,
-        'bac_type_id' => null,
-        'venue_specific_id' => '',
-        'venue_province_huc_id' => '',
-        'approved_ppmp' => '',
-        'app_updated' => '',
-        'immediate_date_needed' => '',
-        'date_needed' => '',
-        'end_users_id' => '',
-        'early_procurement' => false,
-        'fund_source_id' => '',
-        'expense_class' => '',
-        'abc' => '',
-        'abc_50k' => '50k or less',
-        // Tab 2 fields
-        'mode_of_procurement_id' => '',
-        'modes' => [],
-        'ib_number' => '',
-        'pre_proc_conference' => '',
-        'ads_post_ib' => '',
-        'pre_bid_conf' => '',
-        'eligibility_check' => '',
-        'sub_open_bids' => '',
-        'bidding_date' => '',
-        'bidding_result' => '',
+    public $form = [];
 
+    public function mount()
+    {
+        $this->resetForm();
+        $this->expandLatestMode();
+    }
 
+    private function defaultForm()
+    {
+        return [
+            'pr_number' => '',
+            'procurement_program_project' => '',
+            'date_receipt_advance' => '',
+            'date_receipt_signed' => '',
+            'dtrack_no' => '',
+            'unicode' => '',
+            'divisions_id' => '',
+            'cluster_committees_id' => '',
+            'category_id' => null,
+            'category_type_id' => null,
+            'bac_type_id' => null,
+            'venue_specific_id' => '',
+            'venue_province_huc_id' => '',
+            'approved_ppmp' => '',
+            'app_updated' => '',
+            'immediate_date_needed' => '',
+            'date_needed' => '',
+            'end_users_id' => '',
+            'early_procurement' => false,
+            'fund_source_id' => '',
+            'expense_class' => '',
+            'abc' => '',
+            'abc_50k' => '50k or less',
 
-    ];
+            // Tab 2
+            'mode_of_procurement_id' => '',
+            'modes' => [],
+            'bid_schedules' => [],
+            'ib_number' => '',
+            'pre_proc_conference' => '',
+            'ads_post_ib' => '',
+            'pre_bid_conf' => '',
+            'eligibility_check' => '',
+            'sub_open_bids' => '',
+            'bidding_date' => '',
+            'bidding_result' => '',
+        ];
+    }
+
+    private function resetForm()
+    {
+        $this->form = $this->defaultForm();
+
+        // Collapse all modes by default
+        foreach ($this->form['modes'] as &$mode) {
+            $mode['showBids'] = false;
+        }
+
+        // Expand only the latest mode if exists
+        $lastIndex = count($this->form['modes']) - 1;
+        if ($lastIndex >= 0) {
+            $this->form['modes'][$lastIndex]['showBids'] = true;
+        }
+
+        // Reset additional properties
+        $this->activeTab = 1;
+        $this->procID = '';
+        $this->editingId = null;
+        $this->modeBidUid = null;
+        $this->isCreating = false;
+        $this->isEditing = false;
+        $this->showCreateModal = false;
+        $this->viewOnly = false;
+
+        $this->approved_ppmp = '';
+        $this->otherPPMP = '';
+        $this->app_updated = '';
+        $this->otherAPP = '';
+
+        $this->venue_province_huc_id = null;
+        $this->venue_specific_id = null;
+        $this->category_venue = null;
+
+        $this->bid_schedules = [];
+
+        $this->showModeSelect = false;
+        $this->hasSuccessfulBidOrNtf = false;
+        $this->hasSuccessfulSvp = false;
+        $this->canAccessTab2 = false;
+        $this->canAccessTab3 = false;
+        $this->viewOnlyTab1 = false;
+        $this->viewOnlyTab2 = false;
+        $this->viewOnlyTab3 = false;
+    }
+
     public function render()
     {
         if (!isset($this->form['modes'])) {
@@ -174,19 +231,6 @@ class ProcurementPage extends Component
 
         $this->showCreateModal = true;
     }
-    // public function refreshPrNumber()
-    // {
-    //     $isEarlyProc = $this->form['early_procurement'];
-
-    //     $this->form['pr_number'] = Procurement::generatePrNumber($isEarlyProc);
-
-    //     LivewireAlert::title('PR Number Refreshed')
-    //         ->success()
-    //         ->toast()
-    //         ->position('top-end')
-    //         ->show();
-
-    // }
 
     public function toggleCreateForm()
     {
@@ -428,6 +472,14 @@ class ProcurementPage extends Component
                 'bid_schedules' => $schedules,
             ];
         })->toArray();
+
+        // 🔥 Expand only the latest mode
+        if (!empty($this->form['modes'])) {
+            $lastOrder = max(array_column($this->form['modes'], 'mode_order'));
+            foreach ($this->form['modes'] as &$mode) {
+                $mode['showBids'] = ($mode['mode_order'] === $lastOrder);
+            }
+        }
     }
     protected function update3()
     {
@@ -914,6 +966,22 @@ class ProcurementPage extends Component
             }
         }
     }
+    private function expandLatestMode()
+    {
+        foreach ($this->form['modes'] as &$mode) {
+            $mode['showBids'] = false;
+        }
+
+        if (!empty($this->form['modes'])) {
+            $lastOrder = max(array_column($this->form['modes'], 'mode_order'));
+            foreach ($this->form['modes'] as &$mode) {
+                if (($mode['mode_order'] ?? null) === $lastOrder) {
+                    $mode['showBids'] = true;
+                }
+            }
+        }
+    }
+
     private function preventDuplicateMode($modeId, $mode)
     {
         if ($modeId == 1) {
@@ -1094,17 +1162,21 @@ class ProcurementPage extends Component
             'uid' => '',
             'mode_of_procurement_id' => '',
             'bid_schedules' => [],
+            'showBids' => true, // default expand the new one
         ];
 
         // Insert new mode at the top
-        $this->form['modes'] = array_merge([$newMode], $this->form['modes'] ?? []);
+        array_unshift($this->form['modes'], $newMode);
 
         // Reassign mode_order from bottom (1) to top (N)
         $total = count($this->form['modes']);
         foreach ($this->form['modes'] as $index => &$mode) {
-            $mode['mode_order'] = $total - $index; // Bottom = 1, top = N
+            $mode['mode_order'] = $total - $index;
+            // Collapse all except the newly added (index 0)
+            $mode['showBids'] = ($index === 0);
         }
     }
+
     public function addBidSchedule($modeIndex)
     {
         $existingSchedules = $this->form['modes'][$modeIndex]['bid_schedules'] ?? [];
@@ -1185,15 +1257,13 @@ class ProcurementPage extends Component
             ->whereNotNull('abstract_of_canvass_date')
             ->exists();
     }
-    public function toggleBids($modeIndex)
+    public function toggleBids($modeOrder)
     {
-        // Initialize showBids if missing
-        if (!isset($this->form['modes'][$modeIndex]['showBids'])) {
-            $this->form['modes'][$modeIndex]['showBids'] = false;
+        foreach ($this->form['modes'] as &$mode) {
+            if (($mode['mode_order'] ?? null) === $modeOrder) {
+                $mode['showBids'] = !($mode['showBids'] ?? false);
+            }
         }
-
-        // Toggle the value
-        $this->form['modes'][$modeIndex]['showBids'] = !$this->form['modes'][$modeIndex]['showBids'];
     }
 
     public function hasProcurementMode(int $modeId): bool
@@ -1223,79 +1293,6 @@ class ProcurementPage extends Component
         }
     }
 
-    private function resetForm()
-    {
-        $this->form = [
-            'pr_number' => '',
-            'procurement_program_project' => '',
-            'date_receipt_advance' => '',
-            'date_receipt_signed' => '',
-            'rbac_sbac' => '',
-            'dtrack_no' => '',
-            'unicode' => '',
-            'divisions_id' => '',
-            'cluster_committees_id' => '',
-            'category_id' => '',
-            'venue_specific_id' => '',
-            'venue_province_huc_id' => '',
-            'category_venue' => '',
-            'approved_ppmp' => 'Yes',
-            'app_updated' => 'Yes',
-            'immediate_date_needed' => '',
-            'date_needed' => '',
-            'end_users_id' => '',
-            'early_procurement' => false,
-            'fund_source_id' => '',
-            'expense_class' => '',
-            'abc' => '',
-            'abc_50k' => '50k or less',
-            // Tab 2
-            'mode_of_procurement_id' => '',
-            'ib_number' => '',
-            'pre_proc_conference' => '',
-            'ads_post_ib' => '',
-            'pre_bid_conf' => '',
-            'eligibility_check' => '',
-            'sub_open_bids' => '',
-            'bidding_number' => '',
-            'bidding_date' => '',
-            'bidding_result' => '',
-        ];
-
-        // General properties
-        $this->activeTab = 1;
-        $this->procID = '';
-        $this->editingId = null;
-        $this->modeBidUid = null;
-        $this->isCreating = false;
-        $this->isEditing = false;
-        $this->showCreateModal = false;
-        $this->viewOnly = false;
-
-        // Radio/text pairs
-        $this->approved_ppmp = '';
-        $this->otherPPMP = '';
-        $this->app_updated = '';
-        $this->otherAPP = '';
-
-        // Venue-related
-        $this->venue_province_huc_id = null;
-        $this->venue_specific_id = null;
-        $this->category_venue = null;
-
-        // Bid schedules
-        $this->bid_schedules = [];
-
-        // Tab and mode controls
-        $this->showModeSelect = false;
-        $this->hasSuccessfulBidOrNtf = false;
-        $this->hasSuccessfulSvp = false;
-        $this->canAccessTab2 = false;
-        $this->canAccessTab3 = false;
-        $this->viewOnlyTab1 = false;
-        $this->viewOnlyTab2 = false;
-        $this->viewOnlyTab3 = false;
-    }
 
 }
 

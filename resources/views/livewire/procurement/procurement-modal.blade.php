@@ -315,7 +315,7 @@
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="flex items-center gap-2">
                                         {{-- Collapse toggle --}}
-                                        <button type="button" wire:click="toggleBids({{ $modeIndex }})"
+                                        <button type="button" wire:click="toggleBids({{ $mode['mode_order'] ?? 0 }})"
                                             class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
                                             @if (!($mode['showBids'] ?? false))
                                             {{-- Expand icon --}}
@@ -344,7 +344,8 @@
                                 </div>
 
                                 {{-- Collapsible content --}}
-                                @if ($mode['showBids'] ?? true)
+                                @if (!empty($mode['showBids']) && $mode['showBids'] === true)
+
                                 {{-- Add Bid Button --}}
                                 @if (!in_array($mode['mode_of_procurement_id'], [null, '', 1, 5]))
                                 @php
