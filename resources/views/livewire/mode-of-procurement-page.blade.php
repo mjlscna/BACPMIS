@@ -145,7 +145,7 @@
                                                 class="absolute left-full top-1/2 -translate-y-1/2 z-50 min-w-max bg-white border border-gray-200 rounded shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
                                                 style="display: none;">
                                                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                                                    <li>
+                                                    {{-- <li>
                                                         <button wire:click="openViewModal({{ $procurement->id }})"
                                                             @click="open = false"
                                                             class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
@@ -173,7 +173,7 @@
                                                             class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-red-600">
                                                             <x-heroicon-o-trash class="w-4 h-4 text-red-600" /> Delete
                                                         </button>
-                                                    </li>
+                                                    </li> --}}
                                                 </ul>
                                             </div>
                                         </div>
@@ -273,7 +273,7 @@
 
                 </div>
 
-                @if($showEarlyPrompt)
+                {{-- @if($showEarlyPrompt)
                 <div class="fixed inset-0 flex items-center justify-center bg-emerald-600/20 z-50 backdrop-blur-sm">
                     <div class="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
                         <h2 class="text-lg font-bold mb-4">Is this an Early Procurement?</h2>
@@ -298,7 +298,7 @@
                         @include('livewire.procurement.procurement-modal')
                     </div>
                 </div>
-                @endif
+                @endif --}}
 
 
             </div>
