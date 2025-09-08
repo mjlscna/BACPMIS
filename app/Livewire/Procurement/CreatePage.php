@@ -33,6 +33,7 @@ class CreatePage extends Component
     public function mount()
     {
         $this->resetForm();
+        $this->form['early_procurement'] = request()->query('early', false);
     }
 
     private function defaultForm()
@@ -90,8 +91,9 @@ class CreatePage extends Component
         if ($value === 'form.procurement_type') {
             $isPerItem = $this->form['procurement_type'] === 'perItem';
 
-            $this->form['items'] = $isPerItem ? ($this->form['items'] ?: [$this->addItem()]) : [];
-            $this->form['perItems'] = $isPerItem ? [] : $this->form['perItems'];
+            if (!$isPerItem) {
+                $this->form['items'] = [];
+            }
         }
 
 
@@ -143,102 +145,124 @@ class CreatePage extends Component
     }
     public function addItem()
     {
-        $this->form['items'][] = [
-            'item_no' => '',
-            'description' => '',
-        ];
+        // Prepend new item at the beginning
+        $this->form['items'] = array_merge([
+            [
+                'item_no' => '',
+                'description' => '',
+            ]
+        ], $this->form['items'] ?? []);
     }
 
 
-public function save()
-{
-    // Normalize binary and numeric fields
-    $this->form['approved_ppmp'] = (bool) $this->form['approved_ppmp'];
-    $this->form['app_updated'] = (bool) $this->form['app_updated'];
-    $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
 
-    // Normalize procurement_type
-    if (!in_array($this->form['procurement_type'], ['perItem', 'perLot'])) {
-        $this->form['procurement_type'] = 'perLot';
-    }
+    public function save()
+    {
+        // Normalize binary and numeric fields
+        $this->form['approved_ppmp'] = (bool) $this->form['approved_ppmp'];
+        $this->form['app_updated'] = (bool) $this->form['app_updated'];
+        $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
 
-    // Manual validation for full control
-    $validator = Validator::make($this->form, [
-        'pr_number' => ['regex:/^\d{4}-\d{4}$/', 'unique:procurements,pr_number'],
-        'procurement_program_project' => 'required|string|max:255',
-        'dtrack_no' => 'required|string|max:50',
-        'divisions_id' => 'required|integer|exists:divisions,id',
-        'cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
-        'category_id' => 'required|integer|exists:categories,id',
-        'fund_source_id' => 'required|integer|exists:fund_sources,id',
-        'abc' => 'required|numeric|min:1',
-        'procurement_type' => 'required|in:perItem,perLot',
-    ], [], [
-        'pr_number' => 'PR Number',
-        'procurement_type' => 'Procurement Type',
-        'procurement_program_project' => 'Procurement Project',
-        'dtrack_no' => 'DTrack No.',
-        'divisions_id' => 'Division',
-        'cluster_committees_id' => 'Cluster Committee',
-        'category_id' => 'Category',
-        'fund_source_id' => 'Fund Source',
-        'abc' => 'ABC',
-    ]);
+        // Normalize procurement_type
+        if (!in_array($this->form['procurement_type'], ['perItem', 'perLot'])) {
+            $this->form['procurement_type'] = 'perLot';
+        }
 
-    if ($validator->fails()) {
-        LivewireAlert::title('ERROR!')
-            ->error()
-            ->text(collect($validator->errors()->all())->implode("\n"))
+        // Manual validation
+        $validator = Validator::make($this->form, [
+            'pr_number' => ['regex:/^\d{4}-\d{4}$/', 'unique:procurements,pr_number'],
+            'procurement_program_project' => 'required|string|max:255',
+            'dtrack_no' => 'required|string|max:50',
+            'divisions_id' => 'required|integer|exists:divisions,id',
+            'cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
+            'category_id' => 'required|integer|exists:categories,id',
+            'fund_source_id' => 'required|integer|exists:fund_sources,id',
+            'abc' => 'required|numeric|min:1',
+            'procurement_type' => 'required|in:perItem,perLot',
+        ], [], [
+            'pr_number' => 'PR Number',
+            'procurement_type' => 'Procurement Type',
+            'procurement_program_project' => 'Procurement Project',
+            'dtrack_no' => 'DTrack No.',
+            'divisions_id' => 'Division',
+            'cluster_committees_id' => 'Cluster Committee',
+            'category_id' => 'Category',
+            'fund_source_id' => 'Fund Source',
+            'abc' => 'ABC',
+        ]);
+
+        if ($validator->fails()) {
+            LivewireAlert::title('ERROR!')
+                ->error()
+                ->text(collect($validator->errors()->all())->implode("\n"))
+                ->toast()
+                ->position('top-end')
+                ->show();
+            return;
+        }
+
+        // Nullify optional fields
+        foreach ([
+            'date_receipt',
+            'unicode',
+            'venue_specific_id',
+            'venue_province_huc_id',
+            'immediate_date_needed',
+            'date_needed',
+            'end_users_id',
+            'expense_class'
+        ] as $field) {
+            $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
+        }
+
+        // Hydrate category relationships
+        $category = Category::with(['categoryType', 'bacType'])->find($this->form['category_id']);
+        $this->form['category_type_id'] = $category?->category_type_id ?? null;
+        $this->form['bac_type_id'] = $category?->bac_type_id ?? null;
+        $this->form['category_type'] = $category?->categoryType?->category_type ?? null;
+        $this->form['rbac_sbac'] = $category?->bacType?->abbreviation ?? null;
+
+        $this->updateCategoryVenue();
+
+        // Generate PR number if missing
+        if (empty($this->form['pr_number'])) {
+            $this->form['pr_number'] = Procurement::generatePrNumber($this->form['early_procurement'] ?? false);
+        }
+
+        // Generate unique procID
+        $this->procID = 'BAC' . $this->form['pr_number'] . now()->format('YmdHis');
+
+        // Create procurement record
+        $procurement = Procurement::create(array_merge($this->form, [
+            'procID' => $this->procID,
+            'early_procurement' => $this->form['early_procurement'] ?? null,
+            'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
+        ]));
+
+        // Save "Per Item" entries if procurement_type is perItem
+        if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
+            foreach (array_reverse($this->form['items']) as $index => $item) {
+                if (!empty($item['item_no']) || !empty($item['description'])) {
+                    $prItemID = $this->procID . '-' . ($index + 1);
+                    $procurement->items()->create([
+                        'procID' => $this->procID,
+                        'prItemID' => $prItemID,
+                        'item_no' => $item['item_no'] ?? null,
+                        'description' => $item['description'] ?? null,
+                    ]);
+                }
+            }
+
+
+        }
+
+        LivewireAlert::title('Saved!')
+            ->success()
             ->toast()
             ->position('top-end')
             ->show();
-        return;
     }
 
-    // Nullify optional fields
-    foreach ([
-        'date_receipt',
-        'unicode',
-        'venue_specific_id',
-        'venue_province_huc_id',
-        'immediate_date_needed',
-        'date_needed',
-        'end_users_id',
-        'expense_class'
-    ] as $field) {
-        $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
-    }
-
-    // Hydrate category relationships
-    $category = Category::with(['categoryType', 'bacType'])->find($this->form['category_id']);
-    $this->form['category_type_id'] = $category?->category_type_id ?? null;
-    $this->form['bac_type_id'] = $category?->bac_type_id ?? null;
-    $this->form['category_type'] = $category?->categoryType?->category_type ?? null;
-    $this->form['rbac_sbac'] = $category?->bacType?->abbreviation ?? null;
-
-    $this->updateCategoryVenue();
-
-    // Generate PR number if missing
-    if (empty($this->form['pr_number'])) {
-        $this->form['pr_number'] = Procurement::generatePrNumber($this->form['early_procurement'] ?? false);
-    }
-
-    // Generate unique procID
-    $this->procID = 'BAC' . $this->form['pr_number'] . now()->format('YmdHis');
-
-    // Create procurement record
-    $procurement = Procurement::create(array_merge($this->form, [
-        'procID' => $this->procID,
-        'early_procurement' => $this->form['early_procurement'] ?? null,
-        'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
-    ]));
-
-    LivewireAlert::title('Saved!')
-        ->success()
-        ->toast()
-        ->position('top-end')
-        ->show();
-}
 
 
     public function render()

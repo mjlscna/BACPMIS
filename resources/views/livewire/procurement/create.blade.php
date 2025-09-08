@@ -1,5 +1,6 @@
 <div class="space-y-6 p-8 pb-[5rem]">
 
+    {{-- First Box --}}
     <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
         <!-- Grid for PR No. + Program/Project -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -14,109 +15,74 @@
 
             <!-- Procurement Program / Project -->
             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                model="form.procurement_program_project" :form="$form" :required="true" :maxlength="500" :rows="1"
-                colspan="col-span-4" />
+                model="form.procurement_program_project" :form="$form" :required="true" :maxlength="500"
+                :rows="1" colspan="col-span-4" />
         </div>
 
         <!-- Per Lot / Per Item Toggle + Table -->
         <div class="mt-6 flex flex-col md:flex-row md:items-start md:space-x-6">
             <!-- Toggle -->
             <div class="flex items-center gap-x-3">
-                <label class="text-sm text-gray-500">Per Lot</label>
-
-                <label class="relative inline-block w-11 h-6 cursor-pointer">
-                    <input type="checkbox" class="peer sr-only" @change="$event.target.checked
-                    ? @this.set('form.procurement_type', 'perItem')
-                    : @this.set('form.procurement_type', 'perLot')" {{ $form['procurement_type']==='perItem'
-                        ? 'checked' : '' }}>
-                    <span
-                        class="absolute inset-0 bg-blue-600 rounded-full transition-colors duration-200 ease-in-out peer-checked:bg-emerald-600"></span>
-                    <span
-                        class="absolute top-1/2 start-0.5 -translate-y-1/2 size-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out peer-checked:translate-x-full"></span>
-                </label>
-
-                <label class="text-sm text-gray-500">Per Item</label>
+                <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form"
+                    :true-value="'perItem'" :false-value="'perLot'" label-left="Per Lot" label-right="Per Item"
+                    true-color="bg-emerald-600" false-color="bg-blue-600" />
             </div>
 
             <!-- Table shows only when "Per Item" is selected -->
-            @if($form['procurement_type'] === 'perItem')
-            <div class="flex-1">
-                {{-- Header row --}}
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-x-2">
-                        {{-- Show/Hide table button --}}
-                        <button type="button" wire:click="$toggle('showTable')"
-                            class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
-                            @if (!$showTable)
-                            {{-- Expand icon --}}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5l7 7-7 7" />
-                            </svg>
-                            @else
-                            {{-- Collapse icon --}}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                            @endif
-                        </button>
-                        <h3 class="font-semibold text-gray-700">Item List</h3>
+            @if ($form['procurement_type'] === 'perItem')
+                <div class="mt-4 md:mt-0 w-[800px]">
+                    {{-- Header row --}}
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-x-2">
+                            {{-- Show/Hide table button --}}
+                            <button type="button" wire:click="$toggle('showTable')"
+                                class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
+                                @if (!$showTable)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                @endif
+                            </button>
+                            <h3 class="font-semibold text-gray-700">Item List</h3>
+                        </div>
                     </div>
-                </div>
 
-                {{-- Table --}}
-                @if($showTable)
-                <div class="overflow-x-auto">
-                    {{-- Add Item button --}}
-                    <div class="flex justify-end mb-2">
-                        <button type="button" wire:click="addItem"
-                            class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
-                            <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M5 12h14" />
-                                <path d="M12 5v14" />
-                            </svg>Item
-                        </button>
-                    </div>
-                    <table class="min-w-[600px] divide-y divide-gray-200 rounded-xl w-full">
-                        <thead class="bg-gray-50 sticky top-0 z-40">
-                            <tr>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap w-28">
-                                    Item No</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($form['items'] as $index => $item)
-                            <tr>
-                                <td class="px-6 py-4 text-center text-sm text-gray-800">
-                                    <input type="text"
-                                        class="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:ring-emerald-500 focus:border-emerald-500 text-center"
-                                        placeholder="#" wire:model.defer="form.items.{{ $index }}.item_no">
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-800">
-                                    <input type="text"
-                                        class="border border-gray-300 rounded-lg px-2 py-1 w-full focus:ring-emerald-500 focus:border-emerald-500"
-                                        placeholder="Item description"
-                                        wire:model.defer="form.items.{{ $index }}.description">
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    @if ($showTable)
+                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
+                            {{-- Add Item button --}}
+                            <div class="flex justify-end mb-2">
+                                <button type="button" wire:click="addItem"
+                                    class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
+                                    <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path d="M5 12h14" />
+                                        <path d="M12 5v14" />
+                                    </svg>
+                                    Item
+                                </button>
+                            </div>
+
+                            {{-- Items table component --}}
+                            <x-forms.prItems-table :form="$form" model="form.items" add-item-action="addItem"
+                                :show-table="$showTable" />
+
+                        </div>
+                    @endif
                 </div>
-                @endif
-            </div>
             @endif
-        </div>
 
+
+        </div>
     </div>
+
 
     <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
         <div class="grid grid-cols-2 md:grid-cols-8 gap-4">
@@ -128,8 +94,8 @@
                 :options="$categories" optionValue="id" optionLabel="category" :required="true" wireModifier="lazy"
                 colspan="col-span-2" />
             <!-- Category Type (Read-only) -->
-            <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type" :form="$form"
-                :required="false" :colspan="1" />
+            <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type"
+                :form="$form" :required="false" :colspan="1" />
             <!-- RBAC / SBAC (Read-only) -->
             <x-forms.readonly-input id="rbac_sbac" label="RBAC / SBAC" model="form.rbac_sbac" :form="$form"
                 :required="false" :colspan="1" />
@@ -143,8 +109,8 @@
                 :options="$divisions" optionValue="id" optionLabel="divisions" :required="true" colspan="col-span-3" />
             <!-- Cluster / Committee -->
             <x-forms.select id="cluster_committees_id" label="Cluster / Committee" model="form.cluster_committees_id"
-                :form="$form" :options="$clusterCommittees" optionValue="id" optionLabel="clustercommittee"
-                :required="true" colspan="col-span-2" />
+                :form="$form" :options="$clusterCommittees" optionValue="id" optionLabel="clustercommittee" :required="true"
+                colspan="col-span-2" />
 
         </div>
     </div>
@@ -152,8 +118,9 @@
         <!-- Simple Form Fields in Landscape Layout -->
         <div class="grid grid-cols-4 gap-4">
             <!-- Venue Specific -->
-            <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id" :form="$form"
-                :options="$venueSpecifics" optionValue="id" optionLabel="name" :required="false" colspan="col-span-1" />
+            <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id"
+                :form="$form" :options="$venueSpecifics" optionValue="id" optionLabel="name" :required="false"
+                colspan="col-span-1" />
             <!-- Venue Province/HUC -->
             <x-forms.select id="venue_province_huc_id" label="Venue|Province/HUC" model="form.venue_province_huc_id"
                 :form="$form" :options="$venueProvinces" optionValue="id" optionLabel="province_huc" :required="false"
@@ -184,8 +151,8 @@
 
                 <!-- Date Needed -->
                 <div class="flex-1">
-                    <x-forms.textarea id="date_needed" label="Date Needed" model="form.date_needed" :form="$form"
-                        :required="false" :maxlength="500" rows="4" />
+                    <x-forms.textarea id="date_needed" label="Date Needed" model="form.date_needed"
+                        :form="$form" :required="false" :maxlength="500" rows="4" />
                 </div>
             </div>
 
@@ -193,8 +160,9 @@
             <div class="col-span-1 flex flex-col gap-4">
                 <!-- PMO/End-User -->
                 <div>
-                    <x-forms.select id="end_users_id" label="PMO/End-User" model="form.end_users_id" :form="$form"
-                        :options="$endUsers" optionValue="id" optionLabel="endusers" :required="false" />
+                    <x-forms.select id="end_users_id" label="PMO/End-User" model="form.end_users_id"
+                        :form="$form" :options="$endUsers" optionValue="id" optionLabel="endusers"
+                        :required="false" />
 
                 </div>
                 <!-- Early Procurement Toggle -->
@@ -219,13 +187,13 @@
 
                 <!-- Expense Class -->
                 <div class="col-span-1">
-                    <x-forms.input id="expense_class" label="Expense Class" model="form.expense_class" :form="$form"
-                        :required="false" textAlign="right" />
+                    <x-forms.input id="expense_class" label="Expense Class" model="form.expense_class"
+                        :form="$form" :required="false" textAlign="right" />
                 </div>
 
                 <!-- ABC Amount -->
-                <x-forms.currency-input id="abc" label="ABC Amount" model="form.abc" :form="$form" :required="true"
-                    colspan="col-span-1" wireModifier="live" />
+                <x-forms.currency-input id="abc" label="ABC Amount" model="form.abc" :form="$form"
+                    :required="true" colspan="col-span-1" wireModifier="live" />
 
 
                 <!-- ABC ⇔ 50k -->

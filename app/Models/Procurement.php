@@ -148,4 +148,9 @@ class Procurement extends Model
         return $this->hasOne(PostProcurement::class, 'procID');
     }
 
+    public function items()
+{
+    return $this->hasMany(PrItem::class, 'procID', 'procID');
+}
+
 }

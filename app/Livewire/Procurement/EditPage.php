@@ -43,11 +43,16 @@ class EditPage extends Component
         }
 
         if ($value === 'form.procurement_type') {
-            $isPerItem = $this->form['procurement_type'] === 'perItem';
-
-            $this->form['items'] = $isPerItem ? ($this->form['items'] ?: [$this->addItem()]) : [];
-            $this->form['perItems'] = $isPerItem ? [] : $this->form['perItems'];
+            if ($this->form['procurement_type'] === 'perItem') {
+                if (empty($this->form['items'])) {
+                    $this->addItem();
+                }
+            } else {
+                $this->form['items'] = [];
+                $this->form['perItems'] = [];
+            }
         }
+
 
 
     }
@@ -177,12 +182,38 @@ class EditPage extends Component
             'early_procurement' => $this->form['early_procurement'] ?? null,
             'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
         ]));
+        if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
+            $this->procurement->items()->delete(); // remove old items
+            foreach ($this->form['items'] as $index => $item) {
+                if (!empty($item['item_no']) || !empty($item['description'])) {
+                    $prItemID = $this->procurement->id . '-' . ($index + 1); // or use your existing ID logic
+                    $this->procurement->items()->create([
+                        'procID' => $this->procurement->id,
+                        'prItemID' => $prItemID,
+                        'item_no' => $item['item_no'] ?? null,
+                        'description' => $item['description'] ?? null,
+                    ]);
+                }
+            }
+        }
 
         LivewireAlert::title('Updated!')
             ->success()
             ->toast()
             ->position('top-end')
             ->show();
+    }
+    public function addItem()
+    {
+        $newItem = [
+            'item_no' => '',
+            'description' => '',
+        ];
+
+        // Prepend new item at the beginning
+        $this->form['items'] = array_merge([$newItem], $this->form['items'] ?? []);
+
+        return $newItem;
     }
 
 
