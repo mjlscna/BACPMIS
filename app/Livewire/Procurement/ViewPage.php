@@ -31,9 +31,9 @@ class ViewPage extends Component
 
     protected $listeners = ['open-procurement-view' => 'open'];
 
-    public function open($id)
-    {
-        $procurement = Procurement::findOrFail($id);
+    public function open($procID)
+    { 
+        $procurement = Procurement::where('procID', $procID)->firstOrFail();
         $this->form = $procurement->toArray();
 
         // Load lookup/reference data

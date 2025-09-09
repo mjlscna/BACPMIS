@@ -47,25 +47,7 @@ class IndexPage extends Component
         // Navigate to create route with query parameter (optional)
         return redirect()->route('procurements.create', ['early' => $isEarly ? 1 : 0]);
     }
-    public function openViewModal($id)
-    {
-        $this->selectedProcurement = Procurement::findOrFail($id);
 
-        // Convert to array for form binding
-        $this->form = $this->selectedProcurement->toArray();
-
-        // Load lookup/reference data
-        $this->categories = Category::with(['categoryType', 'bacType'])->get();
-        $this->divisions = Division::all();
-        $this->clusterCommittees = ClusterCommittee::all();
-        $this->venueSpecifics = VenueSpecific::all();
-        $this->venueProvinces = ProvinceHuc::all();
-        $this->endUsers = EndUser::all();
-        $this->fundSources = FundSource::all();
-
-        // Show the modal
-        $this->showModal = true;
-    }
 
     public function render()
     {

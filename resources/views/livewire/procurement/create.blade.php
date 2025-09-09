@@ -23,11 +23,8 @@
         <div class="mt-6 flex flex-col md:flex-row md:items-start md:space-x-6">
             <!-- Toggle -->
             <div class="flex items-center gap-x-3">
-                <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form"
-                    :true-value="'perItem'" :false-value="'perLot'" label-left="Per Lot" label-right="Per Item"
-                    true-color="bg-emerald-600" false-color="bg-blue-600" />
+                <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form" />
             </div>
-
             <!-- Table shows only when "Per Item" is selected -->
             @if ($form['procurement_type'] === 'perItem')
                 <div class="mt-4 md:mt-0 w-[800px]">
@@ -71,18 +68,18 @@
                             </div>
 
                             {{-- Items table component --}}
-                            <x-forms.prItems-table :form="$form" model="form.items" add-item-action="addItem"
-                                :show-table="$showTable" />
+                            @if ($form['procurement_type'] === 'perItem')
+                                <x-forms.prItems-table :form="$form" model="form.items" :page="$page"
+                                    :per-page="$perPage" />
+                            @endif
 
                         </div>
                     @endif
                 </div>
             @endif
 
-
         </div>
     </div>
-
 
     <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
         <div class="grid grid-cols-2 md:grid-cols-8 gap-4">

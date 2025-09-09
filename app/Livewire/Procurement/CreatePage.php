@@ -19,6 +19,7 @@ class CreatePage extends Component
 {
     public string $procID = '';
     public $showEarlyPrompt = false;
+    public bool $isPerItem = false;
     public $isAdvanceProcurement = false;
     public string $approved_ppmp = ''; // For radio buttons
     public string $otherPPMP = '';     // For the text input
@@ -28,12 +29,19 @@ class CreatePage extends Component
     public $venue_province_huc_id, $venue_specific_id, $category_venue;
     protected Category|null $categoryCache = null;
     public $form = [];
-    public $showTable = true; // default visible
+    public $showTable = true;
+    public $page = 1;
+    public $perPage = 5;
 
     public function mount()
     {
         $this->resetForm();
+
         $this->form['early_procurement'] = request()->query('early', false);
+
+        $this->updatedFormProcurementType(
+            $this->form['procurement_type']
+        );
     }
 
     private function defaultForm()
@@ -72,32 +80,43 @@ class CreatePage extends Component
 
     }
 
-    public function updated($value)
+    public function updated($propertyName, $value)
     {
-        if ($value === 'form.venue_province_huc_id' || $value === 'form.venue_specific_id') {
+        if ($propertyName === 'form.venue_province_huc_id' || $propertyName === 'form.venue_specific_id') {
             $this->updateCategoryVenue();
         }
 
-        if ($value === 'form.category_id') {
+        if ($propertyName === 'form.category_id') {
             $this->updatedFormCategoryId();
         }
 
-        if ($value === 'form.abc') {
-            $cleaned = preg_replace('/[^0-9.]/', '', $this->form['abc']);
+        if ($propertyName === 'form.abc') {
+            $cleaned = preg_replace('/[^0-9.]/', '', $value);
             $numericValue = floatval($cleaned);
             $this->form['abc_50k'] = $numericValue >= 50000 ? 'above 50k' : '50k or less';
         }
+    }
 
-        if ($value === 'form.procurement_type') {
-            $isPerItem = $this->form['procurement_type'] === 'perItem';
+    public function updatedFormProcurementType(string $value): void
+    {
+        // 1. Persist the new mode
+        $this->form['procurement_type'] = $value;
 
-            if (!$isPerItem) {
-                $this->form['items'] = [];
-            }
+        // 2. If switching to perLot, clear all items
+        if ($value === 'perLot') {
+            $this->form['items'] = [];
+            return;
         }
 
-
+        // 3. If switching to perItem and no items exist, seed one blank row
+        if (empty($this->form['items'])) {
+            $this->form['items'][] = [
+                'item_no' => null,
+                'description' => null,
+            ];
+        }
     }
+
     public function updatedFormCategoryId()
     {
         $this->categoryCache = Category::with(['categoryType', 'bacType'])
@@ -154,8 +173,6 @@ class CreatePage extends Component
         ], $this->form['items'] ?? []);
     }
 
-
-
     public function save()
     {
         // Normalize binary and numeric fields
@@ -168,7 +185,7 @@ class CreatePage extends Component
             $this->form['procurement_type'] = 'perLot';
         }
 
-        // Manual validation
+        // --- 1. Main form validation ---
         $validator = Validator::make($this->form, [
             'pr_number' => ['regex:/^\d{4}-\d{4}$/', 'unique:procurements,pr_number'],
             'procurement_program_project' => 'required|string|max:255',
@@ -201,7 +218,28 @@ class CreatePage extends Component
             return;
         }
 
-        // Nullify optional fields
+        // --- 2. Extra validation for items if perItem ---
+        if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
+            $itemValidator = Validator::make($this->form, [
+                'items.*.item_no' => 'required',
+                'items.*.description' => 'required',
+            ], [
+                'items.*.item_no.required' => 'Item No. is Empty',
+                'items.*.description.required' => 'Item Description is Empty',
+            ]);
+
+            if ($itemValidator->fails()) {
+                LivewireAlert::title('ERROR!')
+                    ->error()
+                    ->text(collect($itemValidator->errors()->all())->implode("\n"))
+                    ->toast()
+                    ->position('top-end')
+                    ->show();
+                return; // 🔥 stop before creating procurement
+            }
+        }
+
+        // --- 3. Nullify optional fields ---
         foreach ([
             'date_receipt',
             'unicode',
@@ -232,27 +270,24 @@ class CreatePage extends Component
         // Generate unique procID
         $this->procID = 'BAC' . $this->form['pr_number'] . now()->format('YmdHis');
 
-        // Create procurement record
+        // --- 4. Finally create procurement ---
         $procurement = Procurement::create(array_merge($this->form, [
             'procID' => $this->procID,
             'early_procurement' => $this->form['early_procurement'] ?? null,
             'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
         ]));
 
-        // Save "Per Item" entries if procurement_type is perItem
+        // --- 5. Save items if valid ---
         if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
             foreach (array_reverse($this->form['items']) as $index => $item) {
-                if (!empty($item['item_no']) || !empty($item['description'])) {
-                    $prItemID = $this->procID . '-' . ($index + 1);
-                    $procurement->items()->create([
-                        'procID' => $this->procID,
-                        'prItemID' => $prItemID,
-                        'item_no' => $item['item_no'] ?? null,
-                        'description' => $item['description'] ?? null,
-                    ]);
-                }
+                $prItemID = "{$this->procID}-" . ($index + 1);
+                $procurement->items()->create([
+                    'procID' => $this->procID,
+                    'prItemID' => $prItemID,
+                    'item_no' => $item['item_no'],
+                    'description' => $item['description'],
+                ]);
             }
-
 
         }
 
@@ -263,7 +298,31 @@ class CreatePage extends Component
             ->show();
     }
 
+    public function getPaginatedItemsProperty()
+    {
+        $items = $this->form['items'] ?? [];
+        $offset = ($this->page - 1) * $this->perPage;
+        return array_slice($items, $offset, $this->perPage);
+    }
 
+    public function updatingPage()
+    {
+        // Reset if page goes out of range when items are reduced
+        $items = $this->form['items'] ?? [];
+        $totalPages = max(1, ceil(count($items) / $this->perPage));
+
+        if ($this->page > $totalPages) {
+            $this->page = $totalPages;
+        }
+    }
+
+    public function removeItem($index)
+    {
+        if (isset($this->form['items'][$index])) {
+            unset($this->form['items'][$index]);
+            $this->form['items'] = array_values($this->form['items']); // reindex
+        }
+    }
 
     public function render()
     {

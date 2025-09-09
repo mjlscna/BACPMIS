@@ -118,18 +118,17 @@
                                                         <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
                                                             <li>
                                                                 <button
-                                                                    x-on:click="$dispatch('open-procurement-view', { id: {{ $procurement->id }} })"
-                                                                    type="button"
-                                                                    class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
-                                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500" />
-                                                                    View
-                                                                </button>
-
-
+    x-on:click="$dispatch('open-procurement-view', { procID: '{{ $procurement->procID }}' })"
+    type="button"
+    class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
+    <x-heroicon-o-eye class="w-4 h-4 text-blue-500" />
+    View
+</button>
 
                                                             </li>
+                                                            
                                                             <li>
-                                                                <a href="{{ route('procurements.edit', $procurement->id) }}"
+                                                                <a href="{{ route('procurements.edit', $procurement->procID) }}"
                                                                     @click="open = false"
                                                                     class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-amber-600">
                                                                     <x-heroicon-o-pencil
@@ -140,7 +139,7 @@
 
                                                             <li>
                                                                 <button
-                                                                    wire:click="openUpdateModal({{ $procurement->id }})"
+                                                                    wire:click="openUpdateModal({{ $procurement->procID }})"
                                                                     @click="open = false"
                                                                     class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-emerald-600">
                                                                     <x-heroicon-o-arrow-path

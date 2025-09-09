@@ -15,6 +15,7 @@ class Procurement extends Model
     protected $fillable = [
         'procID',
         'pr_number',
+        'procurement_type',
         'procurement_program_project',
         'date_receipt',
         'dtrack_no',
@@ -39,6 +40,10 @@ class Procurement extends Model
         'abc_50k'
 
     ];
+        public function getRouteKeyName()
+    {
+        return 'procID';
+    }
     public static function generatePrNumber(bool $isAdvance = false): string
     {
         $year = $isAdvance ? now()->year + 1 : now()->year;
@@ -149,8 +154,8 @@ class Procurement extends Model
     }
 
     public function items()
-{
-    return $this->hasMany(PrItem::class, 'procID', 'procID');
-}
+    {
+        return $this->hasMany(PrItem::class, 'procID', 'procID');
+    }
 
 }
