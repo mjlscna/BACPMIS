@@ -25,7 +25,7 @@ class EditPage extends Component
     public $perPage = 5;
     public function mount(Procurement $procurement)
     {
-        $procurement->load('items');
+        $procurement->load('pr_items');
         $this->procurement = $procurement;
 
         $this->form = $procurement->toArray();
@@ -37,7 +37,7 @@ class EditPage extends Component
 
         // 🔁 Reverse items to match create visual order
         if ($this->form['procurement_type'] === 'perItem') {
-            $this->form['items'] = $procurement->items
+            $this->form['items'] = $procurement->pr_items
                 ->sortByDesc('id') // or use prItemID if needed
                 ->map(fn($item) => [
                     'item_no' => $item->item_no,
@@ -249,14 +249,14 @@ class EditPage extends Component
 
         // --- 8. Save items (perItem) ---
         if (($this->form['procurement_type'] ?? '') === 'perItem') {
-            $existingItems = $this->procurement->items()->pluck('id', 'prItemID')->toArray();
+            $existingItems = $this->procurement->pr_items()->pluck('id', 'prItemID')->toArray();
             $submittedPrItemIDs = [];
 
             foreach (array_reverse($this->form['items']) as $index => $item) {
                 $prItemID = $item['prItemID'] ?? "{$this->procID}-" . ($index + 1);
                 $submittedPrItemIDs[] = $prItemID;
 
-                $this->procurement->items()->updateOrCreate(
+                $this->procurement->pr_items()->updateOrCreate(
                     ['prItemID' => $prItemID],
                     [
                         'procID' => $this->procID,
@@ -269,11 +269,11 @@ class EditPage extends Component
             // Delete items that are no longer in the form
             $itemsToDelete = array_diff(array_keys($existingItems), $submittedPrItemIDs);
             if (!empty($itemsToDelete)) {
-                $this->procurement->items()->whereIn('prItemID', $itemsToDelete)->delete();
+                $this->procurement->pr_items()->whereIn('prItemID', $itemsToDelete)->delete();
             }
         } else {
             // If switching to perLot, remove all items
-            $this->procurement->items()->delete();
+            $this->procurement->pr_items()->delete();
         }
 
         // --- 9. Success alert ---

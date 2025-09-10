@@ -153,7 +153,7 @@ class Procurement extends Model
         return $this->hasOne(PostProcurement::class, 'procID');
     }
 
-    public function items()
+    public function pr_items()
     {
         return $this->hasMany(PrItem::class, 'procID', 'procID');
     }

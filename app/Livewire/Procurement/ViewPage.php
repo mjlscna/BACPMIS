@@ -17,9 +17,7 @@ use App\Models\{
 class ViewPage extends Component
 {
     public $showModal = false;
-    public $showTable = false; // your table toggle used in the view
-    public $form = [];
-
+    public $showTable = false;
     // Data your view uses:
     public $categories = [];
     public $divisions = [];
@@ -27,14 +25,37 @@ class ViewPage extends Component
     public $venueSpecifics = [];
     public $venueProvinces = [];
     public $endUsers = [];
-    public $fundSources = [];
+    public $fundSources = [];public $page = 1;
+public $perPage = 5;
+
 
     protected $listeners = ['open-procurement-view' => 'open'];
+    public $form = [
+    'procurement_type' => 'perLot', // 👈 default so it's always defined
+];
+
 
     public function open($procID)
     { 
-        $procurement = Procurement::where('procID', $procID)->firstOrFail();
+        $procurement = Procurement::with('pr_items')->where('procID', $procID)->firstOrFail();
         $this->form = $procurement->toArray();
+
+        // ✅ Normalize procurement_type
+        if (!in_array($this->form['procurement_type'] ?? null, ['perItem', 'perLot'])) {
+            $this->form['procurement_type'] = 'perLot';
+        }
+
+        // 🔁 Reverse items if perItem
+        if ($this->form['procurement_type'] === 'perItem') {
+            $this->form['items'] = $procurement->pr_items
+                ->sortByDesc('id') // or prItemID if needed
+                ->map(fn($item) => [
+                    'item_no' => $item->item_no,
+                    'description' => $item->description,
+                ])
+                ->values()
+                ->toArray();
+        }
 
         // Load lookup/reference data
         $this->categories = Category::with(['categoryType', 'bacType'])->get();
@@ -53,5 +74,3 @@ class ViewPage extends Component
         return view('livewire.procurement.view');
     }
 }
-
-

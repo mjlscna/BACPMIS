@@ -20,41 +20,25 @@
         <div class="mt-6 flex flex-col md:flex-row md:items-start md:space-x-6">
             <!-- Toggle -->
             <div class="flex items-center gap-x-3">
-                <label class="text-sm text-gray-500">Per Lot</label>
-
-                <label class="relative inline-block w-11 h-6 cursor-pointer">
-                    <input type="checkbox" class="peer sr-only"
-                        @change="$event.target.checked
-        ? @this.set('form.procurement_type', 'perItem')
-        : @this.set('form.procurement_type', 'perLot')"
-                        {{ ($form['procurement_type'] ?? '') === 'perItem' ? 'checked' : '' }}>
-                    <span
-                        class="absolute inset-0 bg-blue-600 rounded-full transition-colors duration-200 ease-in-out peer-checked:bg-emerald-600"></span>
-                    <span
-                        class="absolute top-1/2 start-0.5 -translate-y-1/2 size-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out peer-checked:translate-x-full"></span>
-                </label>
-
-                <label class="text-sm text-gray-500">Per Item</label>
+                <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form" :viewOnly="true"  />
             </div>
 
             <!-- Table shows only when "Per Item" is selected -->
-            @if (($form['procurement_type'] ?? '') === 'perItem')
-                <div class="flex-1">
+            @if ($form['procurement_type'] === 'perItem')
+                <div class="mt-4 md:mt-0 w-full md:max-w-3xl">
                     {{-- Header row --}}
                     <div class="flex justify-between items-center mb-4">
                         <div class="flex items-center gap-x-2">
                             {{-- Show/Hide table button --}}
                             <button type="button" wire:click="$toggle('showTable')"
-                                class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
+                                class="transition p-1 rounded-full hover:bg-gray-100">
                                 @if (!$showTable)
-                                    {{-- Expand icon --}}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
                                     </svg>
                                 @else
-                                    {{-- Collapse icon --}}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -62,57 +46,27 @@
                                     </svg>
                                 @endif
                             </button>
-                            <h3 class="font-semibold text-gray-700">Item List</h3>
+                            
                         </div>
                     </div>
 
-                    {{-- Table --}}
                     @if ($showTable)
-                        <div class="overflow-x-auto">
-                            {{-- Add Item button --}}
-                            <div class="flex justify-end mb-2">
-                                <button type="button" wire:click="addItem"
-                                    class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
-                                    <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M5 12h14" />
-                                        <path d="M12 5v14" />
-                                    </svg>Item
-                                </button>
-                            </div>
-                            <table class="min-w-[600px] divide-y divide-gray-200 rounded-xl w-full">
-                                <thead class="bg-gray-50 sticky top-0 z-40">
-                                    <tr>
-                                        <th
-                                            class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap w-28">
-                                            Item No</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Description
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach ($form['items'] as $index => $item)
-                                        <tr>
-                                            <td class="px-6 py-4 text-center text-sm text-gray-800">
-                                                <input type="text"
-                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:ring-emerald-500 focus:border-emerald-500 text-center"
-                                                    placeholder="#"
-                                                    wire:model.defer="form.items.{{ $index }}.item_no">
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-800">
-                                                <input type="text"
-                                                    class="border border-gray-300 rounded-lg px-2 py-1 w-full focus:ring-emerald-500 focus:border-emerald-500"
-                                                    placeholder="Item description"
-                                                    wire:model.defer="form.items.{{ $index }}.description">
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
+        
+<h3 class="font-semibold text-gray-700">Item List</h3>
+        {{-- Items table component --}}
+        @if (data_get($form, 'procurement_type') === 'perItem')
+    <x-forms.prItems-table 
+        :form="$form" 
+        model="form.items" 
+        :page="$page"
+        :per-page="$perPage"
+        :viewOnly="true" />
+@endif
+
+    </div>
+@endif
+
                 </div>
             @endif
         </div>

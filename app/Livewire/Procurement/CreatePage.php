@@ -281,7 +281,7 @@ class CreatePage extends Component
         if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
             foreach (array_reverse($this->form['items']) as $index => $item) {
                 $prItemID = "{$this->procID}-" . ($index + 1);
-                $procurement->items()->create([
+                $procurement->pr_items()->create([
                     'procID' => $this->procID,
                     'prItemID' => $prItemID,
                     'item_no' => $item['item_no'],

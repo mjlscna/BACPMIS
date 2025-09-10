@@ -27,13 +27,13 @@
             </div>
             <!-- Table shows only when "Per Item" is selected -->
             @if ($form['procurement_type'] === 'perItem')
-                <div class="mt-4 md:mt-0 w-[800px]">
+                <div class="mt-4 md:mt-0 w-full md:max-w-3xl">
                     {{-- Header row --}}
                     <div class="flex justify-between items-center mb-4">
                         <div class="flex items-center gap-x-2">
                             {{-- Show/Hide table button --}}
                             <button type="button" wire:click="$toggle('showTable')"
-                                class="transition p-1 rounded-full border border-gray-300 hover:bg-gray-100">
+                                class="transition p-1 rounded-full hover:bg-gray-100">
                                 @if (!$showTable)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,12 +48,13 @@
                                     </svg>
                                 @endif
                             </button>
-                            <h3 class="font-semibold text-gray-700">Item List</h3>
+                            
                         </div>
                     </div>
 
                     @if ($showTable)
                         <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
+                            <h3 class="font-semibold text-gray-700">Item List</h3>
                             {{-- Add Item button --}}
                             <div class="flex justify-end mb-2">
                                 <button type="button" wire:click="addItem"
