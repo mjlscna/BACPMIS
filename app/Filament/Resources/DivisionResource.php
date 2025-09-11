@@ -44,6 +44,10 @@ class DivisionResource extends Resource
                                 ->afterStateUpdated(fn(string $operation, $state, Set $set) => $operation
                                     === 'create' ? $set('slug', Str::slug($state)) : null),
 
+                            TextInput::make('abbreviation')
+                                ->label('Abbreviation')
+                                ->maxLength(50),
+
                             TextInput::make('slug')
                                 ->maxLength(255)
                                 ->disabled()
@@ -65,6 +69,9 @@ class DivisionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('divisions')
                     ->label('Division')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('abbreviation')
+                    ->label('Abbreviation')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),

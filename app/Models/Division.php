@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Division extends Model
 {
     use HasFactory;
-    protected $fillable = ['divisions', 'slug', 'is_active'];
+    protected $fillable = ['divisions', 'abbreviation', 'slug', 'is_active'];
 
     public function procurements()
     {

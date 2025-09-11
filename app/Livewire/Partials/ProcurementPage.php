@@ -1,5 +1,5 @@
 <?php
-namespace App\Livewire;
+namespace App\Livewire\Partials;
 
 use App\Models\BidModeOfProcurement;
 use App\Models\BidSchedule;

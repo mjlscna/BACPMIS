@@ -1,15 +1,17 @@
 <?php
-use App\Livewire\AdminPanel\UserListPage;
-use App\Livewire\ModeOfProcurementPage;
-use App\Livewire\PostPage;
-use App\Livewire\Procurement\CreatePage;
-use App\Livewire\Procurement\EditPage;
-use App\Livewire\Procurement\IndexPage;
+
+use App\Livewire\ModeOfProcurement\ModeOfProcurementCreatePage;
+use App\Livewire\ModeOfProcurement\ModeOfProcurementEditPage;
+use App\Livewire\ModeOfProcurement\ModeOfProcurementIndexPage;
+use App\Livewire\Procurements\ProcurementCreatePage;
+use App\Livewire\Procurements\ProcurementEditPage;
+use App\Livewire\Procurements\ProcurementIndexPage;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\LoginPage;
 use App\Livewire\HomePage;
-use App\Livewire\ProcurementPage;
+
+
 
 // ✅ Public login route (unauthenticated)
 Route::get('/login', LoginPage::class)
@@ -21,13 +23,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/', HomePage::class)->name('dashboard.page');
 
     Route::prefix('procurements')->name('procurements.')->group(function () {
-        Route::get('/', IndexPage::class)->name('index');
-        Route::get('/create', CreatePage::class)->name('create');
-        Route::get('/{procurement}/edit', EditPage::class)->name('edit');
+        Route::get('/', ProcurementIndexPage::class)->name('index');
+        Route::get('/create', ProcurementCreatePage::class)->name('create');
+        Route::get('/{procurement}/edit', ProcurementEditPage::class)->name('edit');
     });
 
-    Route::get('/modeofprocurements', ModeOfProcurementPage::class)->name('modeofprocurements.index');
-    Route::get('/posts', PostPage::class)->name('posts.index');
+    Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
+        Route::get('/', ModeOfProcurementIndexPage::class)->name('index');
+        Route::get('/create', ModeOfProcurementCreatePage::class)->name('create');
+        Route::get('/{id}/edit', ModeOfProcurementEditPage::class)->name('edit');
+    });
 
     Route::post('/logout', function () {
         Auth::logout();

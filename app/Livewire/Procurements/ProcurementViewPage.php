@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Procurement;
+namespace App\Livewire\Procurements;
 
 use Livewire\Component;
 use App\Models\{
@@ -14,7 +14,8 @@ use App\Models\{
     FundSource
 };
 
-class ViewPage extends Component
+
+class ProcurementViewPage  extends Component
 {
     public $showModal = false;
     public $showTable = false;
@@ -30,13 +31,14 @@ public $perPage = 5;
 
 
     protected $listeners = ['open-procurement-view' => 'open'];
+    
     public $form = [
     'procurement_type' => 'perLot', // 👈 default so it's always defined
 ];
 
 
     public function open($procID)
-    { 
+    {
         $procurement = Procurement::with('pr_items')->where('procID', $procID)->firstOrFail();
         $this->form = $procurement->toArray();
 
@@ -71,6 +73,6 @@ public $perPage = 5;
 
     public function render()
     {
-        return view('livewire.procurement.view');
+        return view('livewire.procurements.procurement-view-page');
     }
 }

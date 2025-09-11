@@ -23,9 +23,8 @@
         <div class="mt-6 flex flex-col md:flex-row md:items-start md:space-x-6">
             <!-- Toggle -->
             <div class="flex items-center gap-x-3">
-                <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form" :clickable="false" />
+                <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form" />
             </div>
-
             <!-- Table shows only when "Per Item" is selected -->
             @if ($form['procurement_type'] === 'perItem')
                 <div class="mt-4 md:mt-0 w-full md:max-w-3xl">
@@ -49,12 +48,12 @@
                                     </svg>
                                 @endif
                             </button>
+                            
                         </div>
                     </div>
 
                     @if ($showTable)
                         <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
-                            
                             <h3 class="font-semibold text-gray-700">Item List</h3>
                             {{-- Add Item button --}}
                             <div class="flex justify-end mb-2">
@@ -74,6 +73,7 @@
                                 <x-forms.prItems-table :form="$form" model="form.items" :page="$page"
                                     :per-page="$perPage" />
                             @endif
+
                         </div>
                     @endif
                 </div>

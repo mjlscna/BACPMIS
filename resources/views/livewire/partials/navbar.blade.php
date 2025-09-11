@@ -65,38 +65,16 @@
     <!-- ========== END HEADER ========== -->
     <!-- ========== MAIN CONTENT ========== -->
     @php
-    $routeName = Route::currentRouteName();
-
-    $segments = [
-    ['label' => 'BACPMIS', 'url' => route('dashboard.page')],
-    ];
-
-    $breadcrumbMap = [
-    'dashboard.page' => [
-    ['label' => 'Dashboard', 'url' => route('dashboard.page')],
-    ],
-    'procurements.index' => [
-    ['label' => 'Procurement', 'url' => route('procurements.index')],
-    ],
-    'procurements.create' => [
-    ['label' => 'Procurement', 'url' => route('procurements.index')],
-    ['label' => 'Create', 'url' => route('procurements.create')],
-    ],
-    'procurements.edit' => [
-    ['label' => 'Procurement', 'url' => route('procurements.index')],
-    ['label' => 'Edit', 'url' => '#'], // You can replace '#' with a dynamic edit URL if needed
-    ],
-    'modeofprocurements.index' => [
-    ['label' => 'Mode of Procurement', 'url' => route('modeofprocurements.index')],
-    ],
-    'posts.index' => [
-    ['label' => 'Posts Procurement', 'url' => route('posts.index')],
-    ],
-    ];
-
-    $segments = array_merge($segments, $breadcrumbMap[$routeName] ?? [['label' => 'Unknown', 'url' => '#']]);
-    @endphp
-
+    $segments = generate_breadcrumbs([
+        'dashboard' => 'Dashboard',
+        'procurements' => 'Procurements',
+        'mode-of-procurement' => 'Mode of Procurement',
+        'posts' => 'Posts Procurement',
+        'create' => 'Create',
+        'edit' => 'Edit',
+        'view' => 'View',
+    ]);
+@endphp
 
     <div class="h-8">
         <div
@@ -122,7 +100,5 @@
             </div>
         </div>
     </div>
-
-
 
 </div>

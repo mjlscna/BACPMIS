@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Procurement;
+namespace App\Livewire\Procurements;
 
 use App\Models\Category;
 use App\Models\ClusterCommittee;
@@ -8,14 +8,13 @@ use App\Models\Division;
 use App\Models\EndUser;
 use App\Models\FundSource;
 use App\Models\ProvinceHuc;
-use App\Models\Supplier;
 use App\Models\VenueSpecific;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Procurement;
 
-class CreatePage extends Component
+class ProcurementCreatePage extends Component
 {
     public string $procID = '';
     public $showEarlyPrompt = false;
@@ -326,7 +325,7 @@ class CreatePage extends Component
 
     public function render()
     {
-        return view('livewire.procurement.create', [
+        return view('livewire.procurements.procurement-create-page', [
             'divisions' => Division::all(),
             'categories' => Category::with(['categoryType', 'bacType'])->get(),
             'clusterCommittees' => ClusterCommittee::all(),

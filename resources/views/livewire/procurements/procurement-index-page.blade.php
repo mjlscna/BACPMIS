@@ -118,15 +118,15 @@
                                                         <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
                                                             <li>
                                                                 <button
-    x-on:click="$dispatch('open-procurement-view', { procID: '{{ $procurement->procID }}' })"
-    type="button"
-    class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
-    <x-heroicon-o-eye class="w-4 h-4 text-blue-500" />
-    View
-</button>
+                                                                    x-on:click="$dispatch('open-procurement-view', { procID: '{{ $procurement->procID }}' })"
+                                                                    type="button"
+                                                                    class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-blue-500">
+                                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500" />
+                                                                    View
+                                                                </button>
 
                                                             </li>
-                                                            
+
                                                             <li>
                                                                 <a href="{{ route('procurements.edit', $procurement->procID) }}"
                                                                     @click="open = false"
@@ -135,17 +135,6 @@
                                                                         class="w-4 h-4 text-amber-600" />
                                                                     Edit
                                                                 </a>
-                                                            </li>
-
-                                                            <li>
-                                                                <button
-                                                                    wire:click="openUpdateModal({{ $procurement->procID }})"
-                                                                    @click="open = false"
-                                                                    class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-emerald-600">
-                                                                    <x-heroicon-o-arrow-path
-                                                                        class="w-4 h-4 text-emerald-600" />
-                                                                    Update
-                                                                </button>
                                                             </li>
                                                         </ul>
                                                     </div>
@@ -170,7 +159,7 @@
                                         </td>
                                         <td
                                             class="px-6 py-1 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
-                                            {{ $procurement->division->divisions }}</td>
+                                            {{ $procurement->division->abbreviation }}</td>
                                         <td
                                             class="px-6 py-1 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
                                             {{ $procurement->clusterCommittee->clustercommittee }}</td>
@@ -205,8 +194,7 @@
                 </div>
 
                 @if ($showEarlyPrompt)
-                    <div
-                        class="fixed inset-0 flex items-center justify-center bg-emerald-600/20 z-50 backdrop-blur-sm">
+                    <div class="fixed inset-0 flex items-center justify-center bg-emerald-600/20 z-50 backdrop-blur-sm">
                         <div class="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
                             <h2 class="text-lg font-bold mb-4">Is this an Early Procurement?</h2>
 
@@ -226,8 +214,7 @@
 
                 {{-- ViewModal --}}
 
-                <livewire:procurement.view-page />
-
+                <livewire:procurements.procurement-view-page />
             </div>
         </div>
     </div>

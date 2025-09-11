@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Procurement;
+namespace App\Livewire\Procurements;
 
 use App\Models\Category;
 use App\Models\ClusterCommittee;
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\Procurement;
 
-class EditPage extends Component
+class ProcurementEditPage extends Component
 {
     public Procurement $procurement;
     public $form = [];
@@ -287,7 +287,7 @@ class EditPage extends Component
 
     public function render()
     {
-        return view('livewire.procurement.edit', [
+        return view('livewire.procurements.procurement-edit-page', [
             'divisions' => Division::all(),
             'categories' => Category::with(['categoryType', 'bacType'])->get(),
             'clusterCommittees' => ClusterCommittee::all(),
