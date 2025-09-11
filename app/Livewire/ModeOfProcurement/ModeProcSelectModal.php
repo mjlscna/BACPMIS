@@ -16,9 +16,12 @@ class ModeProcSelectModal extends Component
     public $search = '';
     public $perPage = 5;
     public $selectedProcurement = null;
-
+    public $expandedProcurementId = null;
     protected $queryString = ['search'];
     protected $listeners = ['open-mode-modal' => 'open'];
+    public $form = [
+        'items' => [],
+    ];
 
     public function updatingSearch()
     {
@@ -50,6 +53,17 @@ class ModeProcSelectModal extends Component
             ]);
             $this->close();
             return redirect()->route('mode-of-procurement.create');
+        }
+    }
+    public function toggle($field, $id)
+    {
+        $this->$field = $this->$field === $id ? null : $id;
+
+        if ($this->$field) {
+            $procurement = Procurement::with('pr_items')->find($id);
+            $this->form['items'] = $procurement?->pr_items?->toArray() ?? [];
+        } else {
+            $this->form['items'] = [];
         }
     }
 

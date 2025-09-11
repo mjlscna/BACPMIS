@@ -8,6 +8,7 @@ use App\Models\Procurement;
 class ModeOfProcurementCreatePage extends Component
 {
     public $procurement = null;
+    public $expandedProcurementId = null;
     public $form = [];
 
     protected $listeners = ['procurement-selected' => 'onProcurementSelected'];

@@ -25,36 +25,85 @@
             <table class="table-fixed w-full divide-y divide-gray-200 dark:divide-neutral-700">
                 <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
                     <tr>
+                        <!-- New column for expand/collapse -->
+                        <th class="w-10 px-2 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        </th>
                         <th
-                            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[120px]">
-                            PR Number</th>
+                            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[180px]">
+                            PR Number
+                        </th>
                         <th
                             class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[100px]">
-                            Type</th>
+                            Type
+                        </th>
                         <th
                             class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 whitespace-nowrap">
-                            Program/Project</th>
+                            Program/Project
+                        </th>
                         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
-                            Date
-                            Receipt</th>
+                            Date Receipt
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                     @forelse($procurements as $proc)
+                        <!-- Main Row -->
                         <tr wire:click="$set('selectedProcurement', {{ $proc->id }})"
-                            class="hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer {{ isset($selectedProcurement) && $selectedProcurement === $proc->id ? 'bg-blue-50 dark:bg-blue-900' : '' }}">
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ $proc->pr_number }}</td>
+                            class="hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer
+                        {{ isset($selectedProcurement) && $selectedProcurement === $proc->id ? 'bg-blue-50 dark:bg-blue-900' : '' }}">
+
+                            <!-- Expand/Collapse Button Column -->
+                            <td class="px-2 py-2 text-center">
+                                @if ($proc->procurement_type === 'perItem')
+                                    <button type="button"
+                                        wire:click.stop="toggle('expandedProcurementId', {{ $proc->id }})"
+                                        class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700">
+                                        @if ($expandedProcurementId === $proc->id)
+                                            <!-- Collapse Icon -->
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        @else
+                                            <!-- Expand Icon -->
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        @endif
+                                    </button>
+                                @endif
+                            </td>
+
+                            <!-- Other Columns -->
+                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $proc->pr_number }}
+                            </td>
                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                                 {{ $proc->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}
                             </td>
                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $proc->procurement_program_project }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ $proc->date_receipt }}
+                                {{ $proc->procurement_program_project }}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $proc->date_receipt }}
                             </td>
                         </tr>
+
+                        <!-- Collapsible Row (only for perItem) -->
+                        @if ($proc->procurement_type === 'perItem' && $expandedProcurementId === $proc->id)
+                            <tr>
+                                <td colspan="4" class="pl-15 bg-white dark:bg-neutral-800">
+                                    <x-forms.prItems-view :items="$proc->pr_items" />
+                                </td>
+
+                            </tr>
+                        @endif
                     @empty
                         <tr>
-                            <td colspan="4" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                 No procurements found.
                             </td>
                         </tr>
@@ -62,6 +111,7 @@
                 </tbody>
             </table>
         </div>
+
 
         <!-- Pagination (fixed footer) -->
         <div class="p-2 border-t border-gray-200">
