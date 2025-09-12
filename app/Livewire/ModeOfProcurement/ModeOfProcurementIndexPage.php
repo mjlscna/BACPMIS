@@ -3,7 +3,8 @@
 namespace App\Livewire\ModeOfProcurement;
 
 use Livewire\Component;
-use App\Models\BidModeOfProcurement;
+use App\Models\MopItem;
+use App\Models\MopLot;
 use App\Models\Procurement;
 use Livewire\WithPagination;
 
@@ -21,12 +22,25 @@ class ModeOfProcurementIndexPage extends Component
 
     public function render()
     {
-        // Fetch modes with related procurement and modeOfProcurement
-        $modes = BidModeOfProcurement::with(['procurement', 'modeOfProcurement'])
+        // Fetch MopItems
+        $mopItems = MopItem::with(['procurement', 'modeOfProcurement'])
             ->whereHas('procurement', function ($q) {
                 $q->where('pr_number', 'like', '%' . $this->search . '%')
                     ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
-            })
+            });
+
+        // Fetch MopLots
+        $mopLots = MopLot::with(['procurement', 'modeOfProcurement'])
+            ->whereHas('procurement', function ($q) {
+                $q->where('pr_number', 'like', '%' . $this->search . '%')
+                    ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
+            });
+
+        // Combine both queries using union
+        $combined = $mopItems->select('id', 'procID', 'mode_of_procurement_id', 'mode_order', \DB::raw("'item' as type"))
+            ->unionAll(
+                $mopLots->select('id', 'procID', 'mode_of_procurement_id', 'mode_order', \DB::raw("'lot' as type"))
+            )
             ->orderBy('mode_order')
             ->paginate($this->perPage);
 
@@ -39,10 +53,8 @@ class ModeOfProcurementIndexPage extends Component
             ->get();
 
         return view('livewire.mode-of-procurement.mode-of-procurement-index-page', [
-            'modes' => $modes,
+            'modes' => $combined,
             'procurements' => $procurements,
         ]);
     }
-
-
 }

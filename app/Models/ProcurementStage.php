@@ -15,5 +15,9 @@ class ProcurementStage extends Model
     {
         return $this->hasMany(Procurement::class);
     }
+    public function prLotPrstages()
+    {
+        return $this->hasMany(PrLotPrstage::class, 'pr_stage_id', 'id');
+    }
 
 }

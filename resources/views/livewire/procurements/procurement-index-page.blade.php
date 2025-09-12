@@ -142,7 +142,6 @@
                                             </div>
                                         </td>
 
-
                                         <td
                                             class="px-6 py-1 whitespace-nowrap text-center text-sm font-medium sticky left-[56px] z-20 bg-white text-gray-800 dark:text-neutral-200">
                                             {{ $procurement->pr_number }}</td>

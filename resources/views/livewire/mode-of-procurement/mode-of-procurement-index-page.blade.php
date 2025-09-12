@@ -142,7 +142,6 @@
                 </div>
                 <!-- Procurement Modal -->
                 <livewire:mode-of-procurement.mode-proc-select-modal />
-
             </div>
         </div>
     </div>

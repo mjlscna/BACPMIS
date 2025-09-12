@@ -40,7 +40,7 @@ class Procurement extends Model
         'abc_50k'
 
     ];
-        public function getRouteKeyName()
+    public function getRouteKeyName()
     {
         return 'procID';
     }
@@ -157,5 +157,25 @@ class Procurement extends Model
     {
         return $this->hasMany(PrItem::class, 'procID', 'procID');
     }
+    public function mopLots()
+    {
+        return $this->hasMany(MopLot::class, 'procID', 'procID');
+    }
+
+    public function mopItems()
+    {
+        return $this->hasMany(MopItem::class, 'procID', 'procID');
+    }
+
+    public function prLotPrstages()
+    {
+        return $this->hasMany(PrLotPrstage::class, 'procID', 'procID');
+    }
+
+    public function prItemPrstages()
+    {
+        return $this->hasMany(PrItemPrstage::class, 'procID', 'procID');
+    }
+
 
 }
