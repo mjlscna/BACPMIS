@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Resources\ProcurementResource\Pages\BulkEditProcurements;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -56,7 +57,10 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->sidebarFullyCollapsibleOnDesktop();
+            ->sidebarFullyCollapsibleOnDesktop()
+            ->plugins([
+                FilamentShieldPlugin::make(),
+            ]);
         ;
     }
 
@@ -139,6 +143,8 @@ class AdminPanelProvider extends PanelProvider
     {
         return [
             \App\Filament\Resources\UserResource::class,
+            \App\Filament\Resources\RoleResource::class,
+            \App\Filament\Resources\PermissionResource::class,
         ];
     }
 
