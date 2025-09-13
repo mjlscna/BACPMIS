@@ -20,19 +20,34 @@ Route::get('/login', LoginPage::class)
 
 // ✅ Protected routes (only for authenticated users)
 Route::middleware('auth')->group(function () {
-    Route::get('/', HomePage::class)->name('dashboard.page');
+    Route::get('/', HomePage::class)->name('dashboard');
 
-    Route::prefix('procurements')->name('procurements.')->group(function () {
-        Route::get('/', ProcurementIndexPage::class)->name('index');
-        Route::get('/create', ProcurementCreatePage::class)->name('create');
-        Route::get('/{procurement}/edit', ProcurementEditPage::class)->name('edit');
+    Route::middleware(['auth', 'can:view_any_procurement'])->group(function () {
+        Route::prefix('procurements')->name('procurements.')->group(function () {
+            Route::get('/', ProcurementIndexPage::class)->name('index');
+            Route::get('/create', ProcurementCreatePage::class)
+                ->name('create')
+                ->middleware('can:create_procurement');
+            Route::get('/{procurement}/edit', ProcurementEditPage::class)
+                ->name('edit')
+                ->middleware('can:update_procurement');
+        });
     });
 
-    Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
-        Route::get('/', ModeOfProcurementIndexPage::class)->name('index');
-        Route::get('/create', ModeOfProcurementCreatePage::class)->name('create');
-        Route::get('/{id}/edit', ModeOfProcurementEditPage::class)->name('edit');
+
+    Route::middleware(['auth', 'can:view_any_mode_of_procurement'])->group(function () {
+        Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
+            Route::get('/', ModeOfProcurementIndexPage::class)->name('index');
+            Route::get('/create', ModeOfProcurementCreatePage::class)
+                ->name('create')
+                ->middleware('can:create_mode_of_procurement');
+            Route::get('/{id}/edit', ModeOfProcurementEditPage::class)
+                ->name('edit')
+                ->middleware('can:edit_mode_of_procurement');
+        });
     });
+
+
 
     Route::post('/logout', function () {
         Auth::logout();
@@ -42,9 +57,9 @@ Route::middleware('auth')->group(function () {
     })->name('logout');
 });
 
-Route::get('/test-auth', function () {
-    return auth()->check() ? '✅ Logged in as ' . auth()->user()->email : '❌ Not logged in';
-});
+// Route::get('/test-auth', function () {
+//     return auth()->check() ? '✅ Logged in as ' . auth()->user()->email : '❌ Not logged in';
+// });
 
 
 

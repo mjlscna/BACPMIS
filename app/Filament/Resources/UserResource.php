@@ -6,7 +6,9 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\CreateRecord;
@@ -17,6 +19,7 @@ use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -52,8 +55,15 @@ class UserResource extends Resource
                     ->dehydrated(fn($state) => filled($state))
                     ->required(fn(Page $livewire): bool => $livewire instanceof CreateRecord),
 
+                Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
+                    ->label('Roles'),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -61,15 +71,23 @@ class UserResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
+
                 TextColumn::make('email')
                     ->searchable(),
-                TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
+                BadgeColumn::make('roles.name')
+                    ->label('Roles')
+                    ->colors([
+                        'primary',
+                        'success',
+                        'warning',
+                        'danger',
+                    ])
+                    ->separator(', '),
+
+
+                // ✅ Roles column
+                // show multiple roles separated by comma
             ])
             ->filters([
                 //
@@ -87,6 +105,7 @@ class UserResource extends Resource
                 ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {

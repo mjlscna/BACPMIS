@@ -14,6 +14,10 @@ class PermissionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?string $navigationGroup = '⚙️ System Management';
+    public static function canViewAny(): bool
+    {
+        return auth()->check() && auth()->user()->hasAnyRole(['super_admin']);
+    }
 
     public static function form(Forms\Form $form): Forms\Form
     {

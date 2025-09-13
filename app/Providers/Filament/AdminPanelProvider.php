@@ -58,9 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->sidebarFullyCollapsibleOnDesktop()
-            ->plugins([
-                FilamentShieldPlugin::make(),
-            ]);
+            ->plugin(FilamentShieldPlugin::make());
         ;
     }
 
@@ -88,6 +86,9 @@ class AdminPanelProvider extends PanelProvider
     /**
      * ✅ Get the navigation groups.
      */
+    /**
+     * ✅ Get the navigation groups.
+     */
     protected function getNavigationGroups(): array
     {
         return [
@@ -96,6 +97,7 @@ class AdminPanelProvider extends PanelProvider
                 ->collapsed()
                 ->items(
                     collect($this->getSystemManagementResources())
+                        ->filter(fn($resource) => $resource::canViewAny()) // ✅ only show if user has view_any
                         ->map(fn($resource) => $resource::getNavigationItems())
                         ->flatten(1)
                         ->all()
@@ -106,12 +108,14 @@ class AdminPanelProvider extends PanelProvider
                 ->collapsed()
                 ->items(
                     collect($this->getSettingsResources())
+                        ->filter(fn($resource) => $resource::canViewAny()) // ✅ same here
                         ->map(fn($resource) => $resource::getNavigationItems())
                         ->flatten(1)
                         ->all()
                 ),
         ];
     }
+
 
     /**
      * ✅ Define System Management resources.

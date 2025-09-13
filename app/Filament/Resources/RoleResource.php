@@ -16,5 +16,10 @@ class RoleResource extends ShieldRoleResource
     protected static ?string $navigationIcon = 'heroicon-o-lock-closed';
     protected static ?string $navigationLabel = 'Roles';
     protected static ?string $navigationGroup = '⚙️ Settings';
+    public static function canViewAny(): bool
+    {
+        return auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'BAC ADMIN']);
+    }
+
 
 }
