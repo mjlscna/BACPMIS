@@ -30,7 +30,7 @@ class LoginPage extends Component
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
             session()->regenerate();
             \Log::info('Login successful');
-            return redirect()->route('dashboard.page');
+            return redirect()->route('dashboard');
         } else {
             \Log::info('Login failed - setting error message');
             session(['errorMessage' => 'Invalid Credentials']);

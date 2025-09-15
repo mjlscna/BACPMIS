@@ -20,6 +20,7 @@ Route::get('/login', LoginPage::class)
 
 // ✅ Protected routes (only for authenticated users)
 Route::middleware('auth')->group(function () {
+
     Route::get('/', HomePage::class)->name('dashboard');
 
     Route::middleware(['auth', 'can:view_any_procurement'])->group(function () {
@@ -34,7 +35,6 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-
     Route::middleware(['auth', 'can:view_any_mode_of_procurement'])->group(function () {
         Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
             Route::get('/', ModeOfProcurementIndexPage::class)->name('index');
@@ -47,14 +47,13 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-
-
     Route::post('/logout', function () {
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
         return redirect('/login');
     })->name('logout');
+
 });
 
 // Route::get('/test-auth', function () {
