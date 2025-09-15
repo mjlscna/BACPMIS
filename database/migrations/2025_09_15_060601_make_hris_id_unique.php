@@ -10,9 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('dashboards', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->unsignedBigInteger('hris_id')->nullable()->unique()->change();
         });
     }
 
@@ -21,6 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('dashboards');
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
     }
 };

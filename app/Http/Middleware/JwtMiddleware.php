@@ -15,10 +15,8 @@ class JwtMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = session('jwt_token');
-
-        if (!$token) {
-            return redirect()->route('userLogin');
+        if (!auth()->check()) {
+            return redirect()->route('login');
         }
 
         return $next($request);

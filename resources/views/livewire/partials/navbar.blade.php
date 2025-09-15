@@ -38,7 +38,7 @@
                         <div class="py-3 px-5 bg-gray-100 rounded-t-lg dark:bg-neutral-700">
                             <p class="text-sm text-gray-500 dark:text-neutral-500">Signed in as</p>
                             <p class="text-sm font-medium text-gray-800 dark:text-neutral-200">
-                                {{ auth()->user()->email }}
+                                {{ session('user')['firstName'] . ' ' . session('user')['lastName'] }}</p>
                             </p>
                         </div>
 
@@ -65,16 +65,16 @@
     <!-- ========== END HEADER ========== -->
     <!-- ========== MAIN CONTENT ========== -->
     @php
-    $segments = generate_breadcrumbs([
-        'dashboard' => 'Dashboard',
-        'procurements' => 'Procurements',
-        'mode-of-procurement' => 'Mode of Procurement',
-        'posts' => 'Posts Procurement',
-        'create' => 'Create',
-        'edit' => 'Edit',
-        'view' => 'View',
-    ]);
-@endphp
+        $segments = generate_breadcrumbs([
+            'dashboard' => 'Dashboard',
+            'procurements' => 'Procurements',
+            'mode-of-procurement' => 'Mode of Procurement',
+            'posts' => 'Posts Procurement',
+            'create' => 'Create',
+            'edit' => 'Edit',
+            'view' => 'View',
+        ]);
+    @endphp
 
     <div class="h-8">
         <div
@@ -82,19 +82,20 @@
             <div class="flex items-center py-1">
                 <ol class="ms-3 flex items-center whitespace-nowrap">
                     @foreach ($segments as $index => $segment)
-                    <li
-                        class="flex items-center text-xs {{ $index === count($segments) - 1 ? 'font-semibold text-gray-800 dark:text-neutral-400' : 'text-gray-800 dark:text-neutral-400' }}">
-                        <a href="{{ $segment['url'] }}" class="hover:underline">
-                            {{ $segment['label'] }}
-                        </a>
-                        @if ($index < count($segments) - 1) <svg
-                            class="shrink-0 mx-3 overflow-visible size-2.5 text-gray-400 dark:text-neutral-500"
-                            width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 1L10.6869 7.16086C10.8637 7.35239 10.8637 7.64761 10.6869 7.83914L5 14"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                            </svg>
+                        <li
+                            class="flex items-center text-xs {{ $index === count($segments) - 1 ? 'font-semibold text-gray-800 dark:text-neutral-400' : 'text-gray-800 dark:text-neutral-400' }}">
+                            <a href="{{ $segment['url'] }}" class="hover:underline">
+                                {{ $segment['label'] }}
+                            </a>
+                            @if ($index < count($segments) - 1)
+                                <svg class="shrink-0 mx-3 overflow-visible size-2.5 text-gray-400 dark:text-neutral-500"
+                                    width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5 1L10.6869 7.16086C10.8637 7.35239 10.8637 7.64761 10.6869 7.83914L5 14"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                </svg>
                             @endif
-                    </li>
+                        </li>
                     @endforeach
                 </ol>
             </div>

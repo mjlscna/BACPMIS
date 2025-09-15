@@ -3,9 +3,9 @@
         <div class="grid items-center md:grid-cols-2 gap-8 lg:gap-12">
             <div>
                 <div>
-                    <svg class="w-80 h-auto" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink" width="150" zoomAndPan="magnify"
-                        viewBox="0 0 112.5 30.000001" height="40" preserveAspectRatio="xMidYMid meet" version="1.0">
+                    <svg class="w-80 h-auto" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                        width="150" zoomAndPan="magnify" viewBox="0 0 112.5 30.000001" height="40"
+                        preserveAspectRatio="xMidYMid meet" version="1.0">
                         <defs>
                             <filter x="0%" y="0%" width="100%" height="100%" id="5aa955c111">
                                 <feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"
@@ -107,15 +107,15 @@
                                 <!-- Session Status -->
                                 <div>
 
-                                    @if(session('errorMessage'))
-                                    <p class="mb-4 text-red-400 text-center">{{ session('errorMessage') }}</p>
+                                    @if (session('errorMessage'))
+                                        <p class="mb-4 text-red-400 text-center">{{ session('errorMessage') }}</p>
                                     @endif
 
                                 </div>
                                 <div class="grid gap-y-4">
                                     <!-- Form Group -->
                                     <div>
-                                        <label for="email" class="block text-sm mb-2 dark:text-white">Username</label>
+                                        <label for="email" class="block text-sm mb-2 dark:text-white">Email</label>
                                         <div class="relative">
                                             <input type="email" id="email" wire:model="email"
                                                 class="py-3 px-4 block w-full bg-gray-100 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
@@ -165,8 +165,8 @@
                                                     </template>
                                                     <template x-if="show">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                            class="size-6">
+                                                            viewBox="0 0 24 24" stroke-width="1.5"
+                                                            stroke="currentColor" class="size-6">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                                             <path stroke-linecap="round" stroke-linejoin="round"

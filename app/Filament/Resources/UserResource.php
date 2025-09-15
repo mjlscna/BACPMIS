@@ -36,31 +36,76 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->required(),
+                Forms\Components\Grid::make(7) // 🔹 3-column grid
+                    ->schema([
+                        // 🔹 HRIS ID (auto-filled, disabled)
+                        TextInput::make('hris_id')
+                            ->label('HRIS ID')
+                            ->disabled()
+                            ->dehydrated() // ✅ still saves to DB even if disabled
+                            ->required()   // ✅ required in Filament form
+                            ->unique(ignoreRecord: true) // ✅ enforces uniqueness in Filament form
+                            ->columnSpan(1),
 
-                TextInput::make('email')
-                    ->label('Email Address')
-                    ->email()
-                    ->maxLength(255)
-                    ->unique(ignoreRecord: true)
-                    ->required(),
+                        // 🔹 Employee Select from API
+                        Select::make('name')
+                            ->label('Employee Name')
+                            ->options(function () {
+                                try {
+                                    $response = \Illuminate\Support\Facades\Http::get('http://192.168.100.162:8081/public/get-employees');
 
-                DateTimePicker::make('email_verified_at')
-                    ->label('Email Verified At')
-                    ->default(now()),
+                                    if ($response->successful()) {
+                                        $employeesList = $response->json()['employeesList'] ?? [];
 
-                TextInput::make('password')
-                    ->password()
-                    ->dehydrated(fn($state) => filled($state))
-                    ->required(fn(Page $livewire): bool => $livewire instanceof CreateRecord),
+                                        $employees = collect($employeesList)->map(function ($employee) {
+                                            return [
+                                                'id' => $employee['id'],
+                                                'fullName' => $employee['firstName'] . ' ' . $employee['lastName'],
+                                            ];
+                                        });
 
-                Select::make('roles')
-                    ->relationship('roles', 'name')
-                    ->multiple()
-                    ->preload()
-                    ->searchable()
-                    ->label('Roles'),
+                                        return $employees->pluck('fullName', 'id');
+                                    }
+
+                                    return [];
+                                } catch (\Throwable $e) {
+                                    report($e);
+                                    return [];
+                                }
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                try {
+                                    $response = \Illuminate\Support\Facades\Http::get('http://192.168.100.162:8081/public/get-employees');
+                                    if ($response->successful()) {
+                                        $employeesList = $response->json()['employeesList'] ?? [];
+                                        $employee = collect($employeesList)->firstWhere('id', $state);
+
+                                        if ($employee) {
+                                            $set('hris_id', $employee['id']);
+                                            $set('name', $employee['firstName'] . ' ' . $employee['lastName']);
+                                        }
+                                    }
+                                } catch (\Throwable $e) {
+                                    report($e);
+                                }
+                            })
+                            ->columnSpan(3),
+
+                        // 🔹 Roles (full width below)
+                        Select::make('roles')
+                            ->relationship('roles', 'name')
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->label('Roles')
+                            ->columnSpan(2),
+                    ]),
+
+
             ]);
     }
 
@@ -69,10 +114,11 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
 
-                TextColumn::make('email')
+                TextColumn::make('hris_id')
+                    ->label('HRIS ID'),
+
+                TextColumn::make('name')
                     ->searchable(),
 
                 BadgeColumn::make('roles.name')

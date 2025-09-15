@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use App\Services\ApiService;
 use Illuminate\Support\Facades\Auth;
 
 class LoginPage extends Component
@@ -18,29 +19,49 @@ class LoginPage extends Component
         'email' => 'required|email',
         'password' => 'required|min:6',
     ];
-    public function authenticate()
+
+    public function authenticate(ApiService $apiService)
     {
-        // Clear previous error
-        session()->forget('errorMessage');
-
-        \Log::info('Authenticate method called');
-
         $this->validate();
 
-        if (Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
-            session()->regenerate();
-            \Log::info('Login successful');
-            return redirect()->route('dashboard');
-        } else {
-            \Log::info('Login failed - setting error message');
-            session(['errorMessage' => 'Invalid Credentials']);
-            \Log::info('Error message set in session');
+        $credentials = [
+            'email' => $this->email,
+            'password' => $this->password,
+        ];
+
+        $response = $apiService->login($credentials);
+
+        if (!isset($response['statusCode']) || $response['statusCode'] != 200) {
+            session()->flash('errorMessage', $response['message'] ?? 'Invalid credentials');
+            return redirect()->route('login');
         }
+
+        // Get API employee id
+        $apiEmployeeId = $response['employee']['id'] ?? null;
+
+        if ($apiEmployeeId) {
+            // Find Laravel user by hris_id
+            $user = \App\Models\User::where('hris_id', $apiEmployeeId)->first();
+            if ($user) {
+                Auth::login($user);
+            } else {
+                session()->flash('errorMessage', 'No corresponding user found in the system.');
+                return redirect()->route('login');
+            }
+        }
+
+        // Store JWT for API requests
+        session([
+            'jwt_token' => $response['token'] ?? null,
+            'roleName' => $response['roleName'] ?? null,
+            'user' => $response['employee'] ?? null,
+        ]);
+
+        return redirect()->route('dashboard');
     }
 
     public function render()
     {
-        \Log::info('Render method called. Session error: ' . session('errorMessage'));
         return view('livewire.login-page');
     }
 }
