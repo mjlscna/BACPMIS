@@ -2,6 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Services\ApiService;
@@ -41,7 +44,7 @@ class LoginPage extends Component
 
         if ($apiEmployeeId) {
             // Find Laravel user by hris_id
-            $user = \App\Models\User::where('hris_id', $apiEmployeeId)->first();
+            $user = User::where('hris_id', $apiEmployeeId)->first();
             if ($user) {
                 Auth::login($user);
             } else {
@@ -55,7 +58,42 @@ class LoginPage extends Component
             'jwt_token' => $response['token'] ?? null,
             'roleName' => $response['roleName'] ?? null,
             'user' => $response['employee'] ?? null,
+            'token_created_at' => time(),
+            'login_credentials' => $credentials,
         ]);
+
+
+        // After successful login
+        $photoUrl = $response['employee']['photoUrl'] ?? null;
+
+        if ($photoUrl) {
+            try {
+                // Download the image from API
+                $res = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . ($response['token'] ?? ''),
+                ])->get($photoUrl);
+
+                if ($res->successful()) {
+                    $contents = $res->body();
+                    $filename = 'employees/' . $response['employee']['id'] . '.jpg';
+
+                    // Save to storage/app/public/employees/
+                    Storage::disk('public')->put($filename, $contents);
+
+                    // Update session to point to local copy
+                    session(['user_photo' => asset('storage/' . $filename)]);
+                } else {
+                    // If download fails, fallback to default
+                    session(['user_photo' => asset('storage/employees/default.png')]);
+                }
+            } catch (\Exception $e) {
+                session(['user_photo' => asset('storage/employees/default.png')]);
+            }
+        } else {
+            // No photo URL, use default
+            session(['user_photo' => asset('storage/employees/default.png')]);
+        }
+
 
         return redirect()->route('dashboard');
     }
