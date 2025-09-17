@@ -48,7 +48,7 @@
                                     </svg>
                                 @endif
                             </button>
-                            
+
                         </div>
                     </div>
 
@@ -86,7 +86,7 @@
         <div class="grid grid-cols-2 md:grid-cols-8 gap-4">
             <!-- Date Receipt (Advance Copy) -->
             <x-forms.date id="date_receipt" label="Date Receipt" model="form.date_receipt" :form="$form"
-                :required="false" colspan="col-span-1" />
+                :required="true" colspan="col-span-1" />
             <!-- Category -->
             <x-forms.select id="category_id" label="Category" model="form.category_id" :form="$form"
                 :options="$categories" optionValue="id" optionLabel="category" :required="true" wireModifier="lazy"
@@ -98,10 +98,10 @@
             <x-forms.readonly-input id="rbac_sbac" label="RBAC / SBAC" model="form.rbac_sbac" :form="$form"
                 :required="false" :colspan="1" />
             <!-- DTRACK Number -->
-            <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form" :required="true"
+            <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form"
                 colspan="col-span-1" />
             <!-- UniCode -->
-            <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form" :required="false" />
+            <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form" :required="true" />
             <!-- Division -->
             <x-forms.select id="divisions_id" label="Division" model="form.divisions_id" :form="$form"
                 :options="$divisions" optionValue="id" optionLabel="divisions" :required="true" colspan="col-span-3" />
@@ -143,14 +143,15 @@
                 <!-- Immediate Date Needed -->
                 <div class="flex-1">
                     <x-forms.textarea id="immediate_date_needed" label="Immediate Date Needed"
-                        model="form.immediate_date_needed" :form="$form" :maxlength="500" rows="4" />
+                        model="form.immediate_date_needed" :form="$form" :maxlength="500" rows="4"
+                        :required="true" />
 
                 </div>
 
                 <!-- Date Needed -->
                 <div class="flex-1">
                     <x-forms.textarea id="date_needed" label="Date Needed" model="form.date_needed"
-                        :form="$form" :required="false" :maxlength="500" rows="4" />
+                        :form="$form" :required="true" :maxlength="500" rows="4" />
                 </div>
             </div>
 
@@ -160,7 +161,7 @@
                 <div>
                     <x-forms.select id="end_users_id" label="PMO/End-User" model="form.end_users_id"
                         :form="$form" :options="$endUsers" optionValue="id" optionLabel="endusers"
-                        :required="false" />
+                        :required="true" />
 
                 </div>
                 <!-- Early Procurement Toggle -->
@@ -190,9 +191,8 @@
                 </div>
 
                 <!-- ABC Amount -->
-                <x-forms.currency-input id="abc" label="ABC Amount" model="form.abc" :form="$form"
-                    :required="true" colspan="col-span-1" wireModifier="live" />
-
+                <x-forms.abc-amount id="abc" label="ABC Amount" model="form.abc" :form="$form"
+                    :required="true" colspan="col-span-1" wireModifier="live" :disabled="$form['procurement_type'] === 'perItem'" />
 
                 <!-- ABC ⇔ 50k -->
                 <div class="col-span-1">

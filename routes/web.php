@@ -39,15 +39,15 @@ Route::middleware(['jwt'])->group(function () {
     Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
         Route::get('/', ModeOfProcurementIndexPage::class)
             ->name('index')
-            ->middleware('can:view_any_mode_of_procurement');
+            ->middleware('can:view_any_mode::of::procurement');
 
         Route::get('/create', ModeOfProcurementCreatePage::class)
             ->name('create')
-            ->middleware('can:create_mode_of_procurement');
+            ->middleware('can:create_mode::of::procurement');
 
         Route::get('/{id}/edit', ModeOfProcurementEditPage::class)
             ->name('edit')
-            ->middleware('can:edit_mode_of_procurement');
+            ->middleware('can:edit_mode::of::procurement');
     });
 
     // Logout

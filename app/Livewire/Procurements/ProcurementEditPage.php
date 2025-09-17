@@ -82,25 +82,16 @@ class ProcurementEditPage extends Component
         }
     }
 
-    public function updatedFormProcurementType(string $value): void
+    public function updatedFormProcurementType()
     {
-        // 1. Persist the new mode
-        $this->form['procurement_type'] = $value;
-
-        // 2. If switching to perLot, clear all items
-        if ($value === 'perLot') {
+        if ($this->form['procurement_type'] === 'perLot') {
             $this->form['items'] = [];
-            return;
+        } elseif ($this->form['procurement_type'] === 'perItem' && empty($this->form['items'])) {
+            $this->form['items'][] = ['item_no' => 1];
         }
-
-        // 3. If switching to perItem and no items exist, seed one blank row
-        if (empty($this->form['items'])) {
-            $this->form['items'][] = [
-                'item_no' => null,
-                'description' => null,
-            ];
-        }
+        $this->reorderItemNumbers();
     }
+
 
     public function updatedFormCategoryId()
     {
@@ -147,10 +138,26 @@ class ProcurementEditPage extends Component
     {
         $this->form['items'] = array_merge([
             [
-                'item_no' => '',
+                'item_no' => null, // temporary, will be fixed by reorder
                 'description' => '',
             ]
         ], $this->form['items'] ?? []);
+
+        $this->reorderItemNumbers();
+    }
+
+    public function removeItem($index)
+    {
+        unset($this->form['items'][$index]);
+        $this->form['items'] = array_values($this->form['items']);
+        $this->reorderItemNumbers();
+    }
+    public function reorderItemNumbers()
+    {
+        $count = count($this->form['items']);
+        foreach ($this->form['items'] as $index => &$item) {
+            $item['item_no'] = $count - $index;
+        }
     }
 
     public function save()
@@ -172,13 +179,31 @@ class ProcurementEditPage extends Component
                 Rule::unique('procurements', 'pr_number')->ignore($this->procurement->id),
             ],
             'procurement_program_project' => 'required|string|max:255',
-            'dtrack_no' => 'required|string|max:50',
             'divisions_id' => 'required|integer|exists:divisions,id',
             'cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
             'category_id' => 'required|integer|exists:categories,id',
             'fund_source_id' => 'required|integer|exists:fund_sources,id',
             'abc' => 'required|numeric|min:1',
             'procurement_type' => 'required|in:perItem,perLot',
+            'date_receipt' => 'required|date',
+            'unicode' => 'required|string|max:255',
+            'immediate_date_needed' => 'required|string|max:255',
+            'date_needed' => 'required|string|max:255',
+            'end_users_id' => 'required|integer|exists:end_users,id',
+        ], [], [
+            'pr_number' => 'PR Number',
+            'procurement_type' => 'Procurement Type',
+            'procurement_program_project' => 'Procurement Project',
+            'divisions_id' => 'Division',
+            'cluster_committees_id' => 'Cluster Committee',
+            'category_id' => 'Category',
+            'fund_source_id' => 'Fund Source',
+            'abc' => 'ABC',
+            'date_receipt' => 'Date Receipt',
+            'unicode' => 'UniCode',
+            'immediate_date_needed' => 'Immediate Date Needed',
+            'date_needed' => 'Date Needed',
+            'end_users_id' => 'PMO/End-User',
         ]);
 
         if ($validator->fails()) {
@@ -249,6 +274,9 @@ class ProcurementEditPage extends Component
 
         // --- 8. Save items (perItem) ---
         if (($this->form['procurement_type'] ?? '') === 'perItem') {
+            // ✅ Reorder before saving to DB
+            $this->reorderItemNumbers();
+
             $existingItems = $this->procurement->pr_items()->pluck('id', 'prItemID')->toArray();
             $submittedPrItemIDs = [];
 
@@ -260,7 +288,7 @@ class ProcurementEditPage extends Component
                     ['prItemID' => $prItemID],
                     [
                         'procID' => $this->procID,
-                        'item_no' => $item['item_no'],
+                        'item_no' => $item['item_no'], // ✅ already reordered
                         'description' => $item['description'],
                     ]
                 );
@@ -283,6 +311,7 @@ class ProcurementEditPage extends Component
             ->position('top-end')
             ->show();
     }
+
 
 
     public function render()

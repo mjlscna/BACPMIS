@@ -9,6 +9,7 @@ use App\Models\EndUser;
 use App\Models\FundSource;
 use App\Models\ProvinceHuc;
 use App\Models\VenueSpecific;
+use Illuminate\Support\Facades\Validator;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use App\Models\Procurement;
@@ -33,7 +34,7 @@ class ProcurementCreatePage extends Component
     public $form = [];
     public $showTable = true;
     public $page = 1;
-    public $perPage = 5;
+    public $perPage = 10;
 
     public function mount()
     {
@@ -71,7 +72,7 @@ class ProcurementCreatePage extends Component
             'early_procurement' => false,
             'fund_source_id' => null,
             'expense_class' => '',
-            'abc' => '',
+            'abc' => 0,
             'abc_50k' => '50k or less',
         ];
     }
@@ -113,10 +114,16 @@ class ProcurementCreatePage extends Component
         // 3. If switching to perItem and no items exist, seed one blank row
         if (empty($this->form['items'])) {
             $this->form['items'][] = [
-                'item_no' => null,
+                'uid' => uniqid(),
+                'item_no' => 1,
                 'description' => null,
+                'amount' => 0,
             ];
         }
+
+
+        // 4. Ensure item_no sequence is correct
+        $this->reorderItemNumbers();
     }
 
     public function updatedFormCategoryId()
@@ -136,6 +143,7 @@ class ProcurementCreatePage extends Component
             $this->form['bac_type_id'] = null;
         }
     }
+
     public function updateCategoryVenue()
     {
         if (!empty($this->form['category_id']) && !empty($this->form['venue_specific_id'])) {
@@ -164,20 +172,10 @@ class ProcurementCreatePage extends Component
 
         logger('Updated category_venue to: ' . $this->form['category_venue']);
     }
-    public function addItem()
-    {
-        // Prepend new item at the beginning
-        $this->form['items'] = array_merge([
-            [
-                'item_no' => '',
-                'description' => '',
-            ]
-        ], $this->form['items'] ?? []);
-    }
 
     public function save()
     {
-        // --- existing normalization, validation, etc. ---
+        // Normalize binary and numeric fields
         $this->form['approved_ppmp'] = (bool) $this->form['approved_ppmp'];
         $this->form['app_updated'] = (bool) $this->form['app_updated'];
         $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc']));
@@ -186,17 +184,77 @@ class ProcurementCreatePage extends Component
             $this->form['procurement_type'] = 'perLot';
         }
 
-        // existing validation blocks ...
+        // --- 1. Main form validation ---
+
+        $validator = Validator::make($this->form, [
+            'pr_number' => ['regex:/^\d{4}-\d{4}$/', 'unique:procurements,pr_number'],
+            'procurement_program_project' => 'required|string|max:255',
+            'divisions_id' => 'required|integer|exists:divisions,id',
+            'cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
+            'category_id' => 'required|integer|exists:categories,id',
+            'fund_source_id' => 'required|integer|exists:fund_sources,id',
+            'abc' => 'required|numeric|min:1',
+            'procurement_type' => 'required|in:perItem,perLot',
+            'date_receipt' => 'required|date',
+            'unicode' => 'required|string|max:255',
+            'immediate_date_needed' => 'required|string|max:255',
+            'date_needed' => 'required|string|max:255',
+            'end_users_id' => 'required|integer|exists:end_users,id',
+
+        ], [], [
+            'pr_number' => 'PR Number',
+            'procurement_type' => 'Procurement Type',
+            'procurement_program_project' => 'Procurement Project',
+            'divisions_id' => 'Division',
+            'cluster_committees_id' => 'Cluster Committee',
+            'category_id' => 'Category',
+            'fund_source_id' => 'Fund Source',
+            'abc' => 'ABC',
+            'date_receipt' => 'Date Receipt',
+            'unicode' => 'UniCode',
+            'immediate_date_needed' => 'Immediate Date Needed',
+            'date_needed' => 'Date Needed',
+            'end_users_id' => 'PMO/End-User',
+        ]);
+
+        if ($validator->fails()) {
+            LivewireAlert::title('ERROR!')
+                ->error()
+                ->text(collect($validator->errors()->all())->implode("\n"))
+                ->toast()
+                ->position('top-end')
+                ->show();
+            return;
+        }
+
+        // --- 2. Extra validation for items if perItem ---
+        if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
+            $itemValidator = Validator::make($this->form, [
+                'items.*.item_no' => 'required',
+                'items.*.description' => 'required',
+                'items.*.amount' => 'required|numeric|min:0',
+            ], [
+                'items.*.item_no.required' => 'Item No. is Empty',
+                'items.*.description.required' => 'Item Description is Empty',
+                'items.*.amount.required' => 'Item Amount is required',
+            ]);
+
+            if ($itemValidator->fails()) {
+                LivewireAlert::title('ERROR!')
+                    ->error()
+                    ->text(collect($itemValidator->errors()->all())->implode("\n"))
+                    ->toast()
+                    ->position('top-end')
+                    ->show();
+                return; // 🔥 stop before creating procurement
+            }
+        }
 
         // Nullify optional fields
         foreach ([
-            'date_receipt',
-            'unicode',
+            'dtrack_no',
             'venue_specific_id',
             'venue_province_huc_id',
-            'immediate_date_needed',
-            'date_needed',
-            'end_users_id',
             'expense_class'
         ] as $field) {
             $this->form[$field] = empty($this->form[$field]) ? null : $this->form[$field];
@@ -295,14 +353,59 @@ class ProcurementCreatePage extends Component
             $this->page = $totalPages;
         }
     }
-
-    public function removeItem($index)
+    public function addItem(): void
     {
-        if (isset($this->form['items'][$index])) {
-            unset($this->form['items'][$index]);
-            $this->form['items'] = array_values($this->form['items']); // reindex
+        // Add new item at top
+        array_unshift($this->form['items'], [
+            'uid' => uniqid(),       // unique id for Livewire
+            'item_no' => 0,          // placeholder, will be recalculated
+            'description' => '',
+            'amount' => 0.00,
+        ]);
+
+        $this->reorderItemNumbers();
+        $this->updateAbcFromItems();
+    }
+
+    public function removeItem(int $index): void
+    {
+        array_splice($this->form['items'], $index, 1);
+        $this->reorderItemNumbers();
+        $this->updateAbcFromItems();
+    }
+
+    private function reorderItemNumbers(): void
+    {
+        $total = count($this->form['items']);
+
+        foreach ($this->form['items'] as $i => &$item) {
+            $item['item_no'] = $total - $i; // top = highest, bottom = 1
         }
     }
+
+    public function updatedFormItems($value, $key)
+    {
+        // Only handle amount updates
+        if (str_contains($key, '.amount')) {
+            $cleaned = preg_replace('/[^0-9.]/', '', $value);
+            $numericValue = floatval($cleaned);
+
+            data_set($this->form, $key, number_format($numericValue, 2, '.', ''));
+
+            $this->updateAbcFromItems();
+        }
+    }
+
+    public function updateAbcFromItems(): void
+    {
+        if ($this->form['procurement_type'] === 'perItem') {
+            $this->form['abc'] = collect($this->form['items'])
+                ->sum(fn($item) => (float) ($item['amount'] ?? 0));
+
+            $this->form['abc_50k'] = $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less';
+        }
+    }
+
 
     public function render()
     {

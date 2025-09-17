@@ -75,7 +75,7 @@
                         </li>
                     @endcan
                     <!-- Mode of Procurement -->
-                    @can('view_any_mode_of_procurement')
+                    @can('view_any_mode::of::procurement')
                         <li>
                             <a class="w-full flex items-center gap-x-2 py-2 px-2 text-sm rounded-lg
                             {{ request()->routeIs('mode-of-procurement.index')
