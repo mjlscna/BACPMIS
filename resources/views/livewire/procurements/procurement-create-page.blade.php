@@ -191,9 +191,10 @@
                 </div>
 
                 <!-- ABC Amount -->
-                <x-forms.abc-amount id="abc" label="ABC Amount" model="form.abc" :form="$form"
-                    :required="true" colspan="col-span-1" wireModifier="live" :disabled="$form['procurement_type'] === 'perItem'" />
-
+                <div class="col-span-1">
+                    <x-forms.abc-amount id="abc" label="ABC Amount" model="form.abc" :form="$form"
+                        :required="true" colspan="col-span-1" wireModifier="live" :disabled="$form['procurement_type'] === 'perItem'" />
+                </div>
                 <!-- ABC ⇔ 50k -->
                 <div class="col-span-1">
                     <x-forms.abc50k id="abc_50k" label="ABC ⇔ 50k" model="form.abc_50k" :form="$form" />

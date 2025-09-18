@@ -355,17 +355,17 @@ class ProcurementCreatePage extends Component
     }
     public function addItem(): void
     {
-        // Add new item at top
         array_unshift($this->form['items'], [
-            'uid' => uniqid(),       // unique id for Livewire
-            'item_no' => 0,          // placeholder, will be recalculated
+            'item_no' => 0,
             'description' => '',
             'amount' => 0.00,
         ]);
 
+        $this->form['items'] = array_values($this->form['items']); // reindex
         $this->reorderItemNumbers();
         $this->updateAbcFromItems();
     }
+
 
     public function removeItem(int $index): void
     {
@@ -376,12 +376,16 @@ class ProcurementCreatePage extends Component
 
     private function reorderItemNumbers(): void
     {
-        $total = count($this->form['items']);
+        $items = $this->form['items'] ?? [];
+        $total = count($items);
 
-        foreach ($this->form['items'] as $i => &$item) {
-            $item['item_no'] = $total - $i; // top = highest, bottom = 1
+        foreach ($items as $i => &$item) {
+            $item['item_no'] = (int) $total - (int) $i;
         }
+
+        $this->form['items'] = $items;
     }
+
 
     public function updatedFormItems($value, $key)
     {
