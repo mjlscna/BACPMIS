@@ -54,11 +54,11 @@
 
                     @if ($showTable)
                         <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
-                            <h3 class="font-semibold text-gray-700">Item List</h3>
-                            {{-- Add Item button --}}
-                            <div class="flex justify-end mb-2">
+
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-gray-700">Item List</h3>
                                 <button type="button" wire:click="addItem"
-                                    class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
+                                    class="py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
                                     <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path d="M5 12h14" />
@@ -75,6 +75,7 @@
                             @endif
 
                         </div>
+
                     @endif
                 </div>
             @endif

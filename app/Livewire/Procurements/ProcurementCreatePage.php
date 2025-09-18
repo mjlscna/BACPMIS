@@ -292,7 +292,9 @@ class ProcurementCreatePage extends Component
                     'prItemID' => $prItemID,
                     'item_no' => $item['item_no'],
                     'description' => $item['description'],
+                    'amount' => floatval(preg_replace('/[^0-9.]/', '', $item['amount'] ?? 0)),
                 ]);
+
 
                 // default MopItem (mode_of_procurement_id = 1)
                 MopItem::create([

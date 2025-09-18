@@ -16,6 +16,7 @@ class PrItem extends Model
         'prItemID',
         'item_no',
         'description',
+        'amount',
     ];
 
     public function procurement()

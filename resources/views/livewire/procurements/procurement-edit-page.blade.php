@@ -26,7 +26,6 @@
                 <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form"
                     :clickable="false" />
             </div>
-
             <!-- Table shows only when "Per Item" is selected -->
             @if ($form['procurement_type'] === 'perItem')
                 <div class="mt-4 md:mt-0 w-full md:max-w-3xl">
@@ -50,17 +49,17 @@
                                     </svg>
                                 @endif
                             </button>
+
                         </div>
                     </div>
 
                     @if ($showTable)
                         <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
 
-                            <h3 class="font-semibold text-gray-700">Item List</h3>
-                            {{-- Add Item button --}}
-                            <div class="flex justify-end mb-2">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-gray-700">Item List</h3>
                                 <button type="button" wire:click="addItem"
-                                    class="py-2 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
+                                    class="py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
                                     <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path d="M5 12h14" />
@@ -75,7 +74,9 @@
                                 <x-forms.prItems-table :form="$form" model="form.items" :page="$page"
                                     :per-page="$perPage" />
                             @endif
+
                         </div>
+
                     @endif
                 </div>
             @endif
@@ -99,7 +100,7 @@
             <x-forms.readonly-input id="rbac_sbac" label="RBAC / SBAC" model="form.rbac_sbac" :form="$form"
                 :required="false" :colspan="1" />
             <!-- DTRACK Number -->
-            <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form" :required="false"
+            <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form"
                 colspan="col-span-1" />
             <!-- UniCode -->
             <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form" :required="true" />
@@ -144,8 +145,8 @@
                 <!-- Immediate Date Needed -->
                 <div class="flex-1">
                     <x-forms.textarea id="immediate_date_needed" label="Immediate Date Needed"
-                        model="form.immediate_date_needed" :form="$form" :required="true" :maxlength="500"
-                        rows="4" />
+                        model="form.immediate_date_needed" :form="$form" :maxlength="500" rows="4"
+                        :required="true" />
 
                 </div>
 
@@ -192,10 +193,10 @@
                 </div>
 
                 <!-- ABC Amount -->
-                <x-forms.currency-input id="abc" label="ABC Amount" model="form.abc" :form="$form"
-                    :required="true" colspan="col-span-1" wireModifier="live" />
-
-
+                <div class="col-span-1">
+                    <x-forms.abc-amount id="abc" label="ABC Amount" model="form.abc" :form="$form"
+                        :required="true" colspan="col-span-1" wireModifier="live" :disabled="$form['procurement_type'] === 'perItem'" />
+                </div>
                 <!-- ABC ⇔ 50k -->
                 <div class="col-span-1">
                     <x-forms.abc50k id="abc_50k" label="ABC ⇔ 50k" model="form.abc_50k" :form="$form" />
