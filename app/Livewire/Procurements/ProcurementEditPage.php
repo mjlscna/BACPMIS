@@ -7,6 +7,8 @@ use App\Models\ClusterCommittee;
 use App\Models\Division;
 use App\Models\EndUser;
 use App\Models\FundSource;
+use App\Models\MopItem;
+use App\Models\PrItemPrstage;
 use App\Models\ProvinceHuc;
 use App\Models\VenueSpecific;
 use Illuminate\Support\Facades\Validator;
@@ -327,7 +329,8 @@ class ProcurementEditPage extends Component
                 $prItemID = $item['prItemID'] ?? "{$this->procID}-" . ($index + 1);
                 $submittedPrItemIDs[] = $prItemID;
 
-                $this->procurement->pr_items()->updateOrCreate(
+                // Update or create the PR item
+                $prItem = $this->procurement->pr_items()->updateOrCreate(
                     ['prItemID' => $prItemID],
                     [
                         'procID' => $this->procID,
@@ -336,7 +339,26 @@ class ProcurementEditPage extends Component
                         'amount' => floatval(preg_replace('/[^0-9.]/', '', $item['amount'] ?? 0)),
                     ]
                 );
+
+                // Only if newly created
+                if ($prItem->wasRecentlyCreated) {
+                    MopItem::create([
+                        'procID' => $this->procID,
+                        'prItemID' => $prItem->prItemID,
+                        'uid' => 'MOP-' . 1 . '-' . 1,
+                        'mode_of_procurement_id' => 1,
+                        'mode_order' => 1,
+                    ]);
+
+                    PrItemPrstage::create([
+                        'procID' => $this->procID,
+                        'prItemID' => $prItem->prItemID,
+                        'pr_stage_id' => 1,
+                        'stage_history' => "1",
+                    ]);
+                }
             }
+
 
             // Delete items that are no longer in the form
             $itemsToDelete = array_diff(array_keys($existingItems), $submittedPrItemIDs);
