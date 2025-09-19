@@ -10,6 +10,7 @@ class PrItemPrstage extends Model
     use HasFactory;
 
     protected $table = 'pr_item_prstage';
+    protected $primaryKey = 'id'; // default, unless you named it differently
 
     protected $fillable = [
         'procID',
@@ -18,18 +19,14 @@ class PrItemPrstage extends Model
         'stage_history',
     ];
 
-    public function procurement()
-    {
-        return $this->belongsTo(Procurement::class, 'procID');
-    }
-
     public function item()
     {
-        return $this->belongsTo(PrItem::class, 'prItemID');
+        return $this->belongsTo(PrItem::class, 'prItemID', 'prItemID');
     }
 
     public function stage()
     {
-        return $this->belongsTo(ProcurementStage::class, 'pr_stage_id');
+        return $this->belongsTo(ProcurementStage::class, 'pr_stage_id', 'id');
     }
 }
+
