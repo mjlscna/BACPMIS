@@ -15,7 +15,7 @@ use App\Models\{
 };
 
 
-class ProcurementViewPage  extends Component
+class ProcurementViewPage extends Component
 {
     public $showModal = false;
     public $showTable = false;
@@ -26,15 +26,16 @@ class ProcurementViewPage  extends Component
     public $venueSpecifics = [];
     public $venueProvinces = [];
     public $endUsers = [];
-    public $fundSources = [];public $page = 1;
-public $perPage = 5;
+    public $fundSources = [];
+    public $page = 1;
+    public $perPage = 10;
 
 
     protected $listeners = ['open-procurement-view' => 'open'];
-    
+
     public $form = [
-    'procurement_type' => 'perLot', // 👈 default so it's always defined
-];
+        'procurement_type' => 'perLot', // 👈 default so it's always defined
+    ];
 
 
     public function open($procID)
@@ -54,6 +55,7 @@ public $perPage = 5;
                 ->map(fn($item) => [
                     'item_no' => $item->item_no,
                     'description' => $item->description,
+                    'amount' => $item->amount ?? 0,
                 ])
                 ->values()
                 ->toArray();

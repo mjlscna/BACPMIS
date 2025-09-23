@@ -46,9 +46,13 @@
 
                         <!-- Item No -->
                         <td class="px-3 py-2">
-                            <input type="text"
-                                class="mt-1 block w-full px-2 py-1 rounded-md bg-gray-100 cursor-not-allowed text-center text-gray-700 border border-gray-300 text-sm"
-                                value="{{ $item['item_no'] ?? '' }}" disabled>
+                            @if ($viewOnly)
+                                <div class="text-gray-700 text-center text-sm">{{ $item['item_no'] ?? '' }}</div>
+                            @else
+                                <input type="text"
+                                    class="mt-1 block w-full px-2 py-1 rounded-md bg-gray-100 cursor-not-allowed text-center text-gray-700 border border-gray-300 text-sm"
+                                    value="{{ $item['item_no'] ?? '' }}" disabled>
+                            @endif
                         </td>
 
                         <!-- Description -->
@@ -75,7 +79,9 @@
                             })">
 
                                 @if ($viewOnly)
-                                    <div class="text-right text-sm">{{ display }}</div>
+                                    <div class="text-right text-sm">
+                                        {{ is_numeric($item['amount'] ?? null) ? number_format($item['amount'], 2, '.', ',') : '0.00' }}
+                                    </div>
                                 @else
                                     <input type="text"
                                         class="text-right border border-gray-300 rounded-lg px-2 py-1 w-full text-xs md:text-sm focus:ring-emerald-500 focus:border-emerald-500"

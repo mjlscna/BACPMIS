@@ -194,8 +194,11 @@
 
                 <!-- ABC Amount -->
                 <div class="col-span-1">
-                    <x-forms.abc-amount id="abc" label="ABC Amount" model="form.abc" :form="$form"
-                        :required="true" colspan="col-span-1" wireModifier="live" :disabled="$form['procurement_type'] === 'perItem'" />
+                    @if ($form['procurement_type'] === 'perLot')
+                        <x-forms.abc-lot :form="$form" label="ABC Amount" model="form.abc" :required="true" />
+                    @elseif($form['procurement_type'] === 'perItem')
+                        <x-forms.abc-item :form="$form" label="ABC Amount" />
+                    @endif
                 </div>
                 <!-- ABC ⇔ 50k -->
                 <div class="col-span-1">
