@@ -23,7 +23,7 @@ class CategoryTypeResource extends Resource
 {
     protected static ?string $model = CategoryType::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
 
     public static function form(Form $form): Form

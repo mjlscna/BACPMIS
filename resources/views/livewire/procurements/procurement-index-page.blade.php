@@ -64,7 +64,7 @@
                                         Date Receipt</th>
                                     <th scope="col"
                                         class="px-6 py-1 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
-                                        RBAC / SBAC</th>
+                                        BAC Category</th>
 
                                     <th scope="col"
                                         class="px-6 py-1 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
@@ -81,6 +81,9 @@
                                     <th scope="col"
                                         class="px-6 py-1 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
                                         Source of Funds</th>
+                                    <th scope="col"
+                                        class="px-6 py-1 text-center text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 whitespace-nowrap">
+                                        ABC Amount</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -183,6 +186,12 @@
                                             class="px-6 py-1 whitespace-nowrap text-center text-sm text-gray-800 dark:text-neutral-200">
                                             {{ $procurement->fundSource ? $procurement->fundSource->fundsources : '' }}
                                         </td>
+                                        <td
+                                            class="px-6 py-1 text-center text-sm text-gray-800 dark:text-neutral-200 relative">
+                                            <span
+                                                class="absolute inset-y-0 left-0 flex items-center text-gray-500">₱</span>
+                                            <span>{{ number_format($procurement->abc ?? 0, 2) }}</span>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -196,7 +205,8 @@
                 </div>
 
                 @if ($showEarlyPrompt)
-                    <div class="fixed inset-0 flex items-center justify-center bg-emerald-600/20 z-50 backdrop-blur-sm">
+                    <div
+                        class="fixed inset-0 flex items-center justify-center bg-emerald-600/20 z-50 backdrop-blur-sm">
                         <div class="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
                             <h2 class="text-lg font-bold mb-4">Is this an Early Procurement?</h2>
 

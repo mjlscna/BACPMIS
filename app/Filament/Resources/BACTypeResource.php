@@ -17,11 +17,11 @@ class BACTypeResource extends Resource
 {
     protected static ?string $model = BACType::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-folder';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document';
 
-    protected static ?string $navigationLabel = 'BAC Types';
-    protected static ?string $pluralLabel = 'BAC Types';
-    protected static ?string $modelLabel = 'BAC Type';
+    protected static ?string $navigationLabel = 'BAC Category';
+    protected static ?string $pluralLabel = 'BAC Categories';
+    protected static ?string $modelLabel = 'BAC Category';
 
     public static function form(Form $form): Form
     {

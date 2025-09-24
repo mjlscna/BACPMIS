@@ -27,7 +27,7 @@ class FundSourceResource extends Resource
 {
     protected static ?string $model = FundSource::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-wallet';
+    protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
     public static function form(Form $form): Form
     {

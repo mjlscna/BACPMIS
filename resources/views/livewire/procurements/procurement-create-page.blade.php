@@ -194,7 +194,7 @@
                 <!-- ABC Amount -->
                 <div class="col-span-1">
                     @if ($form['procurement_type'] === 'perLot')
-                        <x-forms.abc-lot :form="$form" label="ABC Amount" model="form.abc" :required="true" />
+                        <x-forms.abc-lot :form="$form" label="ABC Amount" model="abc" :required="true" />
                     @elseif($form['procurement_type'] === 'perItem')
                         <x-forms.abc-item :form="$form" label="ABC Amount" />
                     @endif

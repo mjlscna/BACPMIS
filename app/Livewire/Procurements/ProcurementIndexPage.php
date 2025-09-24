@@ -11,7 +11,7 @@ class ProcurementIndexPage extends Component
     use WithPagination;
 
     // Pagination
-    public $perPage = 5;
+    public $perPage = 10;
     protected $paginationTheme = 'tailwind';
 
     // Search
@@ -82,7 +82,7 @@ class ProcurementIndexPage extends Component
             $searchTerm = '%' . $this->search . '%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('pr_number', 'like', $searchTerm)
-                  ->orWhere('procurement_program_project', 'like', $searchTerm);
+                    ->orWhere('procurement_program_project', 'like', $searchTerm);
             });
         }
 

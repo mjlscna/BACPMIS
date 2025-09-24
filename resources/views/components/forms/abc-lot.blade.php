@@ -16,7 +16,10 @@
         $id = 'abc-' . Str::slug($label ?? $model);
     }
 
-    $initialValue = data_get($form, $model, 0);
+    // strip "form." if dev accidentally passes it
+    $lookup = Str::startsWith($model, 'form.') ? Str::after($model, 'form.') : $model;
+
+    $initialValue = data_get($form, $lookup, 0);
 @endphp
 
 <div class="flex flex-col {{ $colspan }}">
@@ -36,7 +39,7 @@
             <input type="text" id="{{ $id }}" x-data="{ display: '{{ number_format($initialValue, 2, '.', ',') }}' }" x-model="display"
                 @input="
                     display = $event.target.value.replace(/[^0-9.]/g, '');
-                    $wire.set('{{ $model }}', parseFloat(display) || 0);
+                    $wire.set('form.{{ $lookup }}', parseFloat(display) || 0);
                 "
                 @blur="display = parseFloat(display || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })"
                 class="mt-1 block w-full pl-8 pr-3 py-2 rounded-md text-sm text-right border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 {{ $disabled ? 'bg-gray-100 cursor-not-allowed' : '' }}"
