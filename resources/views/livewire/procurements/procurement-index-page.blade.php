@@ -198,10 +198,18 @@
                         </table>
 
                     </div>
-                    <div class="p-0 m-0 py-4 -mt-2">
-                        {{ $procurements->links('vendor.pagination.tailwind') }}
-                    </div>
+                    <div class="flex items-center w-full py-4 -mt-2 relative">
+                        {{-- Left text --}}
+                        <div class="text-sm text-gray-500 pl-2">
+                            {{ $procurements->firstItem() }} to {{ $procurements->lastItem() }} of
+                            {{ $procurements->total() }} items
+                        </div>
 
+                        {{-- Center pagination --}}
+                        <div class="absolute left-1/2 transform -translate-x-1/2 mb-5">
+                            {{ $procurements->links('vendor.pagination.tailwind') }}
+                        </div>
+                    </div>
                 </div>
 
                 @if ($showEarlyPrompt)

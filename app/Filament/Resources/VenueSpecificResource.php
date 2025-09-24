@@ -26,7 +26,8 @@ class VenueSpecificResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
     // change icon if you want
     protected static ?string $navigationGroup = 'Master Data';
-    protected static ?string $navigationLabel = 'Venue Specifics';
+    protected static ?string $pluralLabel = 'Venue Specific';
+    protected static ?string $navigationLabel = 'Venue Specific';
 
     public static function form(Form $form): Form
     {

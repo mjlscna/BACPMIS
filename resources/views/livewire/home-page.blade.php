@@ -159,18 +159,16 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div class="p-2 border-t border-gray-200 dark:border-neutral-700">
-                        <div class="flex justify-between items-center">
-                            <div class="text-sm text-gray-600 dark:text-gray-400">
-                                Showing {{ $procurements->firstItem() ?? 0 }} to {{ $procurements->lastItem() ?? 0 }}
-                                of
-                                {{ $procurements->total() }} results
-                            </div>
-                            @if ($procurements->hasPages())
-                                <div class="flex items-center justify-center space-x-2">
-                                    {{ $procurements->links('vendor.pagination.tailwind') }}
-                                </div>
-                            @endif
+                    <div class="flex items-center w-full py-4 -mt-2 relative">
+                        {{-- Left text --}}
+                        <div class="text-sm text-gray-500 pl-2">
+                            {{ $procurements->firstItem() }} to {{ $procurements->lastItem() }} of
+                            {{ $procurements->total() }} items
+                        </div>
+
+                        {{-- Center pagination --}}
+                        <div class="absolute left-1/2 transform -translate-x-1/2 mb-5">
+                            {{ $procurements->links('vendor.pagination.tailwind') }}
                         </div>
                     </div>
                 </div>

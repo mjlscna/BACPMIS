@@ -13,7 +13,6 @@ class HomePage extends Component
     protected string $paginationTheme = 'tailwind';
 
     public $search = '';
-    public $perPage = 5;
     public $selectedProcurement = null;
     public $expandedProcurementId = null;
     public $form = [
@@ -53,7 +52,7 @@ class HomePage extends Component
                     ->orWhere('procurement_program_project', 'like', "%{$this->search}%");
             })
             ->orderByDesc('created_at')
-            ->paginate(5);
+            ->paginate(10);
 
         return view('livewire.home-page', [
             'procurements' => $procurements,
