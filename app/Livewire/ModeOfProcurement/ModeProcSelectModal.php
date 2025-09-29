@@ -14,7 +14,7 @@ class ModeProcSelectModal extends Component
 
     public $showModal = false;
     public $search = '';
-    public $perPage = 5;
+    public $perPage = 10;
     public $selectedProcurement = null;
     public $expandedProcurementId = null;
     protected $queryString = ['search'];

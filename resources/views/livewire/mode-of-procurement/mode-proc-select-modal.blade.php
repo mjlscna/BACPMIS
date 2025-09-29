@@ -22,51 +22,48 @@
 
         <!-- Table (scrollable body) -->
         <div class="overflow-y-auto flex-1">
-            <table class="table-fixed w-full divide-y divide-gray-200 dark:divide-neutral-700">
-                <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
+            <table class="table-auto w-full divide-y divide-gray-200 dark:divide-neutral-700">
+                <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-40">
                     <tr>
-                        <!-- New column for expand/collapse -->
-                        <th class="w-10 px-2 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        </th>
-                        <th
-                            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[180px]">
+                        <th class="px-2 py-1"></th>
+                        <th class="w-24 px-2 py-1 text-center text-sm font-semibold text-black dark:text-white">
                             PR Number
                         </th>
-                        <th
-                            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[100px]">
+                        <th class="w-16 px-2 py-1 text-center text-sm font-semibold text-black dark:text-white">
                             Type
                         </th>
-                        <th
-                            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                        <th class="px-2 py-1 text-center text-sm font-semibold text-black dark:text-white max-w-sm">
                             Program/Project
                         </th>
-                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        <th class="w-28 px-2 py-1 text-center text-sm font-semibold text-black dark:text-white">
                             Date Receipt
+                        </th>
+                        <th class="px-2 py-1 text-center text-sm font-semibold text-black dark:text-white">
+                            Division
+                        </th>
+                        <th class="w-28 px-2 py-1 text-center text-sm font-semibold text-black dark:text-white">
+                            ABC Amount
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                <tbody class="divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                     @forelse($procurements as $proc)
-                        <!-- Main Row -->
                         <tr wire:click="$set('selectedProcurement', {{ $proc->id }})"
                             class="hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer
-                        {{ isset($selectedProcurement) && $selectedProcurement === $proc->id ? 'bg-blue-50 dark:bg-blue-900' : '' }}">
+                {{ isset($selectedProcurement) && $selectedProcurement === $proc->id ? 'bg-emerald-400 dark:bg-emerald-800' : '' }}">
 
-                            <!-- Expand/Collapse Button Column -->
-                            <td class="px-2 py-2 text-center">
+                            <td class="px-2 py-1 text-center">
                                 @if ($proc->procurement_type === 'perItem')
                                     <button type="button"
                                         wire:click.stop="toggle('expandedProcurementId', {{ $proc->id }})"
                                         class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700">
                                         @if ($expandedProcurementId === $proc->id)
-                                            <!-- Collapse Icon -->
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M19 9l-7 7-7-7" />
                                             </svg>
                                         @else
-                                            <!-- Expand Icon -->
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -76,34 +73,35 @@
                                     </button>
                                 @endif
                             </td>
-
-                            <!-- Other Columns -->
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $proc->pr_number }}
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $proc->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $proc->procurement_program_project }}
-                            </td>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            <td class="px-2 py-1 text-sm text-center text-gray-900 dark:text-gray-100">
+                                {{ $proc->pr_number }}</td>
+                            <td class="px-2 py-1 text-sm text-center text-gray-900 dark:text-gray-100">
+                                {{ $proc->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}</td>
+                            <td class="px-2 py-1 text-sm  text-gray-900 dark:text-gray-100">
+                                {{ $proc->procurement_program_project }}</td>
+                            <td class="px-2 py-1 text-sm text-center text-gray-900 dark:text-gray-100">
                                 {{ $proc->date_receipt }}
+                            </td>
+                            <td class="px-2 py-1 text-sm text-center text-gray-900 dark:text-gray-100">
+                                {{ $proc->division->abbreviation }}</td>
+                            <td class="px-2 py-1 text-sm text-center text-gray-900 dark:text-gray-100">
+                                <span class="text-gray-500">₱</span>
+                                <span>{{ number_format($proc->abc ?? 0, 2) }}</span>
                             </td>
                         </tr>
 
-                        <!-- Collapsible Row (only for perItem) -->
                         @if ($proc->procurement_type === 'perItem' && $expandedProcurementId === $proc->id)
                             <tr>
-                                <td colspan="4" class="pl-15 bg-white dark:bg-neutral-800">
-                                    <x-forms.prItems-view :items="$proc->pr_items" />
+                                <td colspan="7">
+                                    <div class="p-4 bg-white dark:bg-neutral-800">
+                                        <x-forms.prItems-view :items="$proc->pr_items" />
+                                    </div>
                                 </td>
-
                             </tr>
                         @endif
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                 No procurements found.
                             </td>
                         </tr>
@@ -117,8 +115,7 @@
         <div class="p-2 border-t border-gray-200">
             <div class="flex justify-between items-center ">
                 <div class="text-sm text-gray-600">
-                    Showing {{ $procurements->firstItem() ?? 0 }} to {{ $procurements->lastItem() ?? 0 }} of
-                    {{ $procurements->total() }} results
+                    {{ $procurements->lastItem() ?? 0 }} of {{ $procurements->total() }} results
                 </div>
                 @if ($procurements->hasPages())
                     <nav role="navigation" aria-label="Pagination Navigation"
@@ -142,7 +139,8 @@
                 @endif
                 <button wire:click="selectProcurement" @class([
                     'inline-flex items-center gap-2 px-2 py-2 rounded-lg',
-                    'text-white bg-blue-600 hover:bg-blue-700' => isset($selectedProcurement),
+                    'text-white bg-emerald-600 hover:bg-emerald-700' => isset(
+                        $selectedProcurement),
                     'text-gray-400 bg-gray-100 cursor-not-allowed' => !isset(
                         $selectedProcurement),
                 ])
