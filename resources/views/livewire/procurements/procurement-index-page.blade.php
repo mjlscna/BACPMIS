@@ -44,16 +44,16 @@
                             <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-40">
                                 <tr>
                                     <th
-                                        class="px-6 py-1 text-center text-xs font-medium text-black dark:text-neutral-500 uppercase sticky left-0 z-30  dark:bg-neutral-900">
+                                        class="px-1 text-center text-xs font-medium text-black dark:text-neutral-500 uppercase sticky left-0 z-30 bg-gray-200 dark:bg-neutral-900 w-14">
                                     </th>
                                     <th
-                                        class="px-6 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[56px] z-20  dark:bg-neutral-900 whitespace-nowrap">
+                                        class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[56px] z-20  whitespace-nowrap bg-gray-200 dark:bg-neutral-900 w-28">
                                         PR Number</th>
                                     <th
-                                        class="px-6 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[160px] z-10  dark:bg-neutral-900 whitespace-nowrap">
+                                        class="px-1 py-2 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[160px] z-10  whitespace-nowrap bg-gray-200 dark:bg-neutral-900 w-64">
                                         Procurement Program / Project</th>
                                     <th
-                                        class="px-6 py-1 text-center text-xs font-medium text-black dark:text-white whitespace-nowrap">
+                                        class="px-6 py-1 text-center text-xs  font-medium text-black dark:text-white whitespace-nowrap">
                                         Date Receipt</th>
                                     <th
                                         class="px-6 py-1 text-center text-xs font-medium text-black dark:text-white whitespace-nowrap">
@@ -84,7 +84,7 @@
                                 @foreach ($procurements as $procurement)
                                     <tr>
                                         <td
-                                            class="px-3 py-1 text-center sticky left-0 z-30 bg-white dark:bg-neutral-800 text-gray-800 dark:text-neutral-200">
+                                            class="px-1 text-center sticky left-0 z-30 bg-white dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 w-14">
                                             <!-- Alpine action dropdown -->
                                             <div x-data="{ open: false }" class="relative inline-block"
                                                 x-ref="menuWrapper">
@@ -136,14 +136,14 @@
                                         </td>
 
                                         <td
-                                            class="px-6 py-1 whitespace-nowrap text-center text-sm font-medium sticky left-[56px] z-20 bg-white dark:bg-neutral-800 text-black dark:text-neutral-200">
+                                            class="px-1 py-1 whitespace-nowrap text-center text-sm font-medium sticky left-[56px] z-20 bg-white dark:bg-neutral-800 text-black dark:text-neutral-200 w-28">
                                             {{ $procurement->pr_number }}</td>
                                         <td
-                                            class="px-6 py-1 whitespace-normal break-words text-left text-sm font-medium sticky left-[160px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-neutral-200">
+                                            class="px-1 py-1 whitespace-normal break-words text-left text-sm font-medium sticky left-[160px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-neutral-200 w-64">
                                             {{ $procurement->procurement_program_project }}</td>
 
                                         <td
-                                            class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
+                                            class="px-6 py-1 whitespace-nowrap text-center text-sm  text-black dark:text-neutral-200">
                                             {{ $procurement->date_receipt }}</td>
                                         <td
                                             class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
