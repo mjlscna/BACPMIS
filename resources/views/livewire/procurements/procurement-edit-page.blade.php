@@ -1,12 +1,14 @@
 <div class="space-y-6 p-8 pb-[5rem]">
 
     {{-- First Box --}}
-    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+    <div
+        class="bg-white p-4 rounded-xl shadow border border-gray-200
+                dark:bg-neutral-700 dark:border-neutral-700">
         <!-- Grid for PR No. + Program/Project -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <!-- PR Number -->
             <div class="col-span-1">
-                <label for="pr_number" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="pr_number" class="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                     PR No.
                 </label>
                 <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form" :required="true"
@@ -15,7 +17,7 @@
 
             <!-- Procurement Program / Project -->
             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                model="form.procurement_program_project" :form="$form" :required="true" :maxlength="500"
+                model="form.procurement_program_project" :form="$form" :required="true" :maxlength="1000"
                 :rows="1" colspan="col-span-4" />
         </div>
 
@@ -84,7 +86,7 @@
         </div>
     </div>
 
-    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
         <div class="grid grid-cols-2 md:grid-cols-8 gap-4">
             <!-- Date Receipt (Advance Copy) -->
             <x-forms.date id="date_receipt" label="Date Receipt" model="form.date_receipt" :form="$form"
@@ -114,7 +116,7 @@
 
         </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
+    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700 dark:border-neutral-700">
         <!-- Simple Form Fields in Landscape Layout -->
         <div class="grid grid-cols-4 gap-4">
             <!-- Venue Specific -->
@@ -138,7 +140,8 @@
             </div>
         </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
+    <div
+        class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700 dark:border-neutral-700">
         <div class="grid grid-cols-4 gap-4">
             <!-- LEFT COLUMN -->
             <div class="col-span-3 flex gap-4">
@@ -176,7 +179,7 @@
     </div>
     <div class="flex justify-center gap-4 mt-6">
         <!-- Third Box -->
-        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
             <!-- Simple Form Fields in Landscape Layout -->
             <div class="grid grid-cols-4 gap-4">
                 <!-- Source of Funds -->

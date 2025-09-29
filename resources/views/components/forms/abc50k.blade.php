@@ -19,7 +19,7 @@
 <div class="flex flex-col {{ $colspan }}">
     @if ($label)
         <label for="{{ $id }}"
-            class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500' : 'text-gray-700 dark:text-gray-200' }} mb-1">
+            class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500 dark:text-neutral-400' : 'text-gray-700 dark:text-gray-200' }} mb-1">
             @if ($required && !$viewOnly)
                 <span class="text-red-500 mr-1">*</span>
             @endif
@@ -36,7 +36,7 @@
             readonly {!! $attributes->merge([
                 'class' =>
                     $inputAttributes ?:
-                    'mt-1 block w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-700',
+                    'mt-1 block w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-700 dark:text-white dark:bg-neutral-700',
             ]) !!} />
     @endif
 </div>

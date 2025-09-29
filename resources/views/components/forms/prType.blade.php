@@ -8,7 +8,7 @@
 <div class="flex flex-col col-span-4">
     <div class="flex flex-row items-center gap-x-4">
         <label
-            class="text-sm font-medium {{ $clickable && !$viewOnly ? 'text-gray-700 dark:text-gray-200' : 'text-gray-500' }}">
+            class="text-sm font-medium {{ $clickable && !$viewOnly ? 'text-gray-700 dark:text-neutral-400' : 'text-gray-500 dark:text-neutral-400' }}">
             Type:
         </label>
 
@@ -21,7 +21,7 @@
             {{-- Interactive toggle --}}
             <div class="flex items-center gap-1">
                 <!-- Per Lot Label -->
-                <span class="text-sm font-medium text-gray-700">Per Lot</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-white">Per Lot</span>
 
                 <!-- Toggle Switch -->
                 <label for="procurement-type-toggle" class="relative inline-block w-12 h-6 cursor-pointer">
@@ -42,7 +42,7 @@
                 </label>
 
                 <!-- Per Item Label -->
-                <span class="text-sm font-medium text-gray-700">Per Item</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-white">Per Item</span>
             </div>
         @endif
     </div>

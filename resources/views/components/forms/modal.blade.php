@@ -6,7 +6,8 @@
 <div x-data="{ show: @entangle('showModal') }" x-show="show" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-    <div class="bg-white shadow-xl w-full {{ $size }} rounded-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div
+        class="bg-white shadow-xl w-full {{ $size }} rounded-2xl flex flex-col max-h-[90vh] overflow-hidden dark:bg-neutral-600">
         <!-- Modal Header (fixed at top) -->
         <div
             class="flex justify-between items-center px-4 py-2

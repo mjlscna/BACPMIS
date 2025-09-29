@@ -24,7 +24,7 @@
 
 <div class="flex flex-col {{ $colspan }}" x-data="{ display: '{{ $formattedValue }}' }">
     <label for="{{ $id }}"
-        class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500' : 'text-gray-700 dark:text-gray-200' }} mb-1">
+        class="block text-sm font-medium {{ $viewOnly ? 'text-gray-500 dark:text-neutral-400' : 'text-gray-700 dark:text-gray-200' }} mb-1">
         @if ($required && !$viewOnly)
             <span class="text-red-500 mr-1">*</span>
         @endif

@@ -5,11 +5,10 @@
             <!-- Add items-center here -->
             <div class="p-8 pr-10 inline-block align-middle w-full overflow-x-auto">
                 <div
-                    class="w-full bg-white border border-gray-200 rounded-xl shadow-2xs overflow-hidden dark:bg-neutral-900 dark:border-neutral-700">
+                    class="w-full bg-white border border-gray-200 rounded-xl shadow-2xs overflow-hidden dark:bg-neutral-700">
                     <!-- Header -->
-
                     <div
-                        class="sticky top-0 z-40 bg-white dark:bg-neutral-900 px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700">
+                        class="sticky top-0 z-40 bg-white  px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
                         <div class="flex items-center gap-x-2">
                             <div class="relative">
                                 <input type="text" wire:model.debounce.300ms="search"
@@ -29,7 +28,7 @@
                     <!-- Table -->
                     <div class="overflow-y-auto flex-1">
                         <table class="table-fixed w-full divide-y divide-gray-200 dark:divide-neutral-700">
-                            <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
+                            <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-40">
                                 <tr>
                                     <th class="w-10 px-2 py-2"></th>
                                     <th
@@ -55,7 +54,8 @@
                                 </tr>
                             </thead>
 
-                            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                            <tbody
+                                class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                                 @forelse($procurements as $proc)
                                     <!-- Main Row -->
                                     <tr wire:click="$set('selectedProcurement', {{ $proc->id }})"
@@ -88,27 +88,27 @@
                                         </td>
 
                                         <!-- PR Number -->
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
                                             {{ $proc->pr_number }}
                                         </td>
 
                                         <!-- Type -->
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
                                             {{ $proc->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}
                                         </td>
 
                                         <!-- Program / Project -->
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
                                             {{ $proc->procurement_program_project }}
                                         </td>
 
                                         <!-- Date Receipt -->
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
                                             {{ $proc->date_receipt }}
                                         </td>
 
                                         <!-- PR Stage -->
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
                                             @if ($proc->procurement_type === 'perLot')
                                                 {{-- Show latest perLot stage --}}
                                                 {{ $proc->prLotPrstages->sortByDesc('created_at')->first()?->procurementStage?->procurementstage ?? 'N/A' }}
@@ -130,12 +130,18 @@
                                                             <th class="px-4 py-2 text-left">PR Stage</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody>
+                                                    <tbody
+                                                        class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                                                         @foreach ($proc->pr_items as $item)
                                                             <tr>
-                                                                <td class="px-4 py-2">{{ $item->description }}</td>
-                                                                <td class="px-4 py-2">{{ $item->amount }}</td>
-                                                                <td class="px-4 py-2">
+                                                                <td
+                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
+                                                                    {{ $item->description }}</td>
+                                                                <td
+                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
+                                                                    {{ $item->amount }}</td>
+                                                                <td
+                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
                                                                     {{ $item->stage_name ?? 'N/A' }}
                                                                 </td>
                                                             </tr>
@@ -148,7 +154,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="6"
-                                            class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                            class="px-4 py-4 text-center text-sm text-gray-500 dark:text-white">
                                             No procurements found.
                                         </td>
                                     </tr>

@@ -223,7 +223,7 @@ class ProcurementEditPage extends Component
                 'regex:/^\d{4}-\d{4}$/',
                 Rule::unique('procurements', 'pr_number')->ignore($this->procurement->id),
             ],
-            'procurement_program_project' => 'required|string|max:255',
+            'procurement_program_project' => 'required|string|max:1000',
             'divisions_id' => 'required|integer|exists:divisions,id',
             'cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
             'category_id' => 'required|integer|exists:categories,id',

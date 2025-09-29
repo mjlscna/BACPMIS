@@ -17,7 +17,7 @@
     @livewire('partials.sidebar')
 
     <!-- Content -->
-    <div class="w-full pt-45 flex-grow lg:max-w-[calc(100vw-14rem)] lg:ml-[14rem]">
+    <div class="w-full pt-45 flex-grow lg:max-w-[calc(100vw-14rem)] lg:ml-[14rem] dark:bg-neutral-800">
         <main>
             {{ $slot }}
         </main>

@@ -1,12 +1,14 @@
 <div class="space-y-6 p-8 pb-[5rem]">
 
     {{-- First Box --}}
-    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+    <div
+        class="bg-white p-4 rounded-xl shadow border border-gray-200
+                dark:bg-neutral-700 dark:border-neutral-700">
         <!-- Grid for PR No. + Program/Project -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <!-- PR Number -->
             <div class="col-span-1">
-                <label for="pr_number" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="pr_number" class="block text-sm font-medium text-gray-700 dark:text-white mb-1">
                     PR No.
                 </label>
                 <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form" :required="true"
@@ -15,7 +17,7 @@
 
             <!-- Procurement Program / Project -->
             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                model="form.procurement_program_project" :form="$form" :required="true" :maxlength="500"
+                model="form.procurement_program_project" :form="$form" :required="true" :maxlength="1000"
                 :rows="1" colspan="col-span-4" />
         </div>
 
@@ -33,7 +35,7 @@
                         <div class="flex items-center gap-x-2">
                             {{-- Show/Hide table button --}}
                             <button type="button" wire:click="$toggle('showTable')"
-                                class="transition p-1 rounded-full hover:bg-gray-100">
+                                class="transition p-1 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800">
                                 @if (!$showTable)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,10 +55,11 @@
                     </div>
 
                     @if ($showTable)
-                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
+                        <div
+                            class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full dark:bg-neutral-700">
 
                             <div class="flex items-center justify-between mb-2">
-                                <h3 class="font-semibold text-gray-700">Item List</h3>
+                                <h3 class="font-semibold text-gray-700  dark:text-white">Item List</h3>
                                 <button type="button" wire:click="addItem"
                                     class="py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
                                     <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -83,7 +86,7 @@
         </div>
     </div>
 
-    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
         <div class="grid grid-cols-2 md:grid-cols-8 gap-4">
             <!-- Date Receipt (Advance Copy) -->
             <x-forms.date id="date_receipt" label="Date Receipt" model="form.date_receipt" :form="$form"
@@ -113,7 +116,7 @@
 
         </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
+    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700 dark:border-neutral-700">
         <!-- Simple Form Fields in Landscape Layout -->
         <div class="grid grid-cols-4 gap-4">
             <!-- Venue Specific -->
@@ -137,7 +140,8 @@
             </div>
         </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
+    <div
+        class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700 dark:border-neutral-700">
         <div class="grid grid-cols-4 gap-4">
             <!-- LEFT COLUMN -->
             <div class="col-span-3 flex gap-4">
@@ -175,7 +179,7 @@
     </div>
     <div class="flex justify-center gap-4 mt-6">
         <!-- Third Box -->
-        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
             <!-- Simple Form Fields in Landscape Layout -->
             <div class="grid grid-cols-4 gap-4">
                 <!-- Source of Funds -->
@@ -209,7 +213,7 @@
         </div>
     </div>
     <div
-        class="fixed bottom-[2rem] right-0 left-0 lg:ml-[13.75rem] flex justify-end p-2 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 z-50">
+        class="fixed bottom-[2rem] right-0 left-0 lg:ml-[13.75rem] flex justify-end p-2 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 z-49">
         <div class="w-full max-w-[110rem] mx-auto sm:px-6 lg:px-8 flex justify-end">
             <button wire:click="save"
                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">

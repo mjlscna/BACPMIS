@@ -77,16 +77,16 @@
                         </g>
                     </svg>
                     <p
-                        class="inline-block text-sm font-medium bg-clip-text bg-gradient-to-l from-green-500 to-emerald-700 text-transparent dark:from-blue-400 dark:to-violet-400">
+                        class="inline-block text-sm font-medium bg-clip-text bg-gradient-to-l from-green-500 to-emerald-700 text-transparent ">
                         Department of Health Western Visayas - Center for Health Development
                     </p>
 
                     <!-- Title -->
                     <div class="mt-4 md:mb-12 max-w-2xl">
-                        <h1 class="mb-4 font-semibold text-gray-800 text-4xl lg:text-5xl dark:text-neutral-200">
+                        <h1 class="mb-4 font-semibold text-gray-800 text-4xl lg:text-5xl">
                             BAC Procurement Monitoring System
                         </h1>
-                        <p class="text-gray-600 dark:text-neutral-400">
+                        <p class="text-gray-600">
                             Version 1.0
                         </p>
                     </div>
@@ -106,47 +106,35 @@
                             <form wire:submit.prevent="authenticate">
                                 <!-- Session Status -->
                                 <div>
-
                                     @if (session('errorMessage'))
-                                        <p class="mb-4 text-red-400 text-center">{{ session('errorMessage') }}</p>
+                                        <p class="mb-4 text-red-500 text-center dark:text-red-400">
+                                            {{ session('errorMessage') }}</p>
                                     @endif
-
                                 </div>
+
                                 <div class="grid gap-y-4">
-                                    <!-- Form Group -->
+                                    <!-- Email -->
                                     <div>
-                                        <label for="email" class="block text-sm mb-2 dark:text-white">Email</label>
+                                        <label for="email"
+                                            class="block text-sm mb-2 text-gray-700 dark:text-gray-200">Email</label>
                                         <div class="relative">
                                             <input type="email" id="email" wire:model="email"
-                                                class="py-3 px-4 block w-full bg-gray-100 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                                                class="py-3 px-4 block w-full bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200 dark:placeholder-neutral-500 dark:focus:ring-neutral-500 dark:focus:border-blue-500"
                                                 required aria-describedby="email-error">
-                                            <div class="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                                                <svg class="size-5 text-red-500" width="16" height="16"
-                                                    fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path
-                                                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                     </div>
-                                    <!--End Form Group -->
 
-                                    <!-- Form Group -->
+                                    <!-- Password -->
                                     <div>
                                         <div class="flex justify-between items-center">
                                             <label for="password"
-                                                class="block text-sm mb-2 dark:text-white">Password</label>
-                                            {{-- <a
-                                                class="inline-flex items-center gap-x-1 text-sm text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium dark:text-blue-500"
-                                                href="../examples/html/recover-account.html">Forgot password?</a>
-                                            --}}
+                                                class="block text-sm mb-2 text-gray-700 dark:text-gray-200">Password</label>
                                         </div>
                                         <div class="relative" x-data="{ show: false }">
                                             <input :type="show ? 'text' : 'password'" id="password"
                                                 wire:model="password"
-                                                class="py-3 px-4 block w-full bg-gray-100 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+                                                class="py-3 px-4 block w-full bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200 dark:placeholder-neutral-500 dark:focus:ring-neutral-500 dark:focus:border-blue-500"
                                                 required aria-describedby="password-error">
-
                                             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                                                 <button type="button" @click="show = !show"
                                                     class="text-gray-500 dark:text-neutral-400 focus:outline-none">
@@ -154,14 +142,12 @@
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                             fill="currentColor" class="size-6">
                                                             <path
-                                                                d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM22.676 12.553a11.249 11.249 0 0 1-2.631 4.31l-3.099-3.099a5.25 5.25 0 0 0-6.71-6.71L7.759 4.577a11.217 11.217 0 0 1 4.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113Z" />
+                                                                d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18Z" />
                                                             <path
-                                                                d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0 1 15.75 12ZM12.53 15.713l-4.243-4.244a3.75 3.75 0 0 0 4.244 4.243Z" />
+                                                                d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0 1 15.75 12Z" />
                                                             <path
                                                                 d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 0 0-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 0 1 6.75 12Z" />
                                                         </svg>
-
-
                                                     </template>
                                                     <template x-if="show">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -172,42 +158,24 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                         </svg>
-
                                                     </template>
                                                 </button>
                                             </div>
                                         </div>
-
                                     </div>
-                                    <!-- End Form Group -->
 
-                                    <!-- Checkbox -->
-                                    {{-- <div class="flex items-center">
-                                        <div class="flex">
-                                            <input id="remember-me" name="remember-me" type="checkbox"
-                                                class="shrink-0 mt-0.5 border-gray-200 rounded text-blue-600 focus:ring-blue-500 dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800">
-                                        </div>
-                                        <div class="ms-3">
-                                            <label for="remember-me" class="text-sm dark:text-white">Remember
-                                                me</label>
-                                        </div>
-                                    </div> --}}
-                                    <!-- End Checkbox -->
-
+                                    <!-- Submit Button -->
                                     <button type="submit" wire:loading.class="opacity-50 disabled"
-                                        class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gradient-to-bl from-green-600 to-emerald-700 text-white hover:bg-emerald-700 focus:outline-none focus:bg-emerald-700 disabled:opacity-50 disabled:pointer-events-none">Sign
-                                        in</button>
-                                    <div class="ms-2 text-center">
-                                        {{-- <a class="text-sm text-red-400 underline" href="/admin">Admin Login</a>
-                                        --}}
-                                    </div>
+                                        class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gradient-to-bl from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 disabled:opacity-50 disabled:pointer-events-none">
+                                        Sign in
+                                    </button>
                                 </div>
                             </form>
-                            <!--End Form -->
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

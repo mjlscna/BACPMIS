@@ -1,6 +1,6 @@
 <x-forms.modal title="Procurement Details" size="max-w-6xl" wire:model="showModal">
 
-    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700">
         <!-- Grid for PR No. + Program/Project -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <!-- PR Number -->
@@ -70,7 +70,7 @@
 
     </div>
 
-    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 mt-6">
+    <div class="bg-white p-4 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700">
         <div class="grid grid-cols-2 md:grid-cols-8 gap-4">
             <!-- Date Receipt (Advance Copy) -->
             <x-forms.date id="date_receipt" label="Date Receipt" model="form.date_receipt" :form="$form"
@@ -102,7 +102,7 @@
 
         </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
+    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700">
         <!-- Simple Form Fields in Landscape Layout -->
         <div class="grid grid-cols-4 gap-4">
             <!-- Venue Specific -->
@@ -128,7 +128,7 @@
             </div>
         </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
+    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6 dark:bg-neutral-700">
         <div class="grid grid-cols-4 gap-4">
             <!-- LEFT COLUMN -->
             <div class="col-span-3 flex gap-4">
@@ -165,9 +165,9 @@
         </div>
 
     </div>
-    <div class="flex justify-center gap-4 mt-6">
+    <div class="flex justify-center gap-4 mt-6 ">
         <!-- Third Box -->
-        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700">
             <!-- Simple Form Fields in Landscape Layout -->
             <div class="grid grid-cols-4 gap-4">
                 <!-- Source of Funds -->
