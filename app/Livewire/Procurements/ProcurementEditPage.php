@@ -59,7 +59,7 @@ class ProcurementEditPage extends Component
         } else {
             $this->form['items'] = $this->form['items'] ?? [];
         }
-
+        $this->updatedFormCategoryId();
         $this->updateCategoryVenue();
         $this->updateAbcFromItems();
     }

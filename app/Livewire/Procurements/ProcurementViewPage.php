@@ -40,8 +40,14 @@ class ProcurementViewPage extends Component
 
     public function open($procID)
     {
-        $procurement = Procurement::with('pr_items')->where('procID', $procID)->firstOrFail();
+        $procurement = Procurement::with('pr_items', 'category.categoryType', 'category.bacType')
+            ->where('procID', $procID)
+            ->firstOrFail();
+
         $this->form = $procurement->toArray();
+
+        $this->form['category_type'] = $procurement->category?->categoryType?->category_type ?? null;
+        $this->form['rbac_sbac'] = $procurement->category?->bacType?->abbreviation ?? null;
 
         // ✅ Normalize procurement_type
         if (!in_array($this->form['procurement_type'] ?? null, ['perItem', 'perLot'])) {

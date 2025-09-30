@@ -1,7 +1,7 @@
 <!-- ========== FOOTER ========== -->
 <footer class="fixed bottom-0 left-0 w-full bg-gray-100 dark:bg-neutral-800 text-center z-40">
     <div
-        class="w-full bg-gradient-to-r from-emerald-100 to-white max-w-[110rem] py-2 sm:px-6 lg:px-8 mx-auto flex justify-center">
+        class="w-full bg-gradient-to-r from-emerald-100 to-white min-w-[110rem] py-2 sm:px-6 lg:px-8 mx-auto flex justify-center">
 
 
 

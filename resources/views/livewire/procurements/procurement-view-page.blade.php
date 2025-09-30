@@ -91,11 +91,11 @@
                 :viewOnly="true" colspan="col-span-1" />
             <!-- UniCode -->
             <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form" :viewOnly="true"
-                :required="false" />
+                :required="false" colspan="col-span-2" />
             <!-- Division -->
             <x-forms.select id="divisions_id" label="Division" model="form.divisions_id" :form="$form"
                 :options="$divisions" optionValue="id" optionLabel="divisions" :required="true" :viewOnly="true"
-                colspan="col-span-3" />
+                colspan="col-span-4" />
             <!-- Cluster / Committee -->
             <x-forms.select id="cluster_committees_id" label="Cluster / Committee" model="form.cluster_committees_id"
                 :form="$form" :options="$clusterCommittees" optionValue="id" optionLabel="clustercommittee" :required="true"
@@ -109,14 +109,14 @@
             <!-- Venue Specific -->
             <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id"
                 :form="$form" :options="$venueSpecifics" optionValue="id" optionLabel="name" :required="false"
-                :viewOnly="true" colspan="col-span-1" />
+                :viewOnly="true" colspan="col-span-2" />
             <!-- Venue Province/HUC -->
             <x-forms.select id="venue_province_huc_id" label="Venue|Province/HUC" model="form.venue_province_huc_id"
                 :form="$form" :options="$venueProvinces" optionValue="id" optionLabel="province_huc" :viewOnly="true"
-                :required="false" colspan="col-span-1" />
+                :required="false" colspan="col-span-2" />
             <!-- Category / Venue (Read-only) -->
             <x-forms.readonly-input id="category_venue" label="Category / Venue" model="form.category_venue"
-                :form="$form" :required="false" :viewOnly="true" colspan="col-span-2" />
+                :form="$form" :required="false" :viewOnly="true" colspan="col-span-4" />
             <!-- Approved PPMP -->
             <div class="flex flex-col col-span-2">
                 <x-forms.approved-ppmp :form="$form" model="form.approved_ppmp" :viewOnly="true"
