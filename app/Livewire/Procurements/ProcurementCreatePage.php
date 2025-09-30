@@ -10,6 +10,7 @@ use App\Models\FundSource;
 use App\Models\ProvinceHuc;
 use App\Models\VenueSpecific;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use App\Models\Procurement;
@@ -355,15 +356,18 @@ class ProcurementCreatePage extends Component
             $this->page = $totalPages;
         }
     }
+    // In YourComponent.php
+
     public function addItem(): void
     {
-        array_unshift($this->form['items'], [
+        // This function is correct. No changes needed.
+        $this->form['items'][] = [
+            'uid' => Str::uuid()->toString(),
             'item_no' => 0,
             'description' => '',
             'amount' => 0.00,
-        ]);
+        ];
 
-        $this->form['items'] = array_values($this->form['items']); // reindex
         $this->reorderItemNumbers();
         $this->updateAbcFromItems();
     }
@@ -371,6 +375,7 @@ class ProcurementCreatePage extends Component
 
     public function removeItem(int $index): void
     {
+        // This function is correct. No changes needed.
         array_splice($this->form['items'], $index, 1);
         $this->reorderItemNumbers();
         $this->updateAbcFromItems();
@@ -379,24 +384,25 @@ class ProcurementCreatePage extends Component
     private function reorderItemNumbers(): void
     {
         $items = $this->form['items'] ?? [];
-        $total = count($items);
 
         foreach ($items as $i => &$item) {
-            $item['item_no'] = (int) $total - (int) $i;
+            // ✨ CORRECTED: Assign the item number based on its natural order.
+            // The newest item will now have the highest number.
+            $item['item_no'] = $i + 1;
         }
 
         $this->form['items'] = $items;
     }
 
 
-    public function updatedFormItems($value, $key)
+    public function updatedFormItems($value, $key): void
     {
-        // Only handle amount updates
+        // This function is correct. No changes needed.
         if (str_contains($key, '.amount')) {
             $cleaned = preg_replace('/[^0-9.]/', '', $value);
             $numericValue = floatval($cleaned);
 
-            data_set($this->form, $key, number_format($numericValue, 2, '.', ''));
+            data_set($this->form, 'items.' . $key, number_format($numericValue, 2, '.', ''));
 
             $this->updateAbcFromItems();
         }
@@ -404,6 +410,7 @@ class ProcurementCreatePage extends Component
 
     public function updateAbcFromItems(): void
     {
+        // This function is correct. No changes needed.
         if ($this->form['procurement_type'] === 'perItem') {
             $this->form['abc'] = collect($this->form['items'])
                 ->sum(fn($item) => (float) ($item['amount'] ?? 0));

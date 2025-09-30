@@ -53,6 +53,7 @@ class ProcurementViewPage extends Component
             $this->form['items'] = $procurement->pr_items
                 ->sortByDesc('id') // or prItemID if needed
                 ->map(fn($item) => [
+                    'prItemID' => $item->prItemID,
                     'item_no' => $item->item_no,
                     'description' => $item->description,
                     'amount' => $item->amount ?? 0,

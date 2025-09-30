@@ -52,9 +52,10 @@
                     </div>
 
                     @if ($showTable)
-                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
+                        <div
+                            class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full dark:bg-neutral-700">
 
-                            <h3 class="font-semibold text-gray-700">Item List</h3>
+                            <h3 class="font-semibold text-gray-700 dark:text-white">Item List</h3>
                             {{-- Items table component --}}
                             @if (data_get($form, 'procurement_type') === 'perItem')
                                 <x-forms.prItems-table :form="$form" model="form.items" :page="$page"

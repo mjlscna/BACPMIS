@@ -88,27 +88,27 @@
                                         </td>
 
                                         <!-- PR Number -->
-                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-white">
                                             {{ $proc->pr_number }}
                                         </td>
 
                                         <!-- Type -->
-                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-white">
                                             {{ $proc->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}
                                         </td>
 
                                         <!-- Program / Project -->
-                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-white">
                                             {{ $proc->procurement_program_project }}
                                         </td>
 
                                         <!-- Date Receipt -->
-                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-white">
                                             {{ $proc->date_receipt }}
                                         </td>
 
                                         <!-- PR Stage -->
-                                        <td class="px-4 py-2 text-sm text-black dark:text-neutral-200">
+                                        <td class="px-4 py-2 text-sm text-black dark:text-white">
                                             @if ($proc->procurement_type === 'perLot')
                                                 {{-- Show latest perLot stage --}}
                                                 {{ $proc->prLotPrstages->sortByDesc('created_at')->first()?->procurementStage?->procurementstage ?? 'N/A' }}
@@ -125,9 +125,12 @@
                                                 <table class="w-full text-sm">
                                                     <thead>
                                                         <tr>
-                                                            <th class="px-4 py-2 text-left">Description</th>
-                                                            <th class="px-4 py-2 text-left">Amount</th>
-                                                            <th class="px-4 py-2 text-left">PR Stage</th>
+                                                            <th class="px-4 py-2 text-left text-black dark:text-white">
+                                                                Description</th>
+                                                            <th class="px-4 py-2 text-left text-black dark:text-white">
+                                                                Amount</th>
+                                                            <th class="px-4 py-2 text-left text-black dark:text-white">
+                                                                PR Stage</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody
@@ -135,13 +138,13 @@
                                                         @foreach ($proc->pr_items as $item)
                                                             <tr>
                                                                 <td
-                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
+                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
                                                                     {{ $item->description }}</td>
                                                                 <td
-                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
+                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
                                                                     {{ $item->amount }}</td>
                                                                 <td
-                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-neutral-200">
+                                                                    class="px-6 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
                                                                     {{ $item->stage_name ?? 'N/A' }}
                                                                 </td>
                                                             </tr>
