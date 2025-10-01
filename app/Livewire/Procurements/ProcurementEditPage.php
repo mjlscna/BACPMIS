@@ -12,6 +12,7 @@ use App\Models\PrItemPrstage;
 use App\Models\ProvinceHuc;
 use App\Models\VenueSpecific;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use Illuminate\Validation\Rule;
@@ -153,17 +154,16 @@ class ProcurementEditPage extends Component
 
     public function addItem(): void
     {
-        array_unshift($this->form['items'], [
-            'item_no' => 0,
+        $this->form['items'][] = [
+            'uid' => Str::uuid()->toString(),
+            'item_no' => 0, // Will be set by reorderItemNumbers
             'description' => '',
             'amount' => 0.00,
-        ]);
+        ];
 
-        $this->form['items'] = array_values($this->form['items']); // reindex
         $this->reorderItemNumbers();
         $this->updateAbcFromItems();
     }
-
     public function removeItem(int $index): void
     {
         array_splice($this->form['items'], $index, 1);
@@ -174,10 +174,9 @@ class ProcurementEditPage extends Component
     private function reorderItemNumbers(): void
     {
         $items = $this->form['items'] ?? [];
-        $total = count($items);
 
         foreach ($items as $i => &$item) {
-            $item['item_no'] = (int) $total - (int) $i;
+            $item['item_no'] = $i + 1;
         }
 
         $this->form['items'] = $items;

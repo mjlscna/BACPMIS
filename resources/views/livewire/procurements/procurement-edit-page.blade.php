@@ -3,7 +3,7 @@
     {{-- First Box --}}
     <div
         class="bg-white p-4 rounded-xl shadow border border-gray-200
-                dark:bg-neutral-700 dark:border-neutral-700">
+                dark:bg-neutral-700 dark:border-neutral-700 ">
         <!-- Grid for PR No. + Program/Project -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <!-- PR Number -->
@@ -56,10 +56,11 @@
                     </div>
 
                     @if ($showTable)
-                        <div class="bg-white p-4 rounded-xl shadow border border-gray-200 overflow-x-auto w-full">
+                        <div
+                            class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 overflow-x-auto w-full">
 
                             <div class="flex items-center justify-between mb-2">
-                                <h3 class="font-semibold text-gray-700">Item List</h3>
+                                <h3 class="font-semibold text-gray-700 dark:text-white">Item List</h3>
                                 <button type="button" wire:click="addItem"
                                     class="py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
                                     <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -94,7 +95,7 @@
             <!-- Category -->
             <x-forms.select id="category_id" label="Category" model="form.category_id" :form="$form"
                 :options="$categories" optionValue="id" optionLabel="category" :required="true" wireModifier="live"
-                colspan="col-span-2" :searchable="true" />
+                colspan="col-span-2" :searchable="false" />
             <!-- Category Type (Read-only) -->
             <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type"
                 :form="$form" :required="false" :colspan="1" />
@@ -105,16 +106,16 @@
             <x-forms.input id="dtrack_no" label="DTRACK #" model="form.dtrack_no" :form="$form"
                 colspan="col-span-1" />
             <!-- UniCode -->
-            <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form" :required="true"
+            <x-forms.input id="unicode" label="UniCode" model="form.unicode" :form="$form" :required="false"
                 colspan="col-span-2" />
             <!-- Division -->
             <x-forms.select id="divisions_id" label="Division" model="form.divisions_id" :form="$form"
                 :options="$divisions" optionValue="id" optionLabel="divisions" :required="true" colspan="col-span-3"
-                :searchable="true" />
+                :searchable="false" />
             <!-- Cluster / Committee -->
             <x-forms.select id="cluster_committees_id" label="Cluster / Committee" model="form.cluster_committees_id"
                 :form="$form" :options="$clusterCommittees" optionValue="id" optionLabel="clustercommittee" :required="true"
-                colspan="col-span-2" :searchable="true" />
+                colspan="col-span-2" :searchable="false" />
 
         </div>
     </div>
@@ -124,11 +125,11 @@
             <!-- Venue Specific -->
             <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id"
                 :form="$form" :options="$venueSpecifics" optionValue="id" optionLabel="name" :required="false"
-                colspan="col-span-2" :searchable="true" />
+                colspan="col-span-2" :searchable="false" />
             <!-- Venue Province/HUC -->
             <x-forms.select id="venue_province_huc_id" label="Venue|Province/HUC" model="form.venue_province_huc_id"
                 :form="$form" :options="$venueProvinces" optionValue="id" optionLabel="province_huc" :required="false"
-                colspan="col-span-2" :searchable="true" />
+                colspan="col-span-2" :searchable="false" />
             <!-- Category / Venue (Read-only) -->
             <x-forms.readonly-input id="category_venue" label="Category / Venue" model="form.category_venue"
                 :form="$form" :required="false" colspan="col-span-4" />
@@ -188,7 +189,7 @@
                 <div class="col-span-1">
                     <x-forms.select id="fund_source_id" label="Source of Funds" model="form.fund_source_id"
                         :form="$form" :options="$fundSources" optionValue="id" optionLabel="fundsources"
-                        :required="true" :searchable="true" />
+                        :required="true" :searchable="false" />
                 </div>
 
                 <!-- Expense Class -->
@@ -215,7 +216,7 @@
         </div>
     </div>
     <div
-        class="fixed bottom-[2rem] right-0 left-0 lg:ml-[13.75rem] flex justify-end p-2 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 z-50">
+        class="fixed bottom-5 right-0 left-0 lg:ml-[13.75rem] flex justify-end p-2 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 z-49">
         <div class="w-full max-w-[110rem] mx-auto sm:px-6 lg:px-8 flex justify-end">
             <button wire:click="save"
                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">

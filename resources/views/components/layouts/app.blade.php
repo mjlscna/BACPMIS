@@ -10,15 +10,15 @@
     @livewireStyles()
 </head>
 
-<body class="flex flex-col min-h-screen">
+<body class="bg-gray-50 dark:bg-neutral-900">
 
     @livewire('partials.header')
     @livewire('partials.navbar')
     @livewire('partials.sidebar')
 
     <!-- Content -->
-    <div class="w-full pt-45 flex-grow lg:max-w-[calc(100vw-14rem)] lg:ml-[14rem] dark:bg-neutral-800">
-        <main>
+    <div class="w-full pt-44 lg:pl-56 pb-10">
+        <main class="p-4 md:p-6">
             {{ $slot }}
         </main>
     </div>
