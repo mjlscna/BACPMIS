@@ -285,8 +285,18 @@ class ProcurementCreatePage extends Component
 
         // --- If perItem, save items + related mop_item & pr_item_prstage ---
         if ($this->form['procurement_type'] === 'perItem' && !empty($this->form['items'])) {
-            foreach (array_reverse($this->form['items']) as $index => $item) {
-                $prItemID = "{$this->procID}-" . ($index + 1);
+
+            // Create a temporary, sortable copy of the items array
+            $itemsToSave = $this->form['items'];
+
+            // Sort the array by the 'item_no' key in ascending order
+            usort($itemsToSave, function ($a, $b) {
+                return $a['item_no'] <=> $b['item_no']; // The spaceship operator <=> is perfect for this
+            });
+
+            // Now, loop through the correctly sorted array
+            foreach ($itemsToSave as $item) {
+                $prItemID = "{$this->procID}-" . $item['item_no'];
 
                 $prItem = $procurement->pr_items()->create([
                     'procID' => $this->procID,
@@ -296,8 +306,7 @@ class ProcurementCreatePage extends Component
                     'amount' => floatval(preg_replace('/[^0-9.]/', '', $item['amount'] ?? 0)),
                 ]);
 
-
-                // default MopItem (mode_of_procurement_id = 1)
+                // Default MopItem
                 MopItem::create([
                     'procID' => $this->procID,
                     'prItemID' => $prItem->prItemID,
@@ -306,7 +315,7 @@ class ProcurementCreatePage extends Component
                     'mode_order' => 1,
                 ]);
 
-                // default PrItemPrstage (stage_id = 1)
+                // Default PrItemPrstage
                 PrItemPrstage::create([
                     'procID' => $this->procID,
                     'prItemID' => $prItem->prItemID,
@@ -386,8 +395,6 @@ class ProcurementCreatePage extends Component
         $items = $this->form['items'] ?? [];
 
         foreach ($items as $i => &$item) {
-            // ✨ CORRECTED: Assign the item number based on its natural order.
-            // The newest item will now have the highest number.
             $item['item_no'] = $i + 1;
         }
 

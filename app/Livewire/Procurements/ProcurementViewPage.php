@@ -57,7 +57,7 @@ class ProcurementViewPage extends Component
         // 🔁 Reverse items if perItem
         if ($this->form['procurement_type'] === 'perItem') {
             $this->form['items'] = $procurement->pr_items
-                ->sortByDesc('id') // or prItemID if needed
+                ->sortBy('item_no')
                 ->map(fn($item) => [
                     'prItemID' => $item->prItemID,
                     'item_no' => $item->item_no,
