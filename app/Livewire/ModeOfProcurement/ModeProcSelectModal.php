@@ -2,9 +2,10 @@
 
 namespace App\Livewire\ModeOfProcurement;
 
+use App\Models\Procurement;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Procurement;
 
 class ModeProcSelectModal extends Component
 {
@@ -12,16 +13,19 @@ class ModeProcSelectModal extends Component
 
     protected string $paginationTheme = 'tailwind';
 
-    public $showModal = false;
-    public $search = '';
-    public $perPage = 10;
-    public $selectedProcurement = null;
-    public $expandedProcurementId = null;
-    protected $queryString = ['search'];
+    public bool $showModal = false;
+    public string $search = '';
+    public int $perPage = 10;
+    public array $selectedProcurements = [];
+    public array $existingSelection = [];
+
+    // ✅ 1. Add this property to receive the type from the parent
+    public string $procurementType = '';
+
+    public int $perPageSelected = 5;
+    protected array $queryString = ['search'];
     protected $listeners = ['open-mode-modal' => 'open'];
-    public $form = [
-        'items' => [],
-    ];
+
 
     public function updatingSearch()
     {
@@ -31,55 +35,79 @@ class ModeProcSelectModal extends Component
     public function open()
     {
         $this->search = '';
+        $this->selectedProcurements = $this->existingSelection;
         $this->resetPage('modalPage');
+        $this->resetPage('selectedPage');
         $this->showModal = true;
     }
 
     public function close()
     {
-        $this->search = '';
         $this->showModal = false;
     }
 
-    public function selectProcurement()
+    public function removeSelection(int $procurementId): void
     {
-        if ($this->selectedProcurement) {
-            $procurement = Procurement::findOrFail($this->selectedProcurement);
-            session()->flash('selected_procurement', [
-                'id' => $procurement->id,
-                'procID' => $procurement->procID,
-                'pr_number' => $procurement->pr_number,
-                'procurement_program_project' => $procurement->procurement_program_project
-            ]);
-            $this->close();
-            return redirect()->route('mode-of-procurement.create');
+        $this->selectedProcurements = array_diff($this->selectedProcurements, [$procurementId]);
+        if (count($this->selectedProcurements) % $this->perPageSelected === 0) {
+            $this->resetPage('selectedPage');
         }
     }
-    public function toggle($field, $id)
-    {
-        $this->$field = $this->$field === $id ? null : $id;
 
-        if ($this->$field) {
-            $procurement = Procurement::with('pr_items')->find($id);
-            $this->form['items'] = $procurement?->pr_items?->toArray() ?? [];
-        } else {
-            $this->form['items'] = [];
+    public function selectProcurements()
+    {
+        if (empty($this->selectedProcurements)) {
+            return;
         }
+        $procurements = Procurement::whereIn('id', $this->selectedProcurements)->get();
+        $selectedData = $procurements->map(fn($proc) => [
+            'id' => $proc->id,
+            'procID' => $proc->procID,
+            'pr_number' => $proc->pr_number,
+            'procurement_program_project' => $proc->procurement_program_project,
+            'division_abbreviation' => $proc->division?->abbreviation,
+            'abc' => $proc->abc,
+        ])->toArray();
+        session()->flash('selected_procurements', $selectedData);
+        $this->close();
+
+        // We need to pass the type back to the create route
+        return redirect()->route('mode-of-procurement.create', ['type' => $this->procurementType]);
+    }
+
+    public function toggle(int $id)
+    {
+        // This remains for your expandable row functionality
     }
 
     public function render()
     {
-        $procurements = Procurement::latest()
+        // Paginator for "Available Items"
+        $procurementsQuery = Procurement::query()
+            // ✅ 2. Add this "where" clause to filter by the selected type
+            ->where('procurement_type', $this->procurementType)
             ->when(
                 $this->search,
                 fn($q) =>
                 $q->where('pr_number', 'like', "%{$this->search}%")
                     ->orWhere('procurement_program_project', 'like', "%{$this->search}%")
-            )
-            ->paginate($this->perPage, ['*'], 'modalPage');
+            );
+
+        // Manually create a paginator for "Selected Items"
+        $totalSelected = count($this->selectedProcurements);
+        $selectedPage = $this->getPage('selectedPage');
+        $selectedIdsForCurrentPage = array_slice($this->selectedProcurements, ($selectedPage - 1) * $this->perPageSelected, $this->perPageSelected);
+
+        $selectedItems = count($selectedIdsForCurrentPage) > 0
+            ? Procurement::whereIn('id', $selectedIdsForCurrentPage)->get()->sortBy(fn($model) => array_search($model->id, $selectedIdsForCurrentPage))
+            : collect();
+
+        $selectedProcurementsForTable = new LengthAwarePaginator($selectedItems, $totalSelected, $this->perPageSelected, $selectedPage, ['pageName' => 'selectedPage']);
 
         return view('livewire.mode-of-procurement.mode-proc-select-modal', [
-            'procurements' => $procurements,
+            'procurements' => $procurementsQuery->latest()->paginate($this->perPage, ['*'], 'modalPage'),
+            'selectedProcurementsForTable' => $selectedProcurementsForTable,
+            'totalSelectedCount' => $totalSelected,
         ]);
     }
 }

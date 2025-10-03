@@ -20,11 +20,26 @@ class MopLot extends Model
 
     public function procurement()
     {
-        return $this->belongsTo(Procurement::class, 'procID');
+        return $this->belongsTo(Procurement::class, 'procID', 'procID');
     }
 
     public function modeOfProcurement()
     {
         return $this->belongsTo(ModeOfProcurement::class, 'mode_of_procurement_id');
+    }
+    public function bidSchedules()
+    {
+        return $this->hasMany(BidSchedule::class, 'procID', 'procID');
+    }
+
+    public function ntfBidSchedules()
+    {
+
+        return $this->hasMany(NtfBidSchedule::class, 'procID', 'procID');
+    }
+
+    public function prSvp()
+    {
+        return $this->hasOne(PrSvp::class, 'procID', 'procID');
     }
 }

@@ -60,7 +60,7 @@
                 open: false,
                 search: '',
                 options: {{ json_encode($normalizedOptions) }},
-                value: @entangle($model).{{ $wireModifier }},
+                value: $wire.entangle('{{ $model }}').{{ $wireModifier }},
                 get selectedLabel() {
                     if (!this.value && this.value !== 0) return 'Select';
                     const selected = this.options.find(opt => opt.value == this.value);
