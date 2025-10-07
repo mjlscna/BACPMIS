@@ -1,5 +1,9 @@
 <?php
 
+use App\Livewire\BacApprovedPr\BacApprovedPrCreatePage;
+use App\Livewire\BacApprovedPr\BacApprovedPrEditPage;
+use App\Livewire\BacApprovedPr\BacApprovedPrIndexPage;
+use App\Livewire\BacApprovedPr\BacApprovedPrViewPage;
 use App\Livewire\ModeOfProcurement\ModeOfProcurementCreatePage;
 use App\Livewire\ModeOfProcurement\ModeOfProcurementEditPage;
 use App\Livewire\ModeOfProcurement\ModeOfProcurementIndexPage;
@@ -34,7 +38,23 @@ Route::middleware(['jwt'])->group(function () {
             ->name('edit')
             ->middleware('can:update_procurement');
     });
+    Route::prefix('bac-approved-pr')->name('bac-approved-pr.')->group(function () {
+        Route::get('/', BacApprovedPrIndexPage::class)
+            ->name('index')
+            ->middleware('can:view_any_b::a::c::approved::p::r');
 
+        Route::get('/create', BacApprovedPrCreatePage::class)
+            ->name('create')
+            ->middleware('can:create_b::a::c::approved::p::r');
+
+        Route::get('/{bacapprovedpr}/edit', BacApprovedPrEditPage::class)
+            ->name('edit')
+            ->middleware('can:update_b::a::c::approved::p::r');
+
+        Route::get('/{bacapprovedpr}', BacApprovedPrViewPage::class)
+            ->name('view')
+            ->middleware('can:view_b::a::c::approved::p::r');
+    });
     // Mode of procurement routes with Shield permissions
     Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
         Route::get('/', ModeOfProcurementIndexPage::class)

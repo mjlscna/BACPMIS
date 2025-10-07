@@ -3,31 +3,42 @@
 use Illuminate\Support\Facades\Route;
 
 if (!function_exists('generate_breadcrumbs')) {
-    function generate_breadcrumbs(): array
+    /**
+     * @param array $customLabels An associative array mapping route segments to custom labels.
+     * @return array
+     */
+    function generate_breadcrumbs(array $customLabels = []): array
     {
-        $routeName = Route::currentRouteName(); // e.g., procurements.create
-        $segments = explode('.', $routeName);
+        $breadcrumbs = []; // Start with an empty array
+        $routeName = Route::currentRouteName();
 
-        $breadcrumbs = [];
+        if (!$routeName) {
+            return []; // Return empty if there's no current route
+        }
+
+        $segments = explode('.', $routeName);
         $path = '';
 
         foreach ($segments as $i => $segment) {
-            $path .= ($i ? '.' : '') . $segment;
+            // Build the route path segment by segment
+            $path .= ($i > 0 ? '.' : '') . $segment;
+            $isLast = $i === count($segments) - 1;
 
-            if ($i < count($segments) - 1) {
-                // Parent segments point to index route
+            // Use the custom label if it exists, otherwise generate one automatically.
+            $label = $customLabels[$segment] ?? ucwords(str_replace(['-', '_'], ' ', $segment));
+
+            // Skip adding 'index' as the final breadcrumb link.
+            if (strtolower($segment) === 'index' && $isLast) {
+                continue;
+            }
+
+            if ($isLast) {
+                // The last segment is the current page and shouldn't be a link.
+                $url = '#';
+            } else {
+                // Parent segments should link to their own 'index' page if one exists.
                 $parentRoute = $path . '.index';
                 $url = Route::has($parentRoute) ? route($parentRoute) : '#';
-                $label = ucfirst(str_replace(['-', '_'], ' ', $segment));
-            } else {
-                // Current page
-                $url = '#';
-                $label = ucfirst(str_replace(['-', '_'], ' ', $segment));
-                
-                // If current segment is "index", hide label
-                if (strtolower($label) === 'index' && $i > 0) {
-                    continue;
-                }
             }
 
             $breadcrumbs[] = [
@@ -39,4 +50,3 @@ if (!function_exists('generate_breadcrumbs')) {
         return $breadcrumbs;
     }
 }
-

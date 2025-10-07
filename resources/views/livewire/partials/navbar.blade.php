@@ -68,6 +68,7 @@
             'dashboard' => 'Dashboard',
             'procurements' => 'Procurements',
             'mode-of-procurement' => 'Mode of Procurement',
+            'bac-approved-pr' => 'BAC Approved PR',
             'posts' => 'Posts Procurement',
             'create' => 'Create',
             'edit' => 'Edit',

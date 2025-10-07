@@ -10,6 +10,8 @@
     'colspan' => 'col-span-1',
     'placeholder' => null,
     'rows' => 4,
+    'readonly' => false,
+    'disabled' => false,
 ])
 
 @php
@@ -37,11 +39,12 @@
         <textarea id="{{ $id }}" wire:model.defer="{{ $model }}" rows="{{ $rows }}"
             class="mt-1 block w-full px-4 py-2 rounded-md text-sm border
                 dark:bg-neutral-700 dark:text-white dark:placeholder-gray-400
+                {{ $readonly || $disabled ? 'bg-gray-100 dark:bg-neutral-800' : '' }}
                 {{ $textAlign ? 'text-' . $textAlign : '' }}
                 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
                 @else border-gray-300  focus:ring-indigo-500 focus:border-indigo-500 @enderror"
             {{ $maxlength ? "maxlength=$maxlength" : '' }} {{ $placeholder ? "placeholder=$placeholder" : '' }}
-            {{ $required ? 'required' : '' }}>{{ $value }}</textarea>
+            {{ $required ? 'required' : '' }} {{ $readonly ? 'readonly' : '' }} {{ $disabled ? 'disabled' : '' }}></textarea>
 
         @error($model)
             <span class="mt-1 text-sm text-red-600">{{ $message }}</span>

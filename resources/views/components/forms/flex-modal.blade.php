@@ -4,7 +4,7 @@
 ])
 
 <div x-data="{ show: @entangle('showModal') }" x-show="show" x-cloak
-    class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
+    class="fixed inset-0 z-50 flex items-start justify-center bg-emerald-700/50 p-4 overflow-y-auto">
 
     <div @click.away="show = false"
         class="bg-white shadow-xl w-full {{ $size }} rounded-2xl overflow-hidden dark:bg-neutral-800 my-8 flex flex-col"

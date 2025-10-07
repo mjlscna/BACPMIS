@@ -152,9 +152,7 @@
                     <x-forms.textarea id="immediate_date_needed" label="Immediate Date Needed"
                         model="form.immediate_date_needed" :form="$form" :maxlength="500" rows="4"
                         :required="true" />
-
                 </div>
-
                 <!-- Date Needed -->
                 <div class="flex-1">
                     <x-forms.textarea id="date_needed" label="Date Needed" model="form.date_needed"
@@ -169,7 +167,6 @@
                     <x-forms.select id="end_users_id" label="PMO/End-User" model="form.end_users_id"
                         :form="$form" :options="$endUsers" optionValue="id" optionLabel="endusers"
                         :required="true" :searchable="true" />
-
                 </div>
                 <!-- Early Procurement Toggle -->
                 <div>
