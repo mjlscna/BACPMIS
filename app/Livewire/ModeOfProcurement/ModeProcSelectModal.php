@@ -16,7 +16,7 @@ class ModeProcSelectModal extends Component
 
     public bool $showModal = false;
     public string $search = '';
-    public int $perPage = 10;
+    public int $perPage = 5;
     public array $existingSelection = [];
     public string $procurementType = '';
     public array $selectedProcurements = [];
