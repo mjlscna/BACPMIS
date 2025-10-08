@@ -15,7 +15,7 @@ class ProcurementController extends Controller
     public function index()
     {
         // 1. Fetch the data from the database
-        $procurements = Procurement::paginate(15);
+        $procurements = Procurement::with(['division', 'endUser', 'category', 'categoryType', 'bacType', 'venueSpecific', 'venueProvincesHUC', 'fundSource'])->get();
 
         // 2. Wrap the collection in your resource
         return ProcurementResource::collection($procurements);
@@ -34,8 +34,9 @@ class ProcurementController extends Controller
      */
     public function show(Procurement $procurement)
     {
-        // The procurement is already fetched by route model binding.
-        // Just wrap the single model in your resource.
+        // Use load() to eager-load relationships on an already-fetched model
+        $procurement->load(['division', 'endUser', 'category', 'categoryType', 'bacType', 'venueSpecific', 'venueProvincesHUC', 'fundSource']);
+
         return new ProcurementResource($procurement);
     }
 
