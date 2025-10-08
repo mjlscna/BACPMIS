@@ -15,7 +15,7 @@
             {{-- Procurement Program / Project --}}
             <div class="col-span-6">
                 <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                    model="form.procurement_program_project" :required="true" :rows="1" colspan="col-span-8"
+                    model="form.procurement_program_project" :required="true" :rows="2" colspan="col-span-8"
                     :readonly="true" />
             </div>
             {{-- Document File Upload --}}

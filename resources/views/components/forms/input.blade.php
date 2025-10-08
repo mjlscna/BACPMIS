@@ -40,30 +40,19 @@
             {{ $value ?? '-' }}
         </div>
     @else
-        <div class="relative flex items-center">
-            @if ($hasSlot = $attributes->has('prepend'))
-                <span class="absolute start-2 text-sm text-gray-400">
-                    {{ $attributes->get('prepend') }}
-                </span>
-            @endif
-
-            <input type="{{ $type }}" id="{{ $id }}" wire:model.defer="{{ $model }}"
-                class="mt-1 block w-full px-4 py-2 rounded-md text-sm dark:text-white border {{ $textAlign ? 'text-' . $textAlign : '' }}
-                    @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
-                    @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror
-                    {{ $hasSlot ? 'ps-7' : '' }}"
-                {{ $maxlength ? "maxlength=$maxlength" : '' }} {{ $placeholder ? "placeholder=$placeholder" : '' }}
-                {{ $disabled ? 'disabled' : '' }} {{ $readonly ? 'readonly' : '' }}
-                {{ $autofocus ? 'autofocus' : '' }} {{ $autocomplete ? "autocomplete=$autocomplete" : '' }}
-                {{ $step ? "step=$step" : '' }} {{ $min !== null ? "min=$min" : '' }}
-                {{ $max !== null ? "max=$max" : '' }} {{ $required && !$viewOnly ? 'required' : '' }} />
-
-            @if ($hasSlot = $attributes->has('append'))
-                <span class="absolute end-2 text-sm text-gray-400">
-                    {{ $attributes->get('append') }}
-                </span>
-            @endif
-        </div>
+        <input type="{{ $type }}" id="{{ $id }}" wire:model.defer="{{ $model }}"
+            value="{{ $value }}"
+            class="mt-1 block w-full px-4 py-2 rounded-md text-sm border
+                {{ $readonly ? 'bg-gray-100 dark:bg-neutral-800 cursor-not-allowed' : '' }}
+                {{ $textAlign ? 'text-' . $textAlign : '' }}
+                @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
+                @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror
+                dark:text-white dark:placeholder-gray-400"
+            {{ $maxlength ? "maxlength=$maxlength" : '' }} {{ $placeholder ? "placeholder=$placeholder" : '' }}
+            {{ $disabled ? 'disabled' : '' }} {{ $readonly ? 'readonly' : '' }} {{ $autofocus ? 'autofocus' : '' }}
+            {{ $autocomplete ? "autocomplete=$autocomplete" : '' }} {{ $step ? "step=$step" : '' }}
+            {{ $min !== null ? "min=$min" : '' }} {{ $max !== null ? "max=$max" : '' }}
+            {{ $required && !$viewOnly ? 'required' : '' }} />
 
         @error($model)
             <span class="mt-1 text-sm text-red-600">{{ $message }}</span>

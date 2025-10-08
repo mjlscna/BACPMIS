@@ -10,7 +10,7 @@
     'optionLabel' => 'name',
     'colspan' => '',
     'wireModifier' => 'live',
-    'searchable' => false, // <-- The new prop
+    'searchable' => false,
 ])
 
 @php

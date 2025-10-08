@@ -176,6 +176,10 @@ class Procurement extends Model
     {
         return $this->hasMany(PrItemPrstage::class, 'procID', 'procID');
     }
+    public function bacApprovedPr()
+    {
+        return $this->hasOne(BACApprovedPR::class, 'procID', 'procID');
+    }
 
 
 }

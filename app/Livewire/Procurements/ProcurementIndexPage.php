@@ -73,7 +73,11 @@ class ProcurementIndexPage extends Component
     {
         $this->resetPage();
     }
-
+    public function viewPdf(string $filepath): void
+    {
+        $url = asset('storage/' . $filepath);
+        $this->dispatch('show-pdf-modal', url: $url);
+    }
     public function render()
     {
         $query = Procurement::query()->latest();

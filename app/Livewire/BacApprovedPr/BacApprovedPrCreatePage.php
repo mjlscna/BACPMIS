@@ -102,8 +102,6 @@ class BacApprovedPrCreatePage extends Component
             ->toast()
             ->position('top-end')
             ->show();
-
-        return $this->redirectRoute('bac-approved-pr.index', navigate: true);
     }
     public function updatedFormPrNumber($value)
     {
