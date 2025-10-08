@@ -15,7 +15,7 @@ class BacApprovedPrCreatePage extends Component
 
     // The form state is managed by this public array
     public $form = [];
-
+    public $textareaRows = 1;
     // File uploads are handled by a separate public property for stability
     public $document_file;
     public $procID;
@@ -105,20 +105,31 @@ class BacApprovedPrCreatePage extends Component
     }
     public function updatedFormPrNumber($value)
     {
-        // Find the selected procurement record
         $procurement = Procurement::find($value);
 
-        // Update the textarea's value in the form array
         if ($procurement) {
-            // If a record is found, fill the textarea with its project name
             $this->form['procurement_program_project'] = $procurement->procurement_program_project;
             $this->procID = $procurement->procID;
+
+            // Dynamically calculate rows based on text length or line breaks
+            $text = trim($procurement->procurement_program_project ?? '');
+
+            // Count actual new lines
+            $lineCount = substr_count($text, "\n") + 1;
+
+            // Estimate wrapped lines more conservatively
+            $approxExtraLines = ceil(strlen($text) / 150); // ← increased divisor from 100 → 150
+            // That means: only very long text adds rows
+
+            // Combine both counts, ensure at least 1 row
+            $this->textareaRows = max($lineCount, $approxExtraLines, 1);
         } else {
-            // If the user selects the empty option, clear the textarea
             $this->form['procurement_program_project'] = '';
             $this->procID = null;
+            $this->textareaRows = 1;
         }
     }
+
 
     public function render()
     {

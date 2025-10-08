@@ -15,16 +15,17 @@
             {{-- Procurement Program / Project --}}
             <div class="col-span-6">
                 <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                    model="form.procurement_program_project" :required="true" :rows="2" colspan="col-span-8"
+                    model="form.procurement_program_project" :required="true" :rows="$textareaRows" colspan="col-span-8"
                     :readonly="true" />
             </div>
+
             {{-- Document File Upload --}}
             <div class="col-span-2">
                 <x-forms.file id="document_file" label="Approved PR Document (PDF)" model="document_file"
                     :required="true" accept="application/pdf" colspan="col-span-3" />
             </div>
             {{-- Remarks --}}
-            <div class="col-span-4">
+            <div class="col-span-5">
                 <x-forms.textarea id="remarks" label="Remarks" model="form.remarks" :required="false"
                     :rows="1" colspan="col-span-6" />
             </div>

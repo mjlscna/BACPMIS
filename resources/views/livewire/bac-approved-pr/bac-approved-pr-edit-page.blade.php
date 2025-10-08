@@ -13,7 +13,8 @@
             {{-- Procurement Program / Project --}}
             <div class="col-span-6">
                 <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                    model="form.procurement_program_project" :required="true" :rows="2" :readonly="true" />
+                    model="form.procurement_program_project" :required="true" :rows="$textareaRows" colspan="col-span-8"
+                    :readonly="true" />
             </div>
 
             {{-- Document File Upload --}}
@@ -23,7 +24,7 @@
                     :required="false" accept="application/pdf" />
             </div>
             {{-- Remarks --}}
-            <div class="col-span-4">
+            <div class="col-span-5">
                 <x-forms.textarea id="remarks" label="Remarks" model="form.remarks" :required="false"
                     :rows="1" />
             </div>

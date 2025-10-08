@@ -15,6 +15,7 @@ class BacApprovedPrEditPage extends Component
 
     public BACApprovedPR $bacapprovedpr;
     public $form = [];
+    public $textareaRows = 1;
     public $document_file;
     public $procurements = [];
 
@@ -39,15 +40,28 @@ class BacApprovedPrEditPage extends Component
 
     public function updatedFormPrNumber($value)
     {
-        // Whenever the dropdown changes
         $procurement = Procurement::find($value);
 
         if ($procurement) {
-            $this->form['pr_number_display'] = $procurement->pr_number;
             $this->form['procurement_program_project'] = $procurement->procurement_program_project;
+            $this->procID = $procurement->procID;
+
+            // Dynamically calculate rows based on text length or line breaks
+            $text = trim($procurement->procurement_program_project ?? '');
+
+            // Count actual new lines
+            $lineCount = substr_count($text, "\n") + 1;
+
+            // Estimate wrapped lines more conservatively
+            $approxExtraLines = ceil(strlen($text) / 150); // ← increased divisor from 100 → 150
+            // That means: only very long text adds rows
+
+            // Combine both counts, ensure at least 1 row
+            $this->textareaRows = max($lineCount, $approxExtraLines, 1);
         } else {
-            $this->form['pr_number_display'] = null;
-            $this->form['procurement_program_project'] = null;
+            $this->form['procurement_program_project'] = '';
+            $this->procID = null;
+            $this->textareaRows = 1;
         }
     }
 
