@@ -7,17 +7,15 @@ use App\Models\Procurement;
 use Illuminate\Support\Facades\Validator;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
-use Livewire\WithFileUploads;
+// use Livewire\WithFileUploads; // REMOVED: No longer needed
 
 class BacApprovedPrCreatePage extends Component
 {
-    use WithFileUploads;
+    // use WithFileUploads; // REMOVED
 
-    // The form state is managed by this public array
     public $form = [];
     public $textareaRows = 1;
-    // File uploads are handled by a separate public property for stability
-    public $document_file;
+    // public $document_file; // REMOVED
     public $procID;
 
     public function mount()
@@ -31,78 +29,66 @@ class BacApprovedPrCreatePage extends Component
             'pr_number' => '',
             'procurement_program_project' => '',
             'remarks' => '',
+            'filepath' => '', // ADDED: To hold the URL
         ];
     }
 
     private function resetForm(): void
     {
         $this->form = $this->defaultForm();
-        $this->document_file = null; // Also reset the file input
+        // $this->document_file = null; // REMOVED
         $this->resetErrorBag();
     }
 
     public function save()
     {
-        // 1. Define validation rules and attributes (This part is perfect)
+        // 1. Define validation rules
         $rules = [
             'form.pr_number' => 'required',
-            'document_file' => 'required|file|mimes:pdf|max:10240',
+            'form.filepath' => 'required|url|max:255', // CHANGED: Validate a URL string
             'form.remarks' => 'nullable|string',
         ];
         $attributes = [
             'form.pr_number' => 'PR Number',
-            'document_file' => 'Approved PR Document',
+            'form.filepath' => 'Approved PR Document URL', // CHANGED: Attribute name
         ];
 
-        // 2. Validate the data (This part is also perfect)
-        $validator = Validator::make(['form' => $this->form, 'document_file' => $this->document_file], $rules, [], $attributes);
+        // 2. Validate the data
+        $this->validate($rules, [], $attributes); // SIMPLIFIED: Livewire can handle this directly
 
-        if ($validator->fails()) {
-            LivewireAlert::title('ERROR!')
+        // 3. Check for duplicates
+        $isAlreadySaved = BacApprovedPr::where('procID', $this->procID)->exists();
+        if ($isAlreadySaved) {
+            LivewireAlert::title('Error!')
                 ->error()
-                ->text(collect($validator->errors()->all())->implode("\n"))
+                ->text('This PR has already been saved and cannot be added again.')
                 ->toast()
                 ->position('top-end')
                 ->show();
-            $this->validate($rules, [], $attributes);
+            $this->addError('form.pr_number', 'This PR has already been recorded.');
             return;
         }
 
-        $isAlreadySaved = BacApprovedPr::where('procID', $this->procID)->exists();
-        if ($isAlreadySaved) {
-            // Show a general error toast
-            LivewireAlert::title('Error!')
-                ->error()
-                ->text('This PR has already been saved and cannot be added again.') // <-- Use a simple message
-                ->toast()
-                ->position('top-end')
-                ->show();
-
-            // Add a specific error message under the PR Number field
-            $this->addError('form.pr_number', 'This PR has already been recorded.');
-
-            return; // Stop the save process
-        }
-        // 4. Store the uploaded file
-        $extension = $this->document_file->getClientOriginalExtension();
-        $filename = $this->procID . '.' . $extension;
-        $filePath = $this->document_file->storeAs('bac_approved_prs_docs', $filename, 'public');
-
-        // 5. Create the record in the database
+        // 4. Create the record in the database
         BacApprovedPr::create([
             'procID' => $this->procID,
-            'filepath' => $filePath,
+            'filepath' => $this->form['filepath'], // CHANGED: Save the URL directly
             'remarks' => $this->form['remarks'],
         ]);
 
-        // 6. Show success message and redirect
+        // 5. Show success message
         LivewireAlert::title('Saved!')
             ->success()
             ->text('BAC Approved PR has been saved successfully.')
             ->toast()
             ->position('top-end')
             ->show();
+
+        // 6. Optional: Redirect or reset form
+        // return $this->redirect('/path-to-list', navigate: true);
+        $this->resetForm();
     }
+
     public function updatedFormPrNumber($value)
     {
         $procurement = Procurement::find($value);
@@ -111,17 +97,9 @@ class BacApprovedPrCreatePage extends Component
             $this->form['procurement_program_project'] = $procurement->procurement_program_project;
             $this->procID = $procurement->procID;
 
-            // Dynamically calculate rows based on text length or line breaks
             $text = trim($procurement->procurement_program_project ?? '');
-
-            // Count actual new lines
             $lineCount = substr_count($text, "\n") + 1;
-
-            // Estimate wrapped lines more conservatively
-            $approxExtraLines = ceil(strlen($text) / 150); // ← increased divisor from 100 → 150
-            // That means: only very long text adds rows
-
-            // Combine both counts, ensure at least 1 row
+            $approxExtraLines = ceil(strlen($text) / 150);
             $this->textareaRows = max($lineCount, $approxExtraLines, 1);
         } else {
             $this->form['procurement_program_project'] = '';
@@ -130,11 +108,9 @@ class BacApprovedPrCreatePage extends Component
         }
     }
 
-
     public function render()
     {
         return view('livewire.bac-approved-pr.bac-approved-pr-create-page', [
-            // Pass the procurement data to the view for the dropdown
             'procurements' => Procurement::orderBy('pr_number', 'desc')->get(),
         ]);
     }

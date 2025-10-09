@@ -4,63 +4,49 @@ namespace App\Livewire\BacApprovedPr;
 
 use App\Models\BACApprovedPR;
 use App\Models\Procurement;
-use Illuminate\Support\Facades\Storage;
+// REMOVED: use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
-use Livewire\WithFileUploads;
+// REMOVED: use Livewire\WithFileUploads;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class BacApprovedPrEditPage extends Component
 {
-    use WithFileUploads;
+    // REMOVED: use WithFileUploads;
 
     public BACApprovedPR $bacapprovedpr;
     public $form = [];
     public $textareaRows = 1;
-    public $document_file;
+    // REMOVED: public $document_file;
     public $procurements = [];
 
     public function mount(BACApprovedPR $bacapprovedpr)
     {
         $this->bacapprovedpr = $bacapprovedpr;
-
-        // Load related procurement
         $procurement = Procurement::where('procID', $bacapprovedpr->procID)->first();
 
         if ($procurement) {
-            $this->form['pr_number'] = $procurement->id; // the selected ID
-            $this->form['pr_number_display'] = $procurement->pr_number; // for display only
+            $this->form['pr_number'] = $procurement->id;
             $this->form['procurement_program_project'] = $procurement->procurement_program_project;
         }
 
         $this->form['remarks'] = $bacapprovedpr->remarks;
+        $this->form['filepath'] = $bacapprovedpr->filepath; // ADDED: Load the URL into the form
 
-        // Dropdown list
         $this->procurements = Procurement::orderBy('pr_number', 'desc')->get();
     }
 
     public function updatedFormPrNumber($value)
     {
         $procurement = Procurement::find($value);
-
         if ($procurement) {
             $this->form['procurement_program_project'] = $procurement->procurement_program_project;
-            $this->procID = $procurement->procID;
-
-            // Dynamically calculate rows based on text length or line breaks
+            // Removed procID update logic as it shouldn't change on edit
             $text = trim($procurement->procurement_program_project ?? '');
-
-            // Count actual new lines
             $lineCount = substr_count($text, "\n") + 1;
-
-            // Estimate wrapped lines more conservatively
-            $approxExtraLines = ceil(strlen($text) / 150); // ← increased divisor from 100 → 150
-            // That means: only very long text adds rows
-
-            // Combine both counts, ensure at least 1 row
+            $approxExtraLines = ceil(strlen($text) / 150);
             $this->textareaRows = max($lineCount, $approxExtraLines, 1);
         } else {
             $this->form['procurement_program_project'] = '';
-            $this->procID = null;
             $this->textareaRows = 1;
         }
     }
@@ -69,58 +55,55 @@ class BacApprovedPrEditPage extends Component
     {
         $rules = [
             'form.pr_number' => 'required|exists:procurements,id',
-            'form.procurement_program_project' => 'required|string',
+            'form.filepath' => 'required|url|max:255', // CHANGED: Validate a URL
             'form.remarks' => 'nullable|string',
-            'document_file' => 'nullable|file|mimes:pdf|max:10240', // Nullable for edits
         ];
 
         $attributes = [
             'form.pr_number' => 'PR Number',
-            'document_file' => 'Approved PR Document',
+            'form.filepath' => 'Approved PR Document URL', // CHANGED
         ];
 
         $this->validate($rules, [], $attributes);
 
-        // This block handles the file replacement logic
-        if ($this->document_file) {
-            // 1. Get the old file path directly from the model.
-            // Your create method saved it as 'bac_approved_prs_docs/filename.pdf'
-            $oldFilePath = $this->bacapprovedpr->filepath;
+        // REMOVED: All file handling logic is gone.
+        // if ($this->document_file) { ... }
 
-
-            // 2. If an old file path exists, delete that exact file.
-            if ($oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
-                Storage::disk('public')->delete($oldFilePath);
-            }
-
-            // 3. Store the new file and get its new path.
-            $extension = $this->document_file->getClientOriginalExtension();
-            $filename = $this->bacapprovedpr->procID . '.' . $extension;
-            $newFilePath = $this->document_file->storeAs('bac_approved_prs_docs', $filename, 'public');
-
-            // 4. Update the filepath on the model for saving.
-            $this->bacapprovedpr->filepath = $newFilePath;
-        }
-
-        // Update other fields
+        // Update fields directly from the form array
+        $procurement = Procurement::find($this->form['pr_number']);
+        $this->bacapprovedpr->procID = $procurement->procID;
+        $this->bacapprovedpr->filepath = $this->form['filepath']; // CHANGED
         $this->bacapprovedpr->remarks = $this->form['remarks'];
 
-        // Save all changes to the database
         $this->bacapprovedpr->save();
 
-        // Show success message
         LivewireAlert::title('Updated!')
             ->success()
-            ->text('BAC Approved PR has been saved successfully.')
+            ->text('BAC Approved PR has been updated successfully.')
             ->toast()
             ->position('top-end')
             ->show();
     }
+
     public function viewPdf()
     {
-        if ($this->bacapprovedpr && $this->bacapprovedpr->filepath) {
-            $url = asset('storage/' . $this->bacapprovedpr->filepath);
-            $this->dispatch('show-pdf-modal', url: $url);
+        $url = $this->form['filepath'] ?? null;
+
+        if (!$url) {
+            // Handle case where URL might be empty
+            LivewireAlert::error('No document URL found.')->toast()->show();
+            return;
+        }
+
+        // Check if the URL is an external link
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            // Use the proxy route for external URLs
+            $proxiedUrl = route('pdf.proxy', ['url' => $url]);
+            $this->dispatch('show-pdf-modal', url: $proxiedUrl);
+        } else {
+            // Use the asset helper for old, locally stored files
+            $localUrl = asset('storage/' . $url);
+            $this->dispatch('show-pdf-modal', url: $localUrl);
         }
     }
 

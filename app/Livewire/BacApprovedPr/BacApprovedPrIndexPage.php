@@ -29,9 +29,8 @@ class BacApprovedPrIndexPage extends Component
     }
 
 
-    public function viewPdf(string $filepath): void
+    public function viewPdf(string $url): void
     {
-        $url = asset('storage/' . $filepath);
         $this->dispatch('show-pdf-modal', url: $url);
     }
     public function render()
