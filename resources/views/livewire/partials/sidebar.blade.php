@@ -2,7 +2,7 @@
 <div id="navbar-collapse-with-animation"
     class="hs-overlay [--auto-close:lg] hs-overlay-open:translate-x-0
             transition-all duration-100 transform
-            w-56 h-full
+            w-55 h-full
             hidden
             fixed inset-y-0 start-0 z-50  /* fixed & above all layers */
             bg-white border-e border-white
@@ -13,10 +13,10 @@
     <div class="flex flex-col h-full">
         <!-- Logo -->
         <!-- Sidebar Header / Logo -->
-        <div class="bg-emerald-600 flex justify-center items-center text-center" style="height:155px;">
+        <div class="bg-emerald-600 flex justify-center items-center text-center" style="height:124px;">
             <a href="#" aria-label="BACPMIS" class="block focus:outline-hidden focus:opacity-80">
                 <h1 class="text-white font-bold leading-snug text-center">
-                    <span class="text-2xl md:text-7xl">BAC </span><br>
+                    <span class="text-2xl md:text-5xl">BAC </span><br>
                     <span class="text-s md:text-s">Procurement Monitoring</span><br>
                     <span class="text-s md:text-s">Information System</span>
                 </h1>
@@ -141,7 +141,7 @@
 
         <!-- Fixed Admin Button -->
         @can('view_any_administrator')
-            <div class="ml-4 mr-4 p-1 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
+            <div class="ml-4 mr-4 p-2 bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
                 <a href="{{ url('/administrator') }}" target="_blank" rel="noopener noreferrer"
                     class="flex items-center gap-x-2 py-2 px-2 text-sm rounded-lg
                             {{ request()->is('administrator*')

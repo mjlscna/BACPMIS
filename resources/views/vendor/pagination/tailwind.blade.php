@@ -1,5 +1,4 @@
 @if ($paginator->hasPages())
-    <!-- Pagination -->
     <nav class="flex items-center justify-center mt-6 gap-x-1" aria-label="Pagination">
         {{-- Previous Page Link --}}
         @if ($paginator->onFirstPage())
@@ -22,19 +21,35 @@
             </a>
         @endif
 
-        {{-- Page Info --}}
-        <div class="flex items-center gap-x-1">
-            <span
-                class="min-h-9.5 min-w-9.5 flex justify-center items-center border border-gray-200 text-gray-800 py-2 px-3 text-sm rounded-lg dark:border-neutral-700 dark:text-white">
-                {{ $paginator->currentPage() }}
-            </span>
-            <span
-                class="min-h-9.5 flex justify-center items-center text-gray-500 py-2 px-1.5 text-sm dark:text-neutral-500">of</span>
-            <span
-                class="min-h-9.5 flex justify-center items-center text-gray-500 py-2 px-1.5 text-sm dark:text-neutral-500">
-                {{ $paginator->lastPage() }}
-            </span>
-        </div>
+        {{-- Pagination Elements --}}
+        @foreach ($elements as $element)
+            {{-- "Three Dots" Separator --}}
+            @if (is_string($element))
+                <span
+                    class="min-h-9.5 min-w-9.5 py-2 px-2.5 inline-flex justify-center items-center text-sm rounded-lg text-gray-400 dark:text-white/20">
+                    {{ $element }}
+                </span>
+            @endif
+
+            {{-- Array Of Links --}}
+            @if (is_array($element))
+                @foreach ($element as $page => $url)
+                    @if ($page == $paginator->currentPage())
+                        {{-- Current Page Button --}}
+                        <button type="button" disabled aria-current="page"
+                            class="min-h-9.5 min-w-9.5 py-2 px-3 inline-flex justify-center items-center text-sm font-semibold rounded-lg bg-emerald-600 text-white">
+                            {{ $page }}
+                        </button>
+                    @else
+                        {{-- Regular Page Button --}}
+                        <a href="{{ $url }}"
+                            class="min-h-9.5 min-w-9.5 py-2 px-3 inline-flex justify-center items-center text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10">
+                            {{ $page }}
+                        </a>
+                    @endif
+                @endforeach
+            @endif
+        @endforeach
 
         {{-- Next Page Link --}}
         @if ($paginator->hasMorePages())
@@ -57,5 +72,4 @@
             </button>
         @endif
     </nav>
-    <!-- End Pagination -->
 @endif

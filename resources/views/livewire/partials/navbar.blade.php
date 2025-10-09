@@ -1,4 +1,4 @@
-<div class="fixed top-0 inset-x-0 z-50 pt-28 ">
+<div class="fixed top-0 inset-x-0 z-50 pt-20 ">
     <header
         class="sticky top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full h-11 bg-emerald-600 border-b border-gray-200 text-sm py-2.5 lg:ps-55 dark:bg-neutral-800 dark:border-neutral-700">
         <nav class="px-4 sm:px-6 flex basis-full items-center w-full mx-auto">

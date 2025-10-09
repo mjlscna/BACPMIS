@@ -1,5 +1,5 @@
 <div
-    class="m-4 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden
+    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden
            dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-sm dark:shadow-neutral-400/50">
     <div
         class="sticky top-0 z-40 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">

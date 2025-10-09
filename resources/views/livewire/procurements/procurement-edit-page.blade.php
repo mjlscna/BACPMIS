@@ -1,4 +1,4 @@
-<div class="space-y-6 p-8 pb-[5rem]">
+<div class="space-y-6 p-2 pb-[5rem]">
 
     {{-- First Box --}}
     <div

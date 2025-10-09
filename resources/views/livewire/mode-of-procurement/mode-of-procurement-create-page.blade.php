@@ -5,7 +5,7 @@
             $canAccessTab3 = !empty($procID);
         @endphp
 
-        <ul class="flex items-center w-full max-w-7xl py-2 px-10 bg-white dark:bg-neutral-800 dark:border-neutral-700 mx-auto"
+        <ul class="flex items-center w-full max-w-7xl py-2 px-10 bg-white dark:bg-neutral-700 dark:border-neutral-700 mx-auto"
             data-hs-stepper='{"isCompleted": true}'>
 
             <li class="flex items-center gap-x-2 flex-1 group"
@@ -15,12 +15,12 @@
           {{ $activeTab == 1 ? 'bg-green-500 text-white border-2 border-emerald-700' : ($activeTab > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-800') }}">
                     1
                 </button>
-                <span class="text-sm font-medium text-gray-800 dark:text-white whitespace-nowrap">
+                <span class="text-sm font-medium text-black dark:text-white whitespace-nowrap">
                     IB Details
                 </span>
                 <div
                     class="h-px grow transition-colors duration-300
-          {{ $activeTab > 1 ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-700' }}">
+          {{ $activeTab > 1 ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-500' }}">
                 </div>
             </li>
 
@@ -38,7 +38,7 @@
                 </span>
                 <div
                     class="h-px grow transition-colors duration-300
-          {{ $activeTab > 2 ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-700' }}">
+          {{ $activeTab > 2 ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-500' }}">
                 </div>
             </li>
 

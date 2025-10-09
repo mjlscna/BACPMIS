@@ -38,8 +38,8 @@
     @else
         <textarea id="{{ $id }}" wire:model.defer="{{ $model }}" rows="{{ $rows }}"
             class="mt-1 block w-full px-4 py-2 rounded-md text-sm border
-                dark:bg-neutral-800 dark:text-white
-                {{ $readonly || $disabled ? 'bg-gray-100 dark:bg-neutral-800' : '' }}
+                dark:bg-neutral-700 dark:text-white
+                {{ $readonly || $disabled ? 'bg-gray-100 dark:bg-neutral-700' : '' }}
                 {{ $textAlign ? 'text-' . $textAlign : '' }}
                 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500
                 @else border-gray-300  focus:ring-indigo-500 focus:border-indigo-500 @enderror"

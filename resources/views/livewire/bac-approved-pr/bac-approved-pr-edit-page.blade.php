@@ -1,7 +1,7 @@
-<div class="space-y-6 p-8 pb-[5rem]">
+<div class="space-y-6 p-2 pb-[5rem]">
 
     {{-- Form Fields --}}
-    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
+    <div class="bg-white p-6 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
         <div class="grid grid-cols-7 md:grid-cols-7 gap-6">
 
             {{-- PR Number Dropdown --}}
