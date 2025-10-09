@@ -78,13 +78,13 @@
                     </svg>
                     <p
                         class="inline-block text-sm font-medium bg-clip-text bg-gradient-to-l from-green-500 to-emerald-700 text-transparent ">
-                        Department of Health Western Visayas - Center for Health Development
+                        Department of Health
                     </p>
 
                     <!-- Title -->
                     <div class="mt-4 md:mb-12 max-w-2xl">
                         <h1 class="mb-4 font-semibold text-gray-800 text-4xl lg:text-5xl">
-                            BAC Procurement Monitoring System
+                            WV CHD Procurement Monitoring System
                         </h1>
                         <p class="text-gray-600">
                             Version 1.0
