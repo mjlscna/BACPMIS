@@ -110,8 +110,12 @@ class BacApprovedPrCreatePage extends Component
 
     public function render()
     {
+        $procurements = Procurement::whereDoesntHave('bacApprovedPr')
+            ->orderBy('pr_number', 'desc')
+            ->get();
+
         return view('livewire.bac-approved-pr.bac-approved-pr-create-page', [
-            'procurements' => Procurement::orderBy('pr_number', 'desc')->get(),
+            'procurements' => $procurements,
         ]);
     }
 }

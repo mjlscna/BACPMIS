@@ -1,8 +1,8 @@
 <div
-    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden
-           dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-sm dark:shadow-neutral-400/50">
+    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:bg-neutral-800 dark:border-neutral-700 flex flex-col">
+
     <div
-        class="sticky top-0 z-40 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
+        class="sticky top-0 z-20 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
         <div class="flex items-center gap-x-2">
             <div class="relative">
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search by PR No. or Project..."
@@ -26,38 +26,33 @@
             @endcan
         </div>
     </div>
-    <div class="relative w-full overflow-y-auto overflow-x-auto">
-        <table class="min-w-[1500px] w-full divide-y divide-gray-200 dark:divide-neutral-700 table-auto">
-            {{-- The z-index on the header must be higher than the sticky columns for it to overlap correctly --}}
-            <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-40">
+    <div class="overflow-auto flex-1">
+        <table class="table-fixed w-full min-w-[1100px] divide-y divide-gray-200 dark:divide-neutral-700">
+            <thead class="bg-gray-200 dark:bg-neutral-900">
                 <tr>
+                    <th class="px-2 py-2 bg-gray-200 dark:bg-neutral-900 w-8"></th>
+
                     <th
-                        class="px-1 text-center text-xs font-medium text-black dark:text-neutral-500 uppercase sticky left-0 z-30 bg-gray-200 dark:bg-neutral-900">
+                        class="px-1 py-1 text-center text-xs text-black dark:text-white bg-gray-200 dark:bg-neutral-900 w-24">
+                        PR Number
                     </th>
+
                     <th
-                        class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[56px] z-20  whitespace-nowrap bg-gray-200 dark:bg-neutral-900 w-28">
-                        PR Number</th>
-                    <th
-                        class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[168px] z-10  whitespace-nowrap bg-gray-200 dark:bg-neutral-900 w-64">
-                        Procurement Program / Project</th>
-                    <th class="px-1 py-1 text-center text-xs  font-medium text-black dark:text-white whitespace-nowrap">
-                        Date Receipt</th>
-                    <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white whitespace-nowrap">
-                        Division</th>
-                    <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white whitespace-nowrap">
-                        Cluster / Committee</th>
-                    <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white whitespace-nowrap">
-                        Source of Funds</th>
-                    <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white whitespace-nowrap">
-                        ABC Amount</th>
+                        class="px-1 py-1 text-left text-xs  text-black dark:text-white bg-gray-200 dark:bg-neutral-900 w-2xl">
+                        Procurement Program / Project
+                    </th>
+                    <th class="px-1 py-1 text-center text-xs  text-black dark:text-white w-32">
+                        Cluster / Committee
+                    </th>
+                    <th class="px-1 py-1 text-center text-xs  text-black dark:text-white w-32">
+                        ABC Amount
+                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
-                {{-- Use @forelse to handle the case where there are no records --}}
                 @forelse ($approvedPrs as $pr)
                     <tr>
-                        <td
-                            class="px-1 text-center sticky left-0 z-30 bg-white text-black dark:text-white dark:bg-neutral-800">
+                        <td class="px-2 py-2 text-center bg-white text-black dark:text-white dark:bg-neutral-800">
                             <!-- Alpine action dropdown -->
                             <div x-data="{ open: false }" class="relative inline-block" x-ref="menuWrapper">
                                 <button @click="open = !open" @click.away="open = false"
@@ -90,7 +85,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                                                         </svg>
-                                                        Document
+                                                        View PR
                                                     </a>
                                                 </li>
                                             @endcan
@@ -108,29 +103,17 @@
                                 </template>
                             </div>
                         </td>
-
-                        {{-- CORRECTED: Use the eager-loaded relationship on the '$pr' object --}}
                         <td
-                            class="px-1 py-1 whitespace-nowrap text-center text-sm font-medium sticky left-[56px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white w-28">
+                            class="px-1 py-1  text-center text-sm  bg-white dark:bg-neutral-800 text-black dark:text-white">
                             {{ $pr->procurement->pr_number ?? 'N/A' }}
                         </td>
-                        <td
-                            class="px-1 py-1 whitespace-normal break-words text-left text-sm font-medium sticky left-[168px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white w-64">
+                        <td class="px-1 py-1 text-left  bg-white dark:bg-neutral-800 text-black dark:text-white ">
                             {{ $pr->procurement->procurement_program_project ?? 'N/A' }}
                         </td>
-                        <td class="px-1 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
-                            {{ $pr->procurement->date_receipt ?? 'N/A' }}
-                        </td>
-                        <td class="px-1 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
-                            {{ $pr->procurement->division->abbreviation ?? 'N/A' }}
-                        </td>
-                        <td class="px-1 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
+                        <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
                             {{ $pr->procurement->clusterCommittee->clustercommittee ?? 'N/A' }}
                         </td>
-                        <td class="px-1 py-1 whitespace-nowrap text-center text-sm text-black dark:text-white">
-                            {{ $pr->procurement->fundSource->fundsources ?? 'N/A' }}
-                        </td>
-                        <td class="px-1 py-1 text-center text-sm text-black dark:text-white relative">
+                        <td class="px-1 py-1 pr-4 text-right text-sm text-black dark:text-white">
                             <span class="text-black dark:text-white">₱</span>
                             <span>{{ number_format($pr->procurement->abc ?? 0, 2) }}</span>
                         </td>
@@ -147,17 +130,16 @@
         </table>
     </div>
 
-    <div class="flex items-center w-full p-6 -mt-2 relative">
-        {{-- Left text --}}
-        <div class="text-sm text-gray-500 pl-2">
-            {{-- CORRECTED: Use the paginator variable '$approvedPrs' --}}
-            Showing {{ $approvedPrs->firstItem() }} to {{ $approvedPrs->lastItem() }} of
+    <div class="flex flex-col items-center w-full p-2 border-t border-gray-200 dark:border-neutral-700">
+
+        <div class="text-xs text-gray-500">
+            {{ $approvedPrs->firstItem() }} to {{ $approvedPrs->lastItem() }} of
             {{ $approvedPrs->total() }} items
         </div>
 
-        {{-- Center pagination --}}
-        <div class="absolute left-1/2 transform -translate-x-1/2 mb-5">
+        <div>
             {{ $approvedPrs->links('vendor.pagination.tailwind') }}
         </div>
+
     </div>
 </div>

@@ -1,8 +1,8 @@
 <div
-    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden
-           dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-sm dark:shadow-neutral-400/50">
+    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:bg-neutral-800 dark:border-neutral-700 flex flex-col">
+
     <div
-        class="sticky top-0 z-40 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
+        class="sticky top-0 z-20 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
         <div class="flex items-center gap-x-2">
             <div class="relative">
                 <input type="text" wire:model.live="search" placeholder="Search Procurements..."
@@ -19,24 +19,24 @@
 
 
     <!-- Table -->
-    <div class="overflow-y-auto flex-1">
-        <table class="table-fixed w-full divide-y divide-gray-200 dark:divide-neutral-700">
-            <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-40">
+    <div class="overflow-auto flex-1">
+        <table class="table-fixed w-full min-w-[1100px] divide-y divide-gray-200 dark:divide-neutral-700">
+            <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-10">
                 <tr>
-                    <th class="w-10 px-2 py-2"></th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[180px]">
+                    <th class="px-2 py-2 w-8"></th>
+                    <th class="px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-200 w-24">
                         PR Number
                     </th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-[100px]">
+                    <th class="px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-200 w-20">
                         Type
                     </th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <th class="px-1 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 w-fit">
                         Program / Project
                     </th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <th class="px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-200 w-24">
                         Date Receipt
                     </th>
-                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <th class="px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-200 w-32">
                         PR Stage
                     </th>
                 </tr>
@@ -73,27 +73,27 @@
                         </td>
 
                         <!-- PR Number -->
-                        <td class="px-4 py-2 text-sm text-black dark:text-white">
+                        <td class="px-1 py-2 text-center text-sm text-black dark:text-white">
                             {{ $proc->pr_number }}
                         </td>
 
                         <!-- Type -->
-                        <td class="px-4 py-2 text-sm text-black dark:text-white">
+                        <td class="px-1 py-2 text-center text-sm text-black dark:text-white">
                             {{ $proc->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}
                         </td>
 
                         <!-- Program / Project -->
-                        <td class="px-4 py-2 text-sm text-black dark:text-white">
+                        <td class="px-1 py-2 text-left text-sm text-black dark:text-white">
                             {{ $proc->procurement_program_project }}
                         </td>
 
                         <!-- Date Receipt -->
-                        <td class="px-4 py-2 text-sm text-black dark:text-white">
+                        <td class="px-1 py-2 text-center text-sm text-black dark:text-white">
                             {{ $proc->date_receipt }}
                         </td>
 
                         <!-- PR Stage -->
-                        <td class="px-4 py-2 text-sm text-black dark:text-white">
+                        <td class="px-1 py-2 text-center text-sm text-black dark:text-white">
                             @if ($proc->procurement_type === 'perLot')
                                 {{-- Show latest perLot stage --}}
                                 {{ $proc->prLotPrstages->sortByDesc('created_at')->first()?->procurementStage?->procurementstage ?? 'N/A' }}
@@ -152,17 +152,17 @@
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center w-full py-4 -mt-2 relative">
-        {{-- Left text --}}
-        <div class="text-sm text-gray-500 pl-2">
+    <div class="flex flex-col items-center w-full p-2 border-t border-gray-200 dark:border-neutral-700">
+
+        <div class="text-xs text-gray-500">
             {{ $procurements->firstItem() }} to {{ $procurements->lastItem() }} of
             {{ $procurements->total() }} items
         </div>
 
-        {{-- Center pagination --}}
-        <div class="absolute left-1/2 transform -translate-x-1/2 mb-5">
+        <div>
             {{ $procurements->links('vendor.pagination.tailwind') }}
         </div>
+
     </div>
 
 

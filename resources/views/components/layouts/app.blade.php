@@ -18,12 +18,11 @@
     @livewire('partials.sidebar')
 
     <!-- Content -->
-    <div class="w-full pt-38 lg:pl-56">
+    <div class="w-full lg:pl-55 pt-[156px]">
         <main class="p-4 md:p-6">
             {{ $slot }}
         </main>
     </div>
-
     <!-- Footer sticks to bottom -->
     @livewire('partials.footer')
 

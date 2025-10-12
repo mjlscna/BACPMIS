@@ -1,9 +1,9 @@
 <div x-data="{ showTypeModal: false }">
     <div
-        class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden
-           dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-sm dark:shadow-neutral-400/50">
+        class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:bg-neutral-800 dark:border-neutral-700 flex flex-col">
+
         <div
-            class="sticky top-0 z-40 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
+            class="sticky top-0 z-20 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
             <div class="flex items-center gap-x-2">
                 <!-- Search Bar -->
                 <div class="relative">
@@ -35,39 +35,28 @@
         <!-- End Header -->
 
         <!-- Table -->
-        <div class="relative w-full overflow-y-auto overflow-x-auto">
-            <table class="min-w-[900px] w-full divide-y divide-gray-200 dark:divide-neutral-700">
-                <thead class="bg-gray-50 dark:bg-neutral-900 sticky top-0 z-40">
+        <div class="overflow-auto flex-1">
+            <table class="table-fixed w-full min-w-[1100px] divide-y divide-gray-200 dark:divide-neutral-700">
+                <thead class="bg-gray-200 dark:bg-neutral-900">
                     <tr>
-                        {{-- Column 1: Actions (Removed right padding) --}}
-                        <th scope="col"
-                            class="sticky left-0 z-30 bg-gray-50 dark:bg-neutral-900 w-14 pl-2 pr-0 py-3">
-                            <span class="sr-only">Actions</span>
+                        <th class="px-2 py-2 bg-gray-200 dark:bg-neutral-900 w-8"></th>
+
+                        <th
+                            class="px-1 py-1 text-center text-xs text-black dark:text-white bg-gray-200 dark:bg-neutral-900 w-24">
+                            IB Number
                         </th>
 
-                        {{-- Column 2: PR Number (Removed left padding and aligned left) --}}
-                        <th scope="col"
-                            class="sticky left-[56px] z-20 bg-gray-50 dark:bg-neutral-900 w-24 pr-2 pl-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase whitespace-nowrap">
-                            PR Number
+                        <th
+                            class="px-1 py-1 text-left text-xs  text-black dark:text-white bg-gray-200 dark:bg-neutral-900 w-2xl">
+                            Title
                         </th>
-
-                        {{-- Column 3: Project Name (Updated left position) --}}
-                        <th scope="col"
-                            class="sticky left-[152px] z-10 bg-gray-50 dark:bg-neutral-900 w-80 px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase">
-                            Procurement Program / Project
+                        <th class="px-1 py-1 text-center text-xs  text-black dark:text-white w-32">
+                            Cluster / Committee
                         </th>
-
-                        {{-- Type Column --}}
-                        <th scope="col"
-                            class="w-24 px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase whitespace-nowrap">
-                            Type
-                        </th>
-
-                        {{-- Mode of Procurement Column --}}
-                        <th scope="col"
-                            class="w-64 px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase whitespace-nowrap">
+                        <th class="px-1 py-1 text-center text-xs  text-black dark:text-white w-32">
                             Mode of Procurement
                         </th>
+
                     </tr>
                 </thead>
 
@@ -75,7 +64,7 @@
                     @foreach ($modes as $mode)
                         <tr class="bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:hover:bg-neutral-700/50">
                             {{-- Column 1: Actions (Removed right padding) --}}
-                            <td class="sticky left-0 z-10 bg-white dark:bg-neutral-800 w-14 pl-2 pr-0 py-3">
+                            <td class="px-2 py-2 text-center bg-white text-black dark:text-white dark:bg-neutral-800">
                                 <div x-data="{ open: false }" class="relative inline-flex" x-ref="menuWrapper">
                                     <button @click="open = !open" @click.away="open = false"
                                         class="inline-flex items-center justify-center size-8 rounded-full text-gray-600 hover:bg-gray-200 dark:text-neutral-400 dark:hover:bg-neutral-700 focus:outline-none">
@@ -122,27 +111,17 @@
                                     </template>
                                 </div>
                             </td>
-
-                            {{-- Column 2: PR Number (Removed left padding and aligned left) --}}
                             <td
-                                class="sticky left-[56px] z-10 bg-white dark:bg-neutral-800 w-24 pr-2 pl-0 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                class="px-1 py-1  text-center text-sm  bg-white dark:bg-neutral-800 text-black dark:text-white">
                                 {{ $mode->procurement?->pr_number }}
                             </td>
-
-                            {{-- Column 3: Project Name (This column will wrap text) --}}
-                            <td
-                                class="sticky left-[152px] z-10 bg-white dark:bg-neutral-800 w-80 px-2 py-3 whitespace-normal break-words text-left text-sm text-gray-800 dark:text-neutral-200">
+                            <td class="px-1 py-1 text-left  bg-white dark:bg-neutral-800 text-black dark:text-white ">
                                 {{ $mode->procurement?->procurement_program_project }}
                             </td>
-
-                            {{-- Type Column --}}
-                            <td class="w-24 px-2 py-2 text-center text-sm text-black dark:text-white whitespace-nowrap">
+                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
                                 {{ $mode->procurement?->procurement_type === 'perLot' ? 'Per Lot' : 'Per Item' }}
                             </td>
-
-                            {{-- Mode of Procurement Column --}}
-                            <td
-                                class="w-64 px-2 py-3 text-center text-sm text-gray-800 dark:text-neutral-200 whitespace-nowrap">
+                            <td class="px-1 py-1 pr-4 text-right text-sm text-black dark:text-white">
                                 {{ $mode->modeOfProcurement?->modeofprocurements }}
                             </td>
                         </tr>
@@ -152,17 +131,17 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center w-full p-6 -mt-2 relative">
-            {{-- Left text --}}
-            <div class="text-sm text-gray-500 pl-2">
+        <div class="flex flex-col items-center w-full p-2 border-t border-gray-200 dark:border-neutral-700">
+
+            <div class="text-xs text-gray-500">
                 {{ $modes->firstItem() }} to {{ $modes->lastItem() }} of
                 {{ $modes->total() }} items
             </div>
 
-            {{-- Center pagination --}}
-            <div class="absolute left-1/2 transform -translate-x-1/2 mb-5">
+            <div>
                 {{ $modes->links('vendor.pagination.tailwind') }}
             </div>
+
         </div>
     </div>
 
