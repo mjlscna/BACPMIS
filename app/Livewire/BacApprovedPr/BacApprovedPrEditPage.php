@@ -25,7 +25,7 @@ class BacApprovedPrEditPage extends Component
         $procurement = Procurement::where('procID', $bacapprovedpr->procID)->first();
 
         if ($procurement) {
-            $this->form['pr_number'] = $procurement->id;
+            $this->form['pr_number'] = $procurement->pr_number;
             $this->form['procurement_program_project'] = $procurement->procurement_program_project;
         }
 
@@ -54,24 +54,17 @@ class BacApprovedPrEditPage extends Component
     public function save()
     {
         $rules = [
-            'form.pr_number' => 'required|exists:procurements,id',
             'form.filepath' => 'required|url|max:255', // CHANGED: Validate a URL
             'form.remarks' => 'nullable|string',
         ];
 
         $attributes = [
-            'form.pr_number' => 'PR Number',
             'form.filepath' => 'Approved PR Document URL', // CHANGED
         ];
 
         $this->validate($rules, [], $attributes);
 
-        // REMOVED: All file handling logic is gone.
-        // if ($this->document_file) { ... }
 
-        // Update fields directly from the form array
-        $procurement = Procurement::find($this->form['pr_number']);
-        $this->bacapprovedpr->procID = $procurement->procID;
         $this->bacapprovedpr->filepath = $this->form['filepath']; // CHANGED
         $this->bacapprovedpr->remarks = $this->form['remarks'];
 

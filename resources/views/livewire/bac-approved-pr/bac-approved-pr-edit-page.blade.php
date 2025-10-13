@@ -6,8 +6,8 @@
 
             {{-- PR Number Dropdown --}}
 
-            <x-forms.select id="pr_number" label="PR No." model="form.pr_number" :options="$procurements" optionValue="id"
-                optionLabel="pr_number" :required="true" wireModifier="live" colspan="col-span-1" :searchable="true" />
+            <x-forms.input id="pr_number" textAlign='right' label="PR No." model="form.pr_number" :required="true"
+                colspan="col-span-1" :disabled="true" />
 
             {{-- Procurement Program / Project --}}
 
