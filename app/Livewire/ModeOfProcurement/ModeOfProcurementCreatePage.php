@@ -53,11 +53,28 @@ class ModeOfProcurementCreatePage extends Component
             }
         }
     }
-    public function removeSelectedItem(int $index): void
+    public function removeLot(int $procIndex): void
     {
-        unset($this->selectedProcurements[$index]);
-        $this->selectedProcurements = array_values($this->selectedProcurements);
-        $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
+        if (isset($this->selectedProcurements[$procIndex])) {
+            unset($this->selectedProcurements[$procIndex]);
+            $this->selectedProcurements = array_values($this->selectedProcurements); // Re-index the array
+            $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
+        }
+    }
+    public function removeItem(int $procIndex, int $itemIndex): void
+    {
+        if (isset($this->selectedProcurements[$procIndex]['items'][$itemIndex])) {
+            // Remove the specific item
+            unset($this->selectedProcurements[$procIndex]['items'][$itemIndex]);
+
+            // If no items are left in this group, remove the entire procurement entry
+            if (empty($this->selectedProcurements[$procIndex]['items'])) {
+                unset($this->selectedProcurements[$procIndex]);
+            }
+
+            // Re-index the main array to keep it clean
+            $this->selectedProcurements = array_values($this->selectedProcurements);
+        }
     }
     public function hydrateForm()
     {
@@ -477,8 +494,37 @@ class ModeOfProcurementCreatePage extends Component
             ->orderBy('modeofprocurements')
             ->get();
 
+        // Prepare separate arrays of IDs to pass back to the modal
+        $existingLotIds = [];
+        $existingItemIds = [];
+
+        foreach ($this->selectedProcurements as $proc) {
+            if (empty($proc['items'])) {
+                // This is a 'perLot' procurement, add its ID to the lots array
+                $existingLotIds[] = $proc['id'];
+            } else {
+                // This is a 'perItem' procurement, add its item IDs to the items array
+                foreach ($proc['items'] as $item) {
+                    $existingItemIds[] = $item['id'];
+                }
+            }
+        }
+
+        $selectedLots = collect($this->selectedProcurements)
+            ->filter(fn($proc) => empty($proc['items']))
+            ->all();
+
+        $selectedItemGroups = collect($this->selectedProcurements)
+            ->filter(fn($proc) => !empty($proc['items']))
+            ->all();
+
         return view('livewire.mode-of-procurement.mode-of-procurement-create-page', [
             'modesOfProcurement' => $modes,
+            'selectedLots' => $selectedLots,
+            'selectedItemGroups' => $selectedItemGroups,
+            // Pass the new ID arrays to the view
+            'existingLotIds' => $existingLotIds,
+            'existingItemIds' => $existingItemIds,
         ]);
     }
 }
