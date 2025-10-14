@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -180,6 +181,21 @@ class Procurement extends Model
     {
         return $this->hasOne(BACApprovedPR::class, 'procID', 'procID');
     }
-
+    public function mops(): MorphMany
+    {
+        return $this->morphMany(Mop::class, 'procurable');
+    }
+    public function mopGroups()
+    {
+        // morphToMany(RelatedModel, name, table, foreignKey, relatedKey, parentKey)
+        return $this->morphToMany(
+            MopGroup::class,
+            'biddable',
+            'mop_group_items',
+            'biddable_id',
+            'mop_group_id',
+            'procID'
+        );
+    }
 
 }

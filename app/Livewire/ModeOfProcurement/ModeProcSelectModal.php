@@ -85,6 +85,8 @@ class ModeProcSelectModal extends Component
                     $data = $this->formatProcurementData($parentProc);
                     $data['items'] = $procItems->map(fn($item) => [
                         'id' => $item->id,
+                        'procID' => $item->procID,
+                        'prItemID' => $item->prItemID,
                         'description' => $item->description,
                         'quantity' => $item->quantity,
                         'unit' => $item->unit,
@@ -96,6 +98,7 @@ class ModeProcSelectModal extends Component
         }
 
         if (empty($selectedData)) {
+            $this->close();
             return;
         }
 

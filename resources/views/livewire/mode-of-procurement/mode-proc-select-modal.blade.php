@@ -1,4 +1,4 @@
-<x-forms.flex-modal title="Select Procurements" size="max-w-5xl" wire:model="showModal">
+<x-forms.flex-modal title="Select" size="max-w-5xl" wire:model="showModal">
 
     {{-- Search Header (Frozen at Top) --}}
     <div class="flex-shrink-0 bg-white dark:bg-neutral-900 px-6 py-4 border-b border-gray-200 dark:border-neutral-700">
@@ -36,7 +36,7 @@
                                     class="p-2 text-left font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 ">
                                     Procurement Program / Project</th>
                                 <th
-                                    class="p-2 text-center font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 w-20">
+                                    class="p-2 text-center font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 w-32">
                                     ABC Amount</th>
                             </tr>
                         </thead>
