@@ -93,6 +93,27 @@
                             </a>
                         </li>
                     @endcan
+                    @can('view_any_schedule::for::procurement')
+                        <li>
+                            <a class="flex items-center gap-x-2 py-2 px-2 text-sm rounded-lg
+                        {{ request()->routeIs('schedule-for-procurement.index')
+                            ? 'bg-emerald-600 text-white font-semibold dark:bg-emerald-600 dark:text-white'
+                            : 'bg-gray-100 text-gray-800 font-semibold hover:bg-emerald-600 hover:text-white dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-emerald-600 dark:hover:text-white' }}"
+                                href="{{ route('schedule-for-procurement.index') }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path
+                                        d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" />
+                                    <path fill-rule="evenodd"
+                                        d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+
+
+                                Schedule for PR
+                            </a>
+                        </li>
+                    @endcan
                     <!-- Mode of Procurement -->
                     @can('view_any_mode::of::procurement')
                         <li>

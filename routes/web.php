@@ -10,6 +10,9 @@ use App\Livewire\ModeOfProcurement\ModeOfProcurementIndexPage;
 use App\Livewire\Procurements\ProcurementCreatePage;
 use App\Livewire\Procurements\ProcurementEditPage;
 use App\Livewire\Procurements\ProcurementIndexPage;
+use App\Livewire\ScheduleForPr\ScheduleForPrCreatePage;
+use App\Livewire\ScheduleForPr\ScheduleForPrEditPage;
+use App\Livewire\ScheduleForPr\ScheduleForPrIndexPage;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\LoginPage;
 use App\Livewire\HomePage;
@@ -38,6 +41,7 @@ Route::middleware(['jwt'])->group(function () {
             ->name('edit')
             ->middleware('can:update_procurement');
     });
+
     Route::prefix('bac-approved-pr')->name('bac-approved-pr.')->group(function () {
         Route::get('/', BacApprovedPrIndexPage::class)
             ->name('index')
@@ -54,6 +58,20 @@ Route::middleware(['jwt'])->group(function () {
         Route::get('/{bacapprovedpr}', BacApprovedPrViewPage::class)
             ->name('view')
             ->middleware('can:view_b::a::c::approved::p::r');
+    });
+
+    Route::prefix('schedule-for-procurement')->name('schedule-for-procurement.')->group(function () {
+        Route::get('/', ScheduleForPrIndexPage::class)
+            ->name('index')
+            ->middleware('can:view_any_mode::of::procurement');
+
+        Route::get('/create', ScheduleForPrCreatePage::class)
+            ->name('create')
+            ->middleware('can:create_mode::of::procurement');
+
+        Route::get('/{id}/edit', ScheduleForPrEditPage::class)
+            ->name('edit')
+            ->middleware('can:edit_mode::of::procurement');
     });
     // Mode of procurement routes with Shield permissions
     Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {

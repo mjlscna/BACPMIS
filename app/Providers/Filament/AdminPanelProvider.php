@@ -137,6 +137,7 @@ class AdminPanelProvider extends PanelProvider
             \App\Filament\Resources\FundClassResource::class,
             \App\Filament\Resources\SupplierResource::class,
             \App\Filament\Resources\VenueSpecificResource::class,
+            \App\Filament\Resources\BiddingStatusResource::class,
         ];
     }
 
