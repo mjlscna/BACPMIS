@@ -27,7 +27,7 @@
                             <path d="M5 12h14" />
                             <path d="M12 5v14" />
                         </svg>
-                        IB
+                        MOP
                     </button>
                 @endcan
             </div>
@@ -156,8 +156,8 @@
                     class="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white transition">✕</button>
             </div>
             <div class="p-6 text-center">
-                <p class="text-gray-700 dark:text-neutral-300">Please choose the type of procurement you are creating an
-                    Invitation to Bid (IB) for.</p>
+                <p class="text-gray-700 dark:text-neutral-300">Please choose the type of procurement you are creating
+                    mode of procurement for.</p>
             </div>
             <div class="px-6 py-4 bg-gray-50 dark:bg-neutral-800/50 rounded-b-2xl flex justify-center gap-x-4">
                 <a href="{{ route('mode-of-procurement.create', ['type' => 'perLot']) }}"

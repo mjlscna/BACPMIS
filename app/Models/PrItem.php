@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class PrItem extends Model
 {
@@ -37,7 +39,25 @@ class PrItem extends Model
     {
         return $this->prstage?->stage?->procurementstage;
     }
-
+    public function mops(): MorphMany
+    {
+        return $this->morphMany(Mop::class, 'procurable');
+    }
+    public function mopGroups(): MorphToMany
+    {
+        return $this->morphToMany(
+            MopGroup::class,
+            'biddable',
+            'mop_group_items',
+            'biddable_id',
+            'mop_group_id',
+            'prItemID'
+        );
+    }
+    public function scheduleItems()
+    {
+        return $this->morphMany(ScheduleForProcurementItems::class, 'itemable', 'itemable_type', 'itemable_id', 'prItemID');
+    }
 }
 
 

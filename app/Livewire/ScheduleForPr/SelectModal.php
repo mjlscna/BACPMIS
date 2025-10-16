@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\ModeOfProcurement;
+namespace App\Livewire\ScheduleForPr;
 
 use App\Models\Procurement;
 use App\Models\PrItem;
@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class ModeProcSelectModal extends Component
+class SelectModal extends Component
 {
     use WithPagination;
 
@@ -104,7 +104,7 @@ class ModeProcSelectModal extends Component
 
         session()->flash('selected_procurements', $selectedData);
         $this->close();
-        return redirect()->route('mode-of-procurement.create', ['type' => $this->procurementType]);
+        return redirect()->route('schedule-for-procurement.create', ['type' => $this->procurementType]);
     }
 
     private function formatProcurementData(Procurement $proc): array
@@ -198,7 +198,7 @@ class ModeProcSelectModal extends Component
         $selectedItems = $this->paginateCollection($selectedItemsCollection, $this->perPageSelected, 'selectedItemsPage');
         $totalSelectedCount = $selectedLotsCollection->count() + $selectedItemsCollection->count();
 
-        return view('livewire.mode-of-procurement.mode-proc-select-modal', [
+        return view('livewire.schedule-for-pr.select-modal', [
             'results' => $results,
             'totalSelectedCount' => $totalSelectedCount,
             'selectedLots' => $selectedLots,

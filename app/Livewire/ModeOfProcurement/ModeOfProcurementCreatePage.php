@@ -2,6 +2,10 @@
 
 namespace App\Livewire\ModeOfProcurement;
 
+use App\Models\MopGroup;
+use App\Models\PrItem;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
@@ -20,12 +24,13 @@ class ModeOfProcurementCreatePage extends Component
     public $procID;
     public int $activeTab = 1;
     public array $selectedProcurements = [];
-
+    public array $selectedLots = [];
+    public array $selectedItemGroups = [];
+    public ?int $mopGroupId = null;
     public $form = [
         'modes' => [],
     ];
 
-    protected $listeners = ['procurement-selected' => 'onProcurementSelected'];
 
     public function mount($procID = null)
     {
@@ -36,12 +41,7 @@ class ModeOfProcurementCreatePage extends Component
             $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
         }
 
-        // Combine procurement loading. No need for a separate `procurementIdToLoad` variable.
         $this->procID = $procID ?? $this->form['procurement_ids'][0] ?? null;
-
-        // Note: This assumes if multiple are selected, they all belong to the same parent `procID`.
-        // If you are only ever selecting one item, then this is fine.
-        // If selecting multiple, you might need to adjust your business logic.
 
         if ($this->procID) {
             $this->procurement = Procurement::where('procID', $this->procID)->first();
@@ -53,11 +53,28 @@ class ModeOfProcurementCreatePage extends Component
             }
         }
     }
-    public function removeSelectedItem(int $index): void
+    public function removeLot(int $procIndex): void
     {
-        unset($this->selectedProcurements[$index]);
-        $this->selectedProcurements = array_values($this->selectedProcurements);
-        $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
+        if (isset($this->selectedProcurements[$procIndex])) {
+            unset($this->selectedProcurements[$procIndex]);
+            $this->selectedProcurements = array_values($this->selectedProcurements); // Re-index the array
+            $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
+        }
+    }
+    public function removeItem(int $procIndex, int $itemIndex): void
+    {
+        if (isset($this->selectedProcurements[$procIndex]['items'][$itemIndex])) {
+            // Remove the specific item
+            unset($this->selectedProcurements[$procIndex]['items'][$itemIndex]);
+
+            // If no items are left in this group, remove the entire procurement entry
+            if (empty($this->selectedProcurements[$procIndex]['items'])) {
+                unset($this->selectedProcurements[$procIndex]);
+            }
+
+            // Re-index the main array to keep it clean
+            $this->selectedProcurements = array_values($this->selectedProcurements);
+        }
     }
     public function hydrateForm()
     {
@@ -115,9 +132,9 @@ class ModeOfProcurementCreatePage extends Component
         return !$hasDefaultMode && !$hasPendingOrEmptySchedule;
     }
 
-    public function onProcurementSelected($procurementData)
+    public function onProcurementSelected(array $selections): void
     {
-        session()->flash('selected_procurement', $procurementData);
+        $this->selectedProcurements = $selections;
     }
 
     public function addMode()
@@ -430,45 +447,99 @@ class ModeOfProcurementCreatePage extends Component
     {
         $this->activeTab = $step;
     }
+
+
     public function save()
     {
+        if ($this->activeTab === 1) {
+            $this->saveTab1();
+        } elseif ($this->activeTab === 2) {
+            $this->saveTab2();
+        }
+    }
+    public function saveTab1()
+    {
+        if (empty($this->selectedProcurements)) {
+            LivewireAlert::title('Selection Required')
+                ->error()
+                ->text('Please select at least one PR Lot or Item.')
+                ->toast()->position('top-end')->show();
+            return;
+        }
+
         try {
-            // Ensure Mode 5 always has at least one schedule before validating
-            foreach ($this->form['modes'] as $modeIndex => $mode) {
-                if (
-                    isset($mode['mode_of_procurement_id']) &&
-                    $mode['mode_of_procurement_id'] == 5 &&
-                    (empty($mode['bid_schedules']) || !is_array($mode['bid_schedules']))
-                ) {
-                    $this->addBidSchedule($modeIndex);
+            $group = DB::transaction(function () {
+                $mopGroup = MopGroup::create([
+                    'status' => 'draft',
+                    'ref_number' => 'MOPG-' . now()->timestamp,
+                ]);
+
+                $lotProcIDs = collect($this->selectedLots)->pluck('procID');
+
+                $itemPrItemIDs = collect($this->selectedItemGroups)->pluck('items.*.prItemID')->flatten();
+
+                if ($lotProcIDs->isNotEmpty()) {
+                    $mopGroup->procurements()->attach($lotProcIDs);
+                }
+
+                if ($itemPrItemIDs->isNotEmpty()) {
+                    $mopGroup->prItems()->attach($itemPrItemIDs);
+                }
+
+                return $mopGroup;
+            });
+
+            $this->mopGroupId = $group->id;
+
+            LivewireAlert::title('Selections Saved!')
+                ->success()
+                ->text('You can now proceed to define the Mode of Procurement.')
+                ->toast()->position('top-end')->show();
+
+            $this->activeTab = 2;
+
+        } catch (\Exception $e) {
+            Log::error('Error saving Tab 1 selections: ' . $e->getMessage());
+            LivewireAlert::title('Actual Error') // Change the title to see it's different
+                ->error()
+                ->text($e->getMessage()) // <-- THIS SHOWS THE REAL DATABASE ERROR
+                ->toast()->position('top-end')->show();
+        }
+    }
+    public function saveTab2()
+    {
+        if (!$this->mopGroupId) {
+            LivewireAlert::title('Error')
+                ->error()
+                ->text('Cannot save MOP details without saved selections from Tab 1.')
+                ->toast()->position('top-end')->show();
+            return;
+        }
+
+        LivewireAlert::title('MOP Details Saved!')
+            ->success()
+            ->toast()->position('top-end')->show();
+
+        return redirect()->to('/your-dashboard'); // Redirect after final save
+    }
+    private function createMopFor(Model $model): void
+    {
+        foreach ($this->form['modes'] as $modeData) {
+            // Using the polymorphic relationship `mops()` you defined on Procurement and PrItem
+            $mop = $model->mops()->create([
+                'mode_of_procurement_id' => $modeData['mode_of_procurement_id'],
+                'mode_order' => $modeData['mode_order'] ?? 1,
+                'uid' => uniqid('MOP-'),
+            ]);
+
+            // **IMPORTANT**: You still need to implement saving the bid schedules.
+            // The schedules should be linked to the newly created `$mop->id`.
+            if (!empty($modeData['bid_schedules'])) {
+                // For example:
+                foreach ($modeData['bid_schedules'] as $schedule) {
+                    $mop->bidSchedules()->create($schedule);
                 }
             }
-
-            $this->validateData();
-
-            $modesForProcessing = $this->prepareModes();
-
-            foreach ($modesForProcessing as $modeIndex => $mode) {
-                $this->processMode($mode, $modeIndex);
-            }
-
-            LivewireAlert::title('Saved Successfully!')
-                ->success()->toast()->position('top-end')->show();
-
-            $this->checkSuccessfulBidOrNtf();
-            $this->checkSuccessfulSvp();
-
-            if ($this->hasSuccessfulBidOrNtf || $this->hasSuccessfulSvp) {
-                $this->activeTab = 3;
-            }
-
-        } catch (ValidationException $e) {
-            LivewireAlert::title('Validation Failed!')
-                ->error()->text($e->getMessage())->toast()->position('top-end')->show();
-        } catch (\Exception $e) {
-            \Log::error('Error Saving Data: ' . $e->getMessage());
-            LivewireAlert::title('Error Saving Data!')
-                ->error()->text($e->getMessage())->toast()->position('top-end')->show();
         }
     }
     public function render()
@@ -477,8 +548,34 @@ class ModeOfProcurementCreatePage extends Component
             ->orderBy('modeofprocurements')
             ->get();
 
+        // Prepare separate arrays of IDs to pass back to the modal
+        $existingLotIds = [];
+        $existingItemIds = [];
+
+        foreach ($this->selectedProcurements as $proc) {
+            if (empty($proc['items'])) {
+                // This is a 'perLot' procurement, add its ID to the lots array
+                $existingLotIds[] = $proc['id'];
+            } else {
+                // This is a 'perItem' procurement, add its item IDs to the items array
+                foreach ($proc['items'] as $item) {
+                    $existingItemIds[] = $item['id'];
+                }
+            }
+        }
+
+        $this->selectedLots = collect($this->selectedProcurements)
+            ->filter(fn($proc) => empty($proc['items']))
+            ->all();
+
+        $this->selectedItemGroups = collect($this->selectedProcurements)
+            ->filter(fn($proc) => !empty($proc['items']))
+            ->all();
+
         return view('livewire.mode-of-procurement.mode-of-procurement-create-page', [
             'modesOfProcurement' => $modes,
+            'existingLotIds' => $existingLotIds,
+            'existingItemIds' => $existingItemIds,
         ]);
     }
 }

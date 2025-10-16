@@ -93,6 +93,27 @@
                             </a>
                         </li>
                     @endcan
+                    @can('view_any_schedule::for::procurement')
+                        <li>
+                            <a class="flex items-center gap-x-2 py-2 px-2 text-sm rounded-lg
+                        {{ request()->routeIs('schedule-for-procurement.index')
+                            ? 'bg-emerald-600 text-white font-semibold dark:bg-emerald-600 dark:text-white'
+                            : 'bg-gray-100 text-gray-800 font-semibold hover:bg-emerald-600 hover:text-white dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-emerald-600 dark:hover:text-white' }}"
+                                href="{{ route('schedule-for-procurement.index') }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-6">
+                                    <path
+                                        d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" />
+                                    <path fill-rule="evenodd"
+                                        d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+
+
+                                Schedule for PR
+                            </a>
+                        </li>
+                    @endcan
                     <!-- Mode of Procurement -->
                     @can('view_any_mode::of::procurement')
                         <li>
@@ -102,14 +123,11 @@
                                 ? 'bg-emerald-600 text-white font-semibold dark:bg-emerald-600 dark:text-white'
                                 : 'bg-gray-100 text-gray-800 font-semibold hover:bg-emerald-600 hover:text-white dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-emerald-600 dark:hover:text-white' }}"href="{{ route('mode-of-procurement.index') }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="size-5">
-                                    <path fill-rule="evenodd"
-                                        d="M5.478 5.559A1.5 1.5 0 0 1 6.912 4.5H9A.75.75 0 0 0 9 3H6.912a3 3 0 0 0-2.868 2.118l-2.411 7.838a3 3 0 0 0-.133.882V18a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-4.162c0-.299-.045-.596-.133-.882l-2.412-7.838A3 3 0 0 0 17.088 3H15a.75.75 0 0 0 0 1.5h2.088a1.5 1.5 0 0 1 1.434 1.059l2.213 7.191H17.89a3 3 0 0 0-2.684 1.658l-.256.513a1.5 1.5 0 0 1-1.342.829h-3.218a1.5 1.5 0 0 1-1.342-.83l-.256-.512a3 3 0 0 0-2.684-1.658H3.265l2.213-7.191Z"
-                                        clip-rule="evenodd" />
-                                    <path fill-rule="evenodd"
-                                        d="M12 2.25a.75.75 0 0 1 .75.75v6.44l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 0 1 1.06-1.06l1.72 1.72V3a.75.75 0 0 1 .75-.75Z"
-                                        clip-rule="evenodd" />
+                                    class="size-6">
+                                    <path
+                                        d="M6 3a3 3 0 0 0-3 3v2.25a3 3 0 0 0 3 3h2.25a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6ZM15.75 3a3 3 0 0 0-3 3v2.25a3 3 0 0 0 3 3H18a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3h-2.25ZM6 12.75a3 3 0 0 0-3 3V18a3 3 0 0 0 3 3h2.25a3 3 0 0 0 3-3v-2.25a3 3 0 0 0-3-3H6ZM17.625 13.5a.75.75 0 0 0-1.5 0v2.625H13.5a.75.75 0 0 0 0 1.5h2.625v2.625a.75.75 0 0 0 1.5 0v-2.625h2.625a.75.75 0 0 0 0-1.5h-2.625V13.5Z" />
                                 </svg>
+
                                 Mode of Procurement
                             </a>
                         </li>
