@@ -54,6 +54,10 @@ class PrItem extends Model
             'prItemID'
         );
     }
+    public function scheduleItems()
+    {
+        return $this->morphMany(ScheduleForProcurementItems::class, 'itemable', 'itemable_type', 'itemable_id', 'prItemID');
+    }
 }
 
 

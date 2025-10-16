@@ -19,13 +19,13 @@ class ScheduleForProcurement extends Model
         'opening_of_bids',
         'project_name',
         'is_framework',
-        'bidding_status_id',
+        'status_id',
         'action_taken',
         'next_bidding_schedule',
         'google_drive_link',
         'ABC',
-        'no_items_lot',
-        'pr_count'
+        'two_percent',
+        'five_percent'
     ];
 
     protected $casts = [
@@ -37,6 +37,6 @@ class ScheduleForProcurement extends Model
 
     public function biddingStatus()
     {
-        return $this->belongsTo(BiddingStatus::class);
+        return $this->belongsTo(BiddingStatus::class, 'status_id');
     }
 }

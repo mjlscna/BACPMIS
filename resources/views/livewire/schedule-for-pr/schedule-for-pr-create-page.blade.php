@@ -7,7 +7,7 @@
 
 
 
-        <div class="space-y-8 p-4">
+        <div class="space-y-8 p-4 pt-5">
 
             <div class="grid grid-cols-4 md:grid-cols-7 gap-4">
                 <x-forms.input id="ib_number" label="IB Number" model="form.ib_number" :form="$form" :required="true"
@@ -24,15 +24,15 @@
 
                 <div class="col-span-6"></div>
 
-                <x-forms.select id="bidding_status_id" label="Bidding Status" model="form.bidding_status_id"
-                    :form="$form" :options="$biddingStatus" optionValue="id" optionLabel="name" :required="false"
-                    colspan="col-span-1" />
+                <x-forms.select id="status_id" label="Bidding Status" model="form.status_id" :form="$form"
+                    :options="$biddingStatus" optionValue="id" optionLabel="name" :required="false" colspan="col-span-1" />
 
                 <x-forms.select id="action_taken" label="Action Taken" model="form.action_taken" :form="$form"
                     :options="$ActionTakenOptions" optionValue="id" optionLabel="name" :required="false" colspan="col-span-1" />
 
                 <x-forms.date id="next_bidding_schedule" label="Next Bid Schedule" model="form.next_bidding_schedule"
                     :form="$form" colspan="col-span-1" />
+
                 <x-forms.input id="document_url" type="text" label="Google Drive Link" model="form.filepath"
                     placeholder="http://example.com/path/to/document.pdf" :required="true" colspan="col-span-4" />
 
@@ -46,7 +46,7 @@
         <div class="flex items-end gap-x-4">
 
             {{-- Your existing "Select" button --}}
-            <button x-on:click="$dispatch('open-mode-modal')"
+            <button wire:click="openSelectionModal"
                 class="p-2 px-2 inline-flex items-center text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700 h-10">
                 <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"

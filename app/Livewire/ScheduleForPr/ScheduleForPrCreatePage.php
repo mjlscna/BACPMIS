@@ -3,7 +3,13 @@
 namespace App\Livewire\ScheduleForPr;
 
 use App\Models\BiddingStatus;
+use App\Models\PrItem;
 use App\Models\Procurement;
+use App\Models\ScheduleForProcurement;
+use App\Models\ScheduleForProcurementItems;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 
 class ScheduleForPrCreatePage extends Component
@@ -33,6 +39,11 @@ class ScheduleForPrCreatePage extends Component
             $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
         }
 
+        if (session()->has('form_state')) {
+            $this->form = session('form_state', []); // Restore the form data
+            session()->forget('form_state'); // Clean up the session
+        }
+
         $this->procID = $procID ?? $this->form['procurement_ids'][0] ?? null;
 
         if ($this->procID) {
@@ -48,7 +59,14 @@ class ScheduleForPrCreatePage extends Component
         // Initialize totals
         $this->calculateTotals();
     }
+    public function openSelectionModal()
+    {
+        // Save the current form data to the session
+        session(['form_state' => $this->form]);
 
+        // Now, dispatch the event to open the modal
+        $this->dispatch('open-mode-modal');
+    }
     public function removeLot(int $procIndex): void
     {
         if (isset($this->selectedProcurements[$procIndex])) {
@@ -112,7 +130,98 @@ class ScheduleForPrCreatePage extends Component
         $this->twoPercent = '₱' . number_format($this->totalAbc * 0.02, 2);
         $this->fivePercent = '₱' . number_format($this->totalAbc * 0.05, 2);
     }
+    public function save()
+    {
+        // --- 1. Validation ---
+        if (empty($this->selectedProcurements)) {
+            $this->alert('error', 'Please select at least one PR Lot or Item.');
+            return;
+        }
 
+        $this->form['is_framework'] = (bool) ($this->form['is_framework'] ?? false);
+
+        $validator = Validator::make($this->form, [
+            'ib_number' => 'required|string|max:255|unique:schedule_for_pr,ib_number',
+            'opening_of_bids' => 'required|date',
+            'project_name' => 'required|string|max:1000',
+            'is_framework' => 'required|boolean',
+            'status_id' => 'nullable|integer|exists:bidding_status,id',
+            'action_taken' => 'nullable|string|max:50',
+            'next_bidding_schedule' => 'nullable|date',
+            'filepath' => 'required|url', // Assuming form model is 'filepath' for the google drive link
+        ], [], [
+            'ib_number' => 'IB Number',
+            'opening_of_bids' => 'Opening of Bids',
+            'project_name' => 'Project Name',
+            'status_id' => 'Bidding Status',
+            'next_bidding_schedule' => 'Next Bidding Schedule',
+            'filepath' => 'Google Drive Link',
+        ]);
+
+        if ($validator->fails()) {
+            LivewireAlert::title('ERROR!')
+                ->error()
+                ->text(collect($validator->errors()->all())->implode("\n"))
+                ->toast()
+                ->position('top-end')
+                ->show();
+            return;
+        }
+
+
+        // --- 2. Data Preparation ---
+        // Calculate number of items/lots
+        $itemLotCount = 0;
+        foreach ($this->selectedProcurements as $proc) {
+            $itemLotCount += !empty($proc['items']) ? count($proc['items']) : 1;
+        }
+
+        // Calculate unique PR count
+        $prCount = collect($this->selectedProcurements)->pluck('pr_number')->unique()->count();
+
+        // Use a database transaction to ensure data integrity
+        DB::transaction(function () use ($itemLotCount, $prCount) {
+            // --- 3. Create Main Schedule Record ---
+            $schedule = ScheduleForProcurement::create([
+                'ib_number' => $this->form['ib_number'],
+                'opening_of_bids' => $this->form['opening_of_bids'],
+                'project_name' => $this->form['project_name'],
+                'is_framework' => $this->form['is_framework'],
+                'status_id' => $this->form['status_id'] ?? null,
+                'action_taken' => $this->form['action_taken'] ?? null,
+                'next_bidding_schedule' => $this->form['next_bidding_schedule'] ?? null,
+                'google_drive_link' => $this->form['filepath'], // Map filepath to the correct db column
+                'ABC' => $this->totalAbc,
+                'two_percent' => $this->totalAbc * 0.02,
+                'five_percent' => $this->totalAbc * 0.05,
+            ]);
+
+            // --- 4. Link Selected Lots and Items ---
+            foreach ($this->selectedProcurements as $proc) {
+                if (empty($proc['items'])) { // This is a 'perLot' procurement
+                    ScheduleForProcurementItems::create([
+                        'schedule_for_procurement_id' => $schedule->id,
+                        'itemable_UID' => $proc['procID'],
+                        'itemable_type' => $this->procurementType,
+                    ]);
+                } else { // This is a 'perItem' procurement
+                    foreach ($proc['items'] as $item) {
+                        ScheduleForProcurementItems::create([
+                            'schedule_for_procurement_id' => $schedule->id,
+                            'itemable_UID' => $item['prItemID'], // <-- Use the polymorphic ID field
+                            'itemable_type' => $this->procurementType,      // <-- Specify the model type
+                        ]);
+                    }
+                }
+            }
+        });
+
+        LivewireAlert::title('Saved!')
+            ->success()
+            ->toast()
+            ->position('top-end')
+            ->show();
+    }
     public function render()
     {
         $existingLotIds = [];
@@ -137,9 +246,9 @@ class ScheduleForPrCreatePage extends Component
             ->all();
 
         $ActionTakenOptions = [
-            ['id' => 'done', 'name' => 'Done'],
-            ['id' => 'rebid', 'name' => 'Rebid'],
-            ['id' => 'cancelled', 'name' => 'Cancelled'],
+            ['id' => 'Done', 'name' => 'Done'],
+            ['id' => 'Rebid', 'name' => 'Rebid'],
+            ['id' => 'Cancelled', 'name' => 'Cancelled'],
         ];
 
         return view('livewire.schedule-for-pr.schedule-for-pr-create-page', [

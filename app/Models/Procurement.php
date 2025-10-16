@@ -197,5 +197,8 @@ class Procurement extends Model
             'procID'
         );
     }
-
+    public function scheduleItems()
+    {
+        return $this->morphMany(ScheduleForProcurementItems::class, 'itemable', 'itemable_type', 'itemable_id', 'procID');
+    }
 }

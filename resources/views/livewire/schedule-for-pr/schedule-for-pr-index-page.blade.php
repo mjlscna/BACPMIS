@@ -31,70 +31,131 @@
             </div>
         </div>
 
-        <div class="overflow-auto flex-1">
+        <div class="overflow-x-auto">
             <table class="table-fixed w-full min-w-[1100px] divide-y divide-gray-200 dark:divide-neutral-700">
-                <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-10">
+                <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-20">
                     <tr>
-                        <th class="px-2 py-2 sticky left-0 z-30 bg-gray-200 dark:bg-neutral-900 w-8"></th>
+                        {{-- Col 1: Actions (w-8 = 32px) --}}
+                        <th class="px-2 py-2 sticky left-0 z-30 bg-gray-200 dark:bg-neutral-900 w-10"></th>
+
+                        {{-- Col 2: IB Number (w-24 = 96px) | Offset by Col 1 --}}
                         <th
-                            class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[32px] z-20 bg-gray-200 dark:bg-neutral-900 w-28">
+                            class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[32px] z-30 bg-gray-200 dark:bg-neutral-900 w-24">
                             IB Number
                         </th>
+
+                        {{-- Col 3: Opening of Bids (w-28 = 112px) | Offset by Col 1 + 2 --}}
                         <th
-                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[144px] z-10 bg-gray-200 dark:bg-neutral-900 w-md">
-                            Project Name
-                        </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-28">
+                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[128px] z-30 bg-gray-200 dark:bg-neutral-900 w-28">
                             Opening of Bids
                         </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-28">
-                            Status
+
+                        {{-- Col 4: Name of Project | Offset by Col 1 + 2 + 3 --}}
+                        <th
+                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[240px] z-30 bg-gray-200 dark:bg-neutral-900 w-lg">
+                            Name of Project
                         </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-32">
-                            Next Bidding
-                        </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-28">
+
+                        {{-- Other header columns... --}}
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
                             Framework
                         </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-24">
-                            Items/Lots
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                            Bidding Status
                         </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-24">
-                            PR Count
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                            Action Taken
                         </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white w-32">
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
+                            Next Bidding
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
                             ABC Amount
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
+                            2%
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
+                            5%
                         </th>
                     </tr>
                 </thead>
+
                 <tbody class="bg-white divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
                     @forelse ($schedules as $schedule)
-                        <tr>
-                            <td
-                                class="px-2 py-2 text-center sticky left-0 bg-white text-black dark:text-white dark:bg-neutral-800">
+                        <tr wire:key="schedule-{{ $schedule->id }}">
+                            {{-- Col 1: Actions --}}
+                            <td class="px-2 py-2 sticky left-0 z-10 bg-white dark:bg-neutral-800">
+                                <div x-data="{ open: false }" class="relative inline-block" x-ref="menuWrapper">
+                                    <button @click="open = !open" @click.away="open = false"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 focus:outline-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                                        </svg>
+                                    </button>
+                                    <template x-teleport="body">
+                                        <div x-show="open" x-transition @click.away="open = false"
+                                            class="absolute z-[9999] bg-white border border-gray-200 rounded shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
+                                            x-ref="dropdown" x-init="$watch('open', value => {
+                                                if (value) {
+                                                    let rect = $refs.menuWrapper.getBoundingClientRect();
+                                                    $refs.dropdown.style.top = (rect.top + window.scrollY) + 'px';
+                                                    $refs.dropdown.style.left = (rect.right + 10 + window.scrollX) + 'px';
+                                                }
+                                            })">
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                                                @can('view_schedule::for::procurement')
+                                                    <li>
+                                                        <a href="{{ $schedule->google_drive_link }}" target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-green-600">
+
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                                class="size-4">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                                            </svg>
+                                                            View File
+                                                        </a>
+                                                    </li>
+                                                @endcan
+                                                @can('update_schedule::for::procurement')
+                                                    <li>
+                                                        <a href="{{ route('schedule-for-procurement.edit', $schedule->id) }}"
+                                                            @click="open = false"
+                                                            class="w-full flex items-center gap-1 text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-amber-600">
+                                                            <x-heroicon-o-pencil class="w-4 h-4 text-amber-600" /> Edit
+                                                        </a>
+                                                    </li>
+                                                @endcan
+                                            </ul>
+                                        </div>
+                                    </template>
+                                </div>
                             </td>
+
+                            {{-- Col 2: IB Number --}}
                             <td
-                                class="px-1 py-1 text-center text-sm sticky left-[32px] z-20 bg-white dark:bg-neutral-800 text-black dark:text-white">
+                                class="px-1 py-1 text-center text-sm sticky left-[32px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
                                 {{ $schedule->ib_number }}
                             </td>
+
+                            {{-- Col 3: Opening of Bids --}}
                             <td
-                                class="px-1 py-1 text-left text-sm sticky left-[144px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
+                                class="px-1 py-1 text-center text-sm sticky left-[128px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
+                                {{ optional($schedule->opening_of_bids)->format('M d, Y') }}
+                            </td>
+
+                            {{-- Col 4: Name of Project --}}
+                            <td
+                                class="px-1 py-1 text-left text-sm sticky left-[240px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
                                 {{ $schedule->project_name }}
                             </td>
-                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
-                                {{ $schedule->opening_of_bids->format('M d, Y') }}
-                            </td>
-                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
-                                @if ($schedule->biddingStatus)
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
-                                        style="background-color: {{ $schedule->biddingStatus->color ?? '#9ca3af' }}20; color: {{ $schedule->biddingStatus->color ?? '#9ca3af' }};">
-                                        {{ $schedule->biddingStatus->name }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
-                                {{ $schedule->next_bidding_schedule?->format('M d, Y') }}
-                            </td>
+
+                            {{-- Other body cells... --}}
                             <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
                                 @if ($schedule->is_framework)
                                     <x-heroicon-s-check-circle title="Yes"
@@ -103,19 +164,28 @@
                                     <x-heroicon-s-x-circle title="No" class="h-5 w-5 text-red-600 mx-auto" />
                                 @endif
                             </td>
-                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
-                                {{ $schedule->no_items_lot }}
+                            <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
+                                {{ $schedule->biddingStatus?->name }}
                             </td>
-                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
-                                {{ $schedule->pr_count }}
+                            <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
+                                {{ $schedule->action_taken }}
                             </td>
-                            <td class="px-1 py-1 pr-4 text-right text-sm text-black dark:text-white relative">
-                                <span>{{ number_format($schedule->approved_budget_contract ?? 0, 2) }}</span>
+                            <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
+                                {{ optional($schedule->next_bidding_schedule)->format('M d, Y') }}
+                            </td>
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱{{ number_format($schedule->ABC, 2) }}
+                            </td>
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱{{ number_format($schedule->two_percent, 2) }}
+                            </td>
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱{{ number_format($schedule->five_percent, 2) }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center py-10 text-gray-500">
+                            <td colspan="12" class="text-center py-10 text-gray-500">
                                 No bidding schedules found.
                             </td>
                         </tr>
