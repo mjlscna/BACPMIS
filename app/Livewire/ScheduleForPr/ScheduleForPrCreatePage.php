@@ -64,8 +64,20 @@ class ScheduleForPrCreatePage extends Component
     {
         session(['form_state' => $this->form]);
 
-        $this->dispatch('open-mode-modal');
+        $existingLotIds = collect($this->selectedProcurements)
+            ->filter(fn($proc) => empty($proc['items']))
+            ->pluck('id')
+            ->toArray();
+
+        $existingItemIds = collect($this->selectedProcurements)
+            ->filter(fn($proc) => !empty($proc['items']))
+            ->flatMap(fn($proc) => collect($proc['items'])->pluck('id'))
+            ->toArray();
+
+        // Pass the current selections to the modal
+        $this->dispatch('open-mode-modal', existingLotIds: $existingLotIds, existingItemIds: $existingItemIds);
     }
+
     public function procurementsSelected(array $selectedData): void
     {
         // Replace the component's current selections with the new ones from the modal
@@ -141,7 +153,12 @@ class ScheduleForPrCreatePage extends Component
     {
         // --- 1. Validation ---
         if (empty($this->selectedProcurements)) {
-            $this->alert('error', 'Please select at least one PR Lot or Item.');
+            LivewireAlert::title('ERROR!')
+                ->error()
+                ->text('Please select at least one PR Lot or Item.')
+                ->toast()
+                ->position('top-end')
+                ->show();
             return;
         }
 
@@ -222,12 +239,17 @@ class ScheduleForPrCreatePage extends Component
                 }
             }
         });
-        $this->resetForm();
-        LivewireAlert::title('Saved!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+
+        session()->forget(['selected_procurements', 'form_state']);
+
+        session()->flash('alert', [
+            'type' => 'success',
+            'title' => 'Saved!',
+            'message' => 'Your schedule has been created successfully.',
+        ]);
+
+        return redirect()->route('schedule-for-procurement.index');
+
     }// app/Livewire/ScheduleForPr/ScheduleForPrCreatePage.php
 
     public function resetForm(): void

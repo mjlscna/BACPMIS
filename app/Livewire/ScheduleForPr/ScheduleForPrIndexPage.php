@@ -3,6 +3,7 @@
 namespace App\Livewire\ScheduleForPr;
 
 use App\Models\ScheduleForProcurement;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,6 +16,21 @@ class ScheduleForPrIndexPage extends Component
 
     // Use the default tailwind theme for pagination
     protected $paginationTheme = 'tailwind';
+    public function mount()
+    {
+        if (session('alert')) {
+            $alert = session('alert');
+
+            LivewireAlert::title($alert['title'])
+                ->{$alert['type']}() // dynamic call: success(), error(), etc.
+                    ->text($alert['message'])
+                    ->toast()
+                    ->position('top-end')
+                    ->show();
+        }
+    }
+
+
     public function updatingSearch()
     {
         $this->resetPage();
