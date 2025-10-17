@@ -39,4 +39,8 @@ class ScheduleForProcurement extends Model
     {
         return $this->belongsTo(BiddingStatus::class, 'status_id');
     }
+    public function items()
+    {
+        return $this->hasMany(ScheduleForProcurementItems::class);
+    }
 }
