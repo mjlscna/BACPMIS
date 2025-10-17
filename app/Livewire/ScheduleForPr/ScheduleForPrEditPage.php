@@ -15,7 +15,6 @@ use Livewire\Component;
 
 class ScheduleForPrEditPage extends Component
 {
-
     public ?ScheduleForProcurement $schedule = null;
     public string $procurementType = '';
     public array $form = [];
@@ -28,7 +27,9 @@ class ScheduleForPrEditPage extends Component
     public string $totalAbcFormatted = '₱0.00';
     public string $twoPercent = '₱0.00';
     public string $fivePercent = '₱0.00';
+
     protected $listeners = ['procurementsSelected'];
+
     public function mount(int $id)
     {
         $this->schedule = ScheduleForProcurement::findOrFail($id);
@@ -37,12 +38,12 @@ class ScheduleForPrEditPage extends Component
         // --- Prefill form data ---
         $this->form = [
             'ib_number' => $this->schedule->ib_number,
-            'opening_of_bids' => $this->schedule->opening_of_bids,
+            'opening_of_bids' => optional($this->schedule->opening_of_bids)->format('Y-m-d'),
             'project_name' => $this->schedule->project_name,
             'is_framework' => (bool) $this->schedule->is_framework,
             'status_id' => $this->schedule->status_id,
             'action_taken' => $this->schedule->action_taken,
-            'next_bidding_schedule' => $this->schedule->next_bidding_schedule,
+            'next_bidding_schedule' => optional($this->schedule->next_bidding_schedule)->format('Y-m-d'),
             'filepath' => $this->schedule->google_drive_link,
         ];
 
@@ -113,19 +114,30 @@ class ScheduleForPrEditPage extends Component
         $this->fivePercent = '₱' . number_format($this->totalAbc * 0.05, 2);
     }
 
-    public function openSelectionModal(): void
+    public function openSelectionModal()
     {
         session(['form_state' => $this->form]);
-        $this->dispatch('open-mode-modal');
+
+        $existingLotIds = collect($this->selectedProcurements)
+            ->filter(fn($proc) => empty($proc['items']))
+            ->pluck('id')
+            ->toArray();
+
+        $existingItemIds = collect($this->selectedProcurements)
+            ->filter(fn($proc) => !empty($proc['items']))
+            ->flatMap(fn($proc) => collect($proc['items'])->pluck('id'))
+            ->toArray();
+
+        // Pass the current selections to the modal
+        $this->dispatch('open-mode-modal', existingLotIds: $existingLotIds, existingItemIds: $existingItemIds);
     }
+
     public function procurementsSelected(array $selectedData): void
     {
-        // Replace the component's current selections with the new ones from the modal
         $this->selectedProcurements = $selectedData;
-
-        // Recalculate the totals based on the new selection
         $this->calculateTotals();
     }
+
     public function removeLot(int $procIndex): void
     {
         unset($this->selectedProcurements[$procIndex]);
@@ -145,14 +157,13 @@ class ScheduleForPrEditPage extends Component
 
     public function save()
     {
-
+        // --- Validate ---
         $validator = Validator::make($this->form, [
             'ib_number' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('schedule_for_pr', 'ib_number')
-                    ->ignore($this->schedule->id, 'id'), // ID from $this->schedule
+                Rule::unique('schedule_for_pr', 'ib_number')->ignore($this->schedule->id, 'id'),
             ],
             'opening_of_bids' => 'required|date',
             'project_name' => 'required|string|max:1000',
@@ -173,9 +184,9 @@ class ScheduleForPrEditPage extends Component
             return;
         }
 
-
+        // --- Save transaction ---
         DB::transaction(function () {
-            // --- Update Main Record ---
+            // Update main record
             $this->schedule->update([
                 'ib_number' => $this->form['ib_number'],
                 'opening_of_bids' => $this->form['opening_of_bids'],
@@ -190,10 +201,9 @@ class ScheduleForPrEditPage extends Component
                 'five_percent' => $this->totalAbc * 0.05,
             ]);
 
-            // --- Remove Old Links ---
+            // Clear old links and recreate
             $this->schedule->items()->delete();
 
-            // --- Recreate Links ---
             foreach ($this->selectedProcurements as $proc) {
                 if (empty($proc['items'])) {
                     ScheduleForProcurementItems::create([
@@ -213,11 +223,17 @@ class ScheduleForPrEditPage extends Component
             }
         });
 
-        LivewireAlert::title('Updated!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+        // --- Clear persisted session state (same as create page) ---
+        session()->forget(['selected_procurements', 'form_state']);
+
+        // --- Flash success alert and redirect ---
+        session()->flash('alert', [
+            'type' => 'success',
+            'title' => 'Updated!',
+            'message' => 'The schedule has been updated successfully.',
+        ]);
+
+        return redirect()->route('schedule-for-procurement.index');
     }
 
     public function render()

@@ -32,11 +32,16 @@ class SelectModal extends Component
     protected array $queryString = ['search'];
     protected $listeners = ['open-mode-modal' => 'open'];
 
-    public function open()
+    public function open(array $existingLotIds = [], array $existingItemIds = [])
     {
         $this->resetState();
-        $this->selectedLotIds = $this->existingLotIds;
-        $this->selectedItemIds = $this->existingItemIds;
+
+        // Restore previous selections
+        $this->existingLotIds = $existingLotIds;
+        $this->existingItemIds = $existingItemIds;
+        $this->selectedLotIds = $existingLotIds;
+        $this->selectedItemIds = $existingItemIds;
+
         $this->resetPage();
         $this->resetPage('selectedLotsPage');
         $this->resetPage('selectedItemsPage');
