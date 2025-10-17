@@ -16,7 +16,7 @@ class SelectModal extends Component
 
     public bool $showModal = false;
     public string $search = '';
-    public int $perPage = 5;
+    public int $perPage = 10;
     public array $existingSelection = [];
     public string $procurementType = '';
 
@@ -97,14 +97,8 @@ class SelectModal extends Component
             }
         }
 
-        if (empty($selectedData)) {
-            $this->close();
-            return;
-        }
-
-        session()->flash('selected_procurements', $selectedData);
+        $this->dispatch('procurementsSelected', selectedData: $selectedData);
         $this->close();
-        return redirect()->route('schedule-for-procurement.create', ['type' => $this->procurementType]);
     }
 
     private function formatProcurementData(Procurement $proc): array

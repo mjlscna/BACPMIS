@@ -5,8 +5,6 @@
             {{ $procurementType === 'perLot' ? 'Per Lot' : 'Per Item' }}
         </div>
 
-
-
         <div class="space-y-8 p-4 pt-5">
 
             <div class="grid grid-cols-4 md:grid-cols-7 gap-4">
@@ -190,5 +188,4 @@
         </div>
     </div>
 
-</div>
 </div>

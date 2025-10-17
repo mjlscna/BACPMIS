@@ -63,15 +63,15 @@ Route::middleware(['jwt'])->group(function () {
     Route::prefix('schedule-for-procurement')->name('schedule-for-procurement.')->group(function () {
         Route::get('/', ScheduleForPrIndexPage::class)
             ->name('index')
-            ->middleware('can:view_any_mode::of::procurement');
+            ->middleware('can:view_any_schedule::for::procurement');
 
         Route::get('/create', ScheduleForPrCreatePage::class)
             ->name('create')
-            ->middleware('can:create_mode::of::procurement');
+            ->middleware('can:create_schedule::for::procurement');
 
         Route::get('/{id}/edit', ScheduleForPrEditPage::class)
             ->name('edit')
-            ->middleware('can:edit_mode::of::procurement');
+            ->middleware('can:update_schedule::for::procurement');
     });
     // Mode of procurement routes with Shield permissions
     Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {
@@ -83,9 +83,7 @@ Route::middleware(['jwt'])->group(function () {
             ->name('create')
             ->middleware('can:create_mode::of::procurement');
 
-        Route::get('/{id}/edit', ModeOfProcurementEditPage::class)
-            ->name('edit')
-            ->middleware('can:edit_mode::of::procurement');
+
     });
 
     // Logout

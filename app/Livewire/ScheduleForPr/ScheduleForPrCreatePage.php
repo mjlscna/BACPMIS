@@ -29,9 +29,10 @@ class ScheduleForPrCreatePage extends Component
     public string $totalAbcFormatted = '₱0.00';
     public string $twoPercent = '₱0.00';
     public string $fivePercent = '₱0.00';
-
+    protected $listeners = ['procurementsSelected'];
     public function mount($procID = null)
     {
+        $this->resetForm();
         $this->procurementType = request()->query('type', 'perLot');
 
         if (session()->has('selected_procurements')) {
@@ -61,11 +62,17 @@ class ScheduleForPrCreatePage extends Component
     }
     public function openSelectionModal()
     {
-        // Save the current form data to the session
         session(['form_state' => $this->form]);
 
-        // Now, dispatch the event to open the modal
         $this->dispatch('open-mode-modal');
+    }
+    public function procurementsSelected(array $selectedData): void
+    {
+        // Replace the component's current selections with the new ones from the modal
+        $this->selectedProcurements = $selectedData;
+
+        // Recalculate the totals based on the new selection
+        $this->calculateTotals();
     }
     public function removeLot(int $procIndex): void
     {
@@ -215,12 +222,29 @@ class ScheduleForPrCreatePage extends Component
                 }
             }
         });
-
+        $this->resetForm();
         LivewireAlert::title('Saved!')
             ->success()
             ->toast()
             ->position('top-end')
             ->show();
+    }// app/Livewire/ScheduleForPr/ScheduleForPrCreatePage.php
+
+    public function resetForm(): void
+    {
+        // Reset the main form array
+        $this->form = [];
+
+        // Reset all selections
+        $this->selectedProcurements = [];
+        $this->selectedLots = [];
+        $this->selectedItemGroups = [];
+
+        // Recalculate totals, which will set them back to zero
+        $this->calculateTotals();
+
+        // If you use Livewire's built-in validation, you might want to reset its state too
+        $this->resetValidation();
     }
     public function render()
     {

@@ -85,7 +85,8 @@
                     @forelse ($schedules as $schedule)
                         <tr wire:key="schedule-{{ $schedule->id }}">
                             {{-- Col 1: Actions --}}
-                            <td class="px-2 py-2 sticky left-0 z-10 bg-white dark:bg-neutral-800">
+                            <td
+                                class="px-2 py-2 text-center sticky left-0 bg-white text-black dark:text-white dark:bg-neutral-800">
                                 <div x-data="{ open: false }" class="relative inline-block" x-ref="menuWrapper">
                                     <button @click="open = !open" @click.away="open = false"
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 focus:outline-none">
