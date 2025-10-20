@@ -270,10 +270,6 @@ class ProcurementCreatePage extends Component
 
         $this->updateCategoryVenue();
 
-        if (empty($this->form['pr_number'])) {
-            $this->form['pr_number'] = Procurement::generatePrNumber($this->form['early_procurement'] ?? false);
-        }
-
         $this->procID = 'BAC' . $this->form['pr_number'] . now()->format('YmdHis');
 
         // --- Create Procurement ---
@@ -332,11 +328,14 @@ class ProcurementCreatePage extends Component
             ]);
         }
 
-        LivewireAlert::title('Saved!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+
+        session()->flash('alert', [
+            'type' => 'success',
+            'title' => 'Saved!',
+            'message' => 'Your Procurement has been created successfully.',
+        ]);
+
+        return redirect()->route('procurements.index');
     }
 
     public function getPaginatedItemsProperty()
