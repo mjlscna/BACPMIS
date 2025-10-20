@@ -391,11 +391,13 @@ class ProcurementEditPage extends Component
             $this->procurement->pr_items()->delete();
         }
 
-        LivewireAlert::title('Updated!')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+        session()->flash('alert', [
+            'type' => 'success',
+            'title' => 'Saved!',
+            'message' => 'Your Procurement has been updated successfully.',
+        ]);
+
+        return redirect()->route('procurements.index');
     }
 
     public function getPaginatedItemsProperty()

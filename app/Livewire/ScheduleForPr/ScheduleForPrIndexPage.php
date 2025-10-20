@@ -30,7 +30,6 @@ class ScheduleForPrIndexPage extends Component
         }
     }
 
-
     public function updatingSearch()
     {
         $this->resetPage();
