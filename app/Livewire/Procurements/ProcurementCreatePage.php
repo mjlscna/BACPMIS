@@ -188,7 +188,11 @@ class ProcurementCreatePage extends Component
         // --- 1. Main form validation ---
 
         $validator = Validator::make($this->form, [
-            'pr_number' => ['regex:/^\d{4}-\d{4}$/', 'unique:procurements,pr_number'],
+            'pr_number' => [
+                'required',
+                'regex:/^\d{4}-\d{4}$/',
+                'unique:procurements,pr_number',
+            ],
             'procurement_program_project' => 'required|string|max:1000',
             'divisions_id' => 'required|integer|exists:divisions,id',
             'cluster_committees_id' => 'required|integer|exists:cluster_committees,id',
