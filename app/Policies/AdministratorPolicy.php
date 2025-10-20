@@ -55,7 +55,7 @@ class AdministratorPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_administrator');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class AdministratorPolicy
      */
     public function forceDelete(User $user, Administrator $administrator): bool
     {
-        return $user->can('force_delete_administrator');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class AdministratorPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_administrator');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class AdministratorPolicy
      */
     public function restore(User $user, Administrator $administrator): bool
     {
-        return $user->can('restore_administrator');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class AdministratorPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_administrator');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class AdministratorPolicy
      */
     public function replicate(User $user, Administrator $administrator): bool
     {
-        return $user->can('replicate_administrator');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class AdministratorPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_administrator');
+        return $user->can('{{ Reorder }}');
     }
 }

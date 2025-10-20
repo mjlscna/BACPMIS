@@ -55,7 +55,7 @@ class ProcurementPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_procurement');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class ProcurementPolicy
      */
     public function forceDelete(User $user, Procurement $procurement): bool
     {
-        return $user->can('force_delete_procurement');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class ProcurementPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_procurement');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class ProcurementPolicy
      */
     public function restore(User $user, Procurement $procurement): bool
     {
-        return $user->can('restore_procurement');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class ProcurementPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_procurement');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class ProcurementPolicy
      */
     public function replicate(User $user, Procurement $procurement): bool
     {
-        return $user->can('replicate_procurement');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class ProcurementPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_procurement');
+        return $user->can('{{ Reorder }}');
     }
 }

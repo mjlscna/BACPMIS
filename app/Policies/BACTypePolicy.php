@@ -55,7 +55,7 @@ class BACTypePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_b::a::c::type');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class BACTypePolicy
      */
     public function forceDelete(User $user, BACType $bACType): bool
     {
-        return $user->can('force_delete_b::a::c::type');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class BACTypePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_b::a::c::type');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class BACTypePolicy
      */
     public function restore(User $user, BACType $bACType): bool
     {
-        return $user->can('restore_b::a::c::type');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class BACTypePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_b::a::c::type');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class BACTypePolicy
      */
     public function replicate(User $user, BACType $bACType): bool
     {
-        return $user->can('replicate_b::a::c::type');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class BACTypePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_b::a::c::type');
+        return $user->can('{{ Reorder }}');
     }
 }

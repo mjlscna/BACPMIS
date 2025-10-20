@@ -55,7 +55,7 @@ class VenueSpecificPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_venue::specific');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class VenueSpecificPolicy
      */
     public function forceDelete(User $user, VenueSpecific $venueSpecific): bool
     {
-        return $user->can('force_delete_venue::specific');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class VenueSpecificPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_venue::specific');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class VenueSpecificPolicy
      */
     public function restore(User $user, VenueSpecific $venueSpecific): bool
     {
-        return $user->can('restore_venue::specific');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class VenueSpecificPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_venue::specific');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class VenueSpecificPolicy
      */
     public function replicate(User $user, VenueSpecific $venueSpecific): bool
     {
-        return $user->can('replicate_venue::specific');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class VenueSpecificPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_venue::specific');
+        return $user->can('{{ Reorder }}');
     }
 }

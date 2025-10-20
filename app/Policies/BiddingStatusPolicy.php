@@ -55,7 +55,7 @@ class BiddingStatusPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_bidding::status');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class BiddingStatusPolicy
      */
     public function forceDelete(User $user, BiddingStatus $biddingStatus): bool
     {
-        return $user->can('force_delete_bidding::status');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class BiddingStatusPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_bidding::status');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class BiddingStatusPolicy
      */
     public function restore(User $user, BiddingStatus $biddingStatus): bool
     {
-        return $user->can('restore_bidding::status');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class BiddingStatusPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_bidding::status');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class BiddingStatusPolicy
      */
     public function replicate(User $user, BiddingStatus $biddingStatus): bool
     {
-        return $user->can('replicate_bidding::status');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class BiddingStatusPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_bidding::status');
+        return $user->can('{{ Reorder }}');
     }
 }

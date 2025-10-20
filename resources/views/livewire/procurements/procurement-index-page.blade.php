@@ -117,7 +117,7 @@
                                                     </li>
                                                 @endif
                                             @endcan
-                                            @can('update_procurement')
+                                            @can('edit_procurement')
                                                 <li>
                                                     <a href="{{ route('procurements.edit', $procurement->procID) }}"
                                                         @click="open = false"

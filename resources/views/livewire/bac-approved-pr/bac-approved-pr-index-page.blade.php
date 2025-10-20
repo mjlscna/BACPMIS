@@ -89,7 +89,7 @@
                                                     </a>
                                                 </li>
                                             @endcan
-                                            @can('update_b::a::c::approved::p::r')
+                                            @can('edit_b::a::c::approved::p::r')
                                                 <li>
                                                     <a href="{{ route('bac-approved-pr.edit', $pr->procID) }}"
                                                         @click="open = false"

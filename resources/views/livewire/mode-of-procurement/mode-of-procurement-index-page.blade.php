@@ -96,7 +96,7 @@
                                                         </button>
                                                     </li>
                                                 @endcan
-                                                @can('update_procurement')
+                                                @can('edit_procurement')
                                                     <li>
                                                         <a href="{{ route('mode-of-procurement.edit', $mode->procID) }}"
                                                             @click="open = false"

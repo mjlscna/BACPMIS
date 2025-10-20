@@ -55,7 +55,7 @@ class FundSourcePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_fund::source');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class FundSourcePolicy
      */
     public function forceDelete(User $user, FundSource $fundSource): bool
     {
-        return $user->can('force_delete_fund::source');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class FundSourcePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_fund::source');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class FundSourcePolicy
      */
     public function restore(User $user, FundSource $fundSource): bool
     {
-        return $user->can('restore_fund::source');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class FundSourcePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_fund::source');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class FundSourcePolicy
      */
     public function replicate(User $user, FundSource $fundSource): bool
     {
-        return $user->can('replicate_fund::source');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class FundSourcePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_fund::source');
+        return $user->can('{{ Reorder }}');
     }
 }
