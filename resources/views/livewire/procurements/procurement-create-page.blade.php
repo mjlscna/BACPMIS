@@ -5,18 +5,17 @@
         class="bg-white p-4 rounded-xl shadow border border-gray-200
                 dark:bg-neutral-700 dark:border-neutral-700">
         <!-- Grid for PR No. + Program/Project -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-10 gap-4">
             <!-- PR Number -->
             <div class="col-span-1">
                 <x-forms.input id="pr_number" label="PR No." model="form.pr_number" :form="$form" :required="true"
                     textAlign="right" :readonly="false" :disabled="false" />
-
             </div>
 
             <!-- Procurement Program / Project -->
             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
                 model="form.procurement_program_project" :form="$form" :required="true" :maxlength="1000"
-                :rows="1" colspan="col-span-4" />
+                :rows="1" colspan="col-span-9" />
         </div>
 
         <!-- Per Lot / Per Item Toggle + Table -->

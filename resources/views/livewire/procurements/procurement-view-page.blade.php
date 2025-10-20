@@ -2,7 +2,7 @@
     <div class="p-4">
         <div class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700">
             <!-- Grid for PR No. + Program/Project -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-10 gap-4">
                 <!-- PR Number -->
                 <div class="col-span-1">
                     <x-forms.readonly-input id="pr_number" label="PR No." model="form.pr_number" :form="$form"
@@ -13,7 +13,7 @@
                 <!-- Procurement Program / Project -->
                 <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
                     model="form.procurement_program_project" :form="$form" :required="true" :maxlength="500"
-                    :rows="1" colspan="col-span-4 " :viewOnly="true" />
+                    :rows="1" colspan="col-span-9 " :viewOnly="true" />
             </div>
 
             <!-- Per Lot / Per Item Toggle + Table -->

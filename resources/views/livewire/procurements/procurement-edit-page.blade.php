@@ -5,7 +5,7 @@
         class="bg-white p-4 rounded-xl shadow border border-gray-200
                 dark:bg-neutral-700 dark:border-neutral-700 ">
         <!-- Grid for PR No. + Program/Project -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-10 gap-4">
             <!-- PR Number -->
             <div class="col-span-1">
                 <label for="pr_number" class="block text-sm font-medium text-gray-700 dark:text-white mb-1">
@@ -16,7 +16,7 @@
             </div>
 
             <!-- Procurement Program / Project -->
-            <div class="col-span-4">
+            <div class="col-span-9">
                 <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
                     model="form.procurement_program_project" :required="true" :rows="$textareaRows" :readonly="true" />
             </div>
