@@ -35,32 +35,24 @@
             <table class="table-fixed w-full min-w-[1100px] divide-y divide-gray-200 dark:divide-neutral-700">
                 <thead class="bg-gray-200 dark:bg-neutral-900 sticky top-0 z-20">
                     <tr>
-                        {{-- Col 1: Actions (w-8 = 32px) --}}
                         <th class="px-2 py-2 sticky left-0 z-30 bg-gray-200 dark:bg-neutral-900 w-10"></th>
 
-                        {{-- Col 2: IB Number (w-24 = 96px) | Offset by Col 1 --}}
                         <th
-                            class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[32px] z-30 bg-gray-200 dark:bg-neutral-900 w-24">
+                            class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase sticky left-[32px] z-30 bg-gray-200 dark:bg-neutral-900 w-32">
                             IB Number
                         </th>
-
-                        {{-- Col 3: Opening of Bids (w-28 = 112px) | Offset by Col 1 + 2 --}}
                         <th
-                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[128px] z-30 bg-gray-200 dark:bg-neutral-900 w-28">
+                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[160px] z-30 bg-gray-200 dark:bg-neutral-900 w-28">
                             Opening of Bids
                         </th>
-
-                        {{-- Col 4: Name of Project | Offset by Col 1 + 2 + 3 --}}
                         <th
-                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[240px] z-30 bg-gray-200 dark:bg-neutral-900 w-lg">
+                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[272px] z-30 bg-gray-200 dark:bg-neutral-900 w-lg">
                             Name of Project
                         </th>
-
-                        {{-- Other header columns... --}}
                         <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
                             Framework
                         </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-34">
                             Bidding Status
                         </th>
                         <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
@@ -137,26 +129,18 @@
                                     </template>
                                 </div>
                             </td>
-
-                            {{-- Col 2: IB Number --}}
                             <td
                                 class="px-1 py-1 text-center text-sm sticky left-[32px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
                                 {{ $schedule->ib_number }}
                             </td>
-
-                            {{-- Col 3: Opening of Bids --}}
                             <td
-                                class="px-1 py-1 text-center text-sm sticky left-[128px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
+                                class="px-1 py-1 text-center text-sm sticky left-[160px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
                                 {{ optional($schedule->opening_of_bids)->format('M d, Y') }}
                             </td>
-
-                            {{-- Col 4: Name of Project --}}
                             <td
-                                class="px-1 py-1 text-left text-sm sticky left-[240px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
+                                class="px-1 py-1 text-left text-sm sticky left-[272px] z-10 bg-white dark:bg-neutral-800 text-black dark:text-white">
                                 {{ $schedule->project_name }}
                             </td>
-
-                            {{-- Other body cells... --}}
                             <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
                                 @if ($schedule->is_framework)
                                     <x-heroicon-s-check-circle title="Yes"
@@ -165,9 +149,33 @@
                                     <x-heroicon-s-x-circle title="No" class="h-5 w-5 text-red-600 mx-auto" />
                                 @endif
                             </td>
-                            <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
-                                {{ $schedule->biddingStatus?->name }}
+                            @php
+                                $status = $schedule->biddingStatus?->name ?? '';
+
+                                $statusColor = match (true) {
+                                    $status === 'Awarded' => 'bg-lime-700 text-white',
+                                    str_contains($status, 'Failed') => 'bg-red-700 text-white',
+                                    str_contains($status, 'For Checking') => 'bg-rose-200 text-black',
+                                    str_contains($status, 'On Hold') || str_contains($status, 'On-Hold')
+                                        => 'bg-black text-white',
+                                    $status === 'For Posting' => 'bg-blue-800 text-white',
+                                    $status === 'Posted' => 'bg-sky-300 text-black',
+                                    str_contains($status, 'Evaluation') => 'bg-rose-300 text-black',
+                                    $status === 'For Bid Docs' || $status === 'For Biddocs'
+                                        => 'bg-yellow-400 text-black',
+                                    str_contains($status, 'Post-Qualified') => 'bg-green-200 text-black',
+                                    $status === 'Partially Awarded' => 'bg-lime-400 text-black',
+                                    default => 'bg-gray-200 text-gray-800 dark:bg-neutral-700 dark:text-white',
+                                };
+                            @endphp
+
+                            <td class="px-1 py-1 text-center text-sm">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full font-semibold {{ $statusColor }}">
+                                    {{ $status }}
+                                </span>
                             </td>
+
                             <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
                                 {{ $schedule->action_taken }}
                             </td>
