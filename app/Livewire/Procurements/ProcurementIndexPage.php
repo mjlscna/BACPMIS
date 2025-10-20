@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Procurements;
 
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Procurement;
@@ -34,7 +35,19 @@ class ProcurementIndexPage extends Component
     public $venueProvinces = [];
     public $endUsers = [];
     public $fundSources = [];
+    public function mount()
+    {
+        if (session('alert')) {
+            $alert = session('alert');
 
+            LivewireAlert::title($alert['title'])
+                ->{$alert['type']}() // dynamic call: success(), error(), etc.
+                    ->text($alert['message'])
+                    ->toast()
+                    ->position('top-end')
+                    ->show();
+        }
+    }
     /**
      * Show the early procurement prompt modal.
      */

@@ -15,15 +15,17 @@
                 </svg>
             </div>
             @can('create_procurement')
-                <button wire:click="promptEarlyProcurement"
+                <a href="{{ route('procurements.create') }}"
                     class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-hidden focus:bg-emerald-700">
                     <svg class="shrink-0 size-4" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14" />
                         <path d="M12 5v14" />
-                    </svg> Procurement
-                </button>
+                    </svg>
+                    Procurement
+                </a>
             @endcan
+
         </div>
     </div>
 
@@ -186,7 +188,7 @@
 
     </div>
 
-    @if ($showEarlyPrompt)
+    {{-- @if ($showEarlyPrompt)
         <div
             class="fixed inset-0 flex items-center justify-center bg-emerald-600/20  z-50 backdrop-blur-sm dark:bg-neutral-700/20">
             <div
@@ -205,7 +207,7 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endif --}}
 
     {{-- ViewModal --}}
 
