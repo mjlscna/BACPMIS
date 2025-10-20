@@ -55,7 +55,7 @@ class DashboardPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_dashboard');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class DashboardPolicy
      */
     public function forceDelete(User $user, Dashboard $dashboard): bool
     {
-        return $user->can('force_delete_dashboard');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class DashboardPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_dashboard');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class DashboardPolicy
      */
     public function restore(User $user, Dashboard $dashboard): bool
     {
-        return $user->can('restore_dashboard');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class DashboardPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_dashboard');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class DashboardPolicy
      */
     public function replicate(User $user, Dashboard $dashboard): bool
     {
-        return $user->can('replicate_dashboard');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class DashboardPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_dashboard');
+        return $user->can('{{ Reorder }}');
     }
 }

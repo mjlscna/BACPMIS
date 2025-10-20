@@ -24,6 +24,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
@@ -36,18 +38,16 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Grid::make(7) // 🔹 3-column grid
+                Forms\Components\Grid::make(7)
                     ->schema([
-                        // 🔹 HRIS ID (auto-filled, disabled)
                         TextInput::make('hris_id')
                             ->label('HRIS ID')
                             ->disabled()
-                            ->dehydrated() // ✅ still saves to DB even if disabled
-                            ->required()   // ✅ required in Filament form
-                            ->unique(ignoreRecord: true) // ✅ enforces uniqueness in Filament form
+                            ->dehydrated()
+                            ->required()
+                            ->unique(ignoreRecord: true)
                             ->columnSpan(1),
 
-                        // 🔹 Employee Select from API
                         Select::make('name')
                             ->label('Employee Name')
                             ->options(function () {
@@ -57,14 +57,9 @@ class UserResource extends Resource
                                     if ($response->successful()) {
                                         $employeesList = $response->json()['employeesList'] ?? [];
 
-                                        $employees = collect($employeesList)->map(function ($employee) {
-                                            return [
-                                                'id' => $employee['id'],
-                                                'fullName' => $employee['firstName'] . ' ' . $employee['lastName'],
-                                            ];
-                                        });
-
-                                        return $employees->pluck('fullName', 'id');
+                                        return collect($employeesList)
+                                            ->mapWithKeys(fn($e) => [$e['id'] => $e['firstName'] . ' ' . $e['lastName']])
+                                            ->toArray();
                                     }
 
                                     return [];
@@ -95,17 +90,26 @@ class UserResource extends Resource
                             })
                             ->columnSpan(3),
 
-                        // 🔹 Roles (full width below)
+                        // 🔹 Roles dropdown (1 role only)
                         Select::make('roles')
+                            ->label('Role')
                             ->relationship('roles', 'name')
-                            ->multiple()
-                            ->preload()
+                            ->options(function () {
+                                $roles = Role::pluck('name', 'id');
+
+                                // Hide "super_admin" unless the logged-in user has it
+                                if (!Auth::user()->hasRole('super_admin')) {
+                                    $roles = $roles->filter(fn($name) => $name !== 'super_admin');
+                                }
+
+                                return $roles;
+                            })
                             ->searchable()
-                            ->label('Roles')
+                            ->preload()
+                            ->required()
+                            ->multiple(false) // ✅ only one role allowed
                             ->columnSpan(2),
                     ]),
-
-
             ]);
     }
 

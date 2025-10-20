@@ -115,7 +115,7 @@
                                                         </a>
                                                     </li>
                                                 @endcan
-                                                @can('update_schedule::for::procurement')
+                                                @can('edit_schedule::for::procurement')
                                                     <li>
                                                         <a href="{{ route('schedule-for-procurement.edit', $schedule->id) }}"
                                                             @click="open = false"

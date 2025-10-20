@@ -55,7 +55,7 @@ class RemarksPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_remarks');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class RemarksPolicy
      */
     public function forceDelete(User $user, Remarks $remarks): bool
     {
-        return $user->can('force_delete_remarks');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class RemarksPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_remarks');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class RemarksPolicy
      */
     public function restore(User $user, Remarks $remarks): bool
     {
-        return $user->can('restore_remarks');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class RemarksPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_remarks');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class RemarksPolicy
      */
     public function replicate(User $user, Remarks $remarks): bool
     {
-        return $user->can('replicate_remarks');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class RemarksPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_remarks');
+        return $user->can('{{ Reorder }}');
     }
 }

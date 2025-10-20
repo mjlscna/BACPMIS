@@ -55,7 +55,7 @@ class BACApprovedPRPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_b::a::c::approved::p::r');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class BACApprovedPRPolicy
      */
     public function forceDelete(User $user, BACApprovedPR $bACApprovedPR): bool
     {
-        return $user->can('force_delete_b::a::c::approved::p::r');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class BACApprovedPRPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_b::a::c::approved::p::r');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class BACApprovedPRPolicy
      */
     public function restore(User $user, BACApprovedPR $bACApprovedPR): bool
     {
-        return $user->can('restore_b::a::c::approved::p::r');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class BACApprovedPRPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_b::a::c::approved::p::r');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class BACApprovedPRPolicy
      */
     public function replicate(User $user, BACApprovedPR $bACApprovedPR): bool
     {
-        return $user->can('replicate_b::a::c::approved::p::r');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class BACApprovedPRPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_b::a::c::approved::p::r');
+        return $user->can('{{ Reorder }}');
     }
 }

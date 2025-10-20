@@ -55,7 +55,7 @@ class ClusterCommitteePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_cluster::committee');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class ClusterCommitteePolicy
      */
     public function forceDelete(User $user, ClusterCommittee $clusterCommittee): bool
     {
-        return $user->can('force_delete_cluster::committee');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class ClusterCommitteePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_cluster::committee');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class ClusterCommitteePolicy
      */
     public function restore(User $user, ClusterCommittee $clusterCommittee): bool
     {
-        return $user->can('restore_cluster::committee');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class ClusterCommitteePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_cluster::committee');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class ClusterCommitteePolicy
      */
     public function replicate(User $user, ClusterCommittee $clusterCommittee): bool
     {
-        return $user->can('replicate_cluster::committee');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class ClusterCommitteePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_cluster::committee');
+        return $user->can('{{ Reorder }}');
     }
 }

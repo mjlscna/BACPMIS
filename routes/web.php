@@ -39,7 +39,7 @@ Route::middleware(['jwt'])->group(function () {
 
         Route::get('/{procurement}/edit', ProcurementEditPage::class)
             ->name('edit')
-            ->middleware('can:update_procurement');
+            ->middleware('can:edit_procurement');
     });
 
     Route::prefix('bac-approved-pr')->name('bac-approved-pr.')->group(function () {
@@ -53,7 +53,7 @@ Route::middleware(['jwt'])->group(function () {
 
         Route::get('/{bacapprovedpr}/edit', BacApprovedPrEditPage::class)
             ->name('edit')
-            ->middleware('can:update_b::a::c::approved::p::r');
+            ->middleware('can:edit_b::a::c::approved::p::r');
 
         Route::get('/{bacapprovedpr}', BacApprovedPrViewPage::class)
             ->name('view')
@@ -71,7 +71,7 @@ Route::middleware(['jwt'])->group(function () {
 
         Route::get('/{id}/edit', ScheduleForPrEditPage::class)
             ->name('edit')
-            ->middleware('can:update_schedule::for::procurement');
+            ->middleware('can:edit_schedule::for::procurement');
     });
     // Mode of procurement routes with Shield permissions
     Route::prefix('mode-of-procurement')->name('mode-of-procurement.')->group(function () {

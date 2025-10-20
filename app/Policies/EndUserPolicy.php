@@ -55,7 +55,7 @@ class EndUserPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_end::user');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class EndUserPolicy
      */
     public function forceDelete(User $user, EndUser $endUser): bool
     {
-        return $user->can('force_delete_end::user');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class EndUserPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_end::user');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class EndUserPolicy
      */
     public function restore(User $user, EndUser $endUser): bool
     {
-        return $user->can('restore_end::user');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class EndUserPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_end::user');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class EndUserPolicy
      */
     public function replicate(User $user, EndUser $endUser): bool
     {
-        return $user->can('replicate_end::user');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class EndUserPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_end::user');
+        return $user->can('{{ Reorder }}');
     }
 }

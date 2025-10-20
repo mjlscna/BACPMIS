@@ -55,7 +55,7 @@ class DivisionPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_division');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class DivisionPolicy
      */
     public function forceDelete(User $user, Division $division): bool
     {
-        return $user->can('force_delete_division');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class DivisionPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_division');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class DivisionPolicy
      */
     public function restore(User $user, Division $division): bool
     {
-        return $user->can('restore_division');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class DivisionPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_division');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class DivisionPolicy
      */
     public function replicate(User $user, Division $division): bool
     {
-        return $user->can('replicate_division');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class DivisionPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_division');
+        return $user->can('{{ Reorder }}');
     }
 }

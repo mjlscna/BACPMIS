@@ -55,7 +55,7 @@ class ScheduleForProcurementPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_schedule::for::procurement');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class ScheduleForProcurementPolicy
      */
     public function forceDelete(User $user, ScheduleForProcurement $scheduleForProcurement): bool
     {
-        return $user->can('force_delete_schedule::for::procurement');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class ScheduleForProcurementPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_schedule::for::procurement');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class ScheduleForProcurementPolicy
      */
     public function restore(User $user, ScheduleForProcurement $scheduleForProcurement): bool
     {
-        return $user->can('restore_schedule::for::procurement');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class ScheduleForProcurementPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_schedule::for::procurement');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class ScheduleForProcurementPolicy
      */
     public function replicate(User $user, ScheduleForProcurement $scheduleForProcurement): bool
     {
-        return $user->can('replicate_schedule::for::procurement');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class ScheduleForProcurementPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_schedule::for::procurement');
+        return $user->can('{{ Reorder }}');
     }
 }
