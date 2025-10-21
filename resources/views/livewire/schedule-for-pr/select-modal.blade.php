@@ -40,11 +40,12 @@
                                     ABC Amount</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
+                        <tbody class="divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700 p-2">
                             @forelse($results as $proc)
                                 <tr wire:key="procurement-{{ $proc->id }}"
-                                    class="hover:bg-gray-100 dark:hover:bg-neutral-700 {{ in_array($proc->id, $selectedLotIds) ? 'bg-emerald-100 dark:bg-emerald-900' : '' }}">
-                                    <td class="p-2 text-center">
+                                    wire:click="toggleSelection('lot', {{ $proc->id }})"
+                                    class="hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer {{ in_array($proc->id, $selectedLotIds) ? 'bg-emerald-100 dark:bg-emerald-900' : '' }}">
+                                    <td class="p-2 text-center" wire:click.stop>
                                         <input type="checkbox" wire:model.live="selectedLotIds"
                                             value="{{ $proc->id }}"
                                             class="form-checkbox h-4 w-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 accent-emerald-600">
@@ -84,18 +85,20 @@
                                     Amount</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700">
+                        <tbody class="divide-y divide-gray-200 dark:bg-neutral-800 dark:divide-neutral-700 p-2">
                             @forelse($results as $item)
                                 <tr wire:key="item-{{ $item->id }}"
-                                    class="hover:bg-gray-100 dark:hover:bg-neutral-700 {{ in_array($item->id, $selectedItemIds) ? 'bg-emerald-100 dark:bg-emerald-900' : '' }}">
-                                    <td class="p-2 text-center">
+                                    wire:click="toggleSelection('item', {{ $item->id }})"
+                                    class="hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer {{ in_array($item->id, $selectedItemIds) ? 'bg-emerald-100 dark:bg-emerald-900' : '' }}">
+                                    <td class="p-2 text-center" wire:click.stop>
                                         <input type="checkbox" wire:model.live="selectedItemIds"
                                             value="{{ $item->id }}"
                                             class="form-checkbox h-4 w-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 accent-emerald-600">
                                     </td>
                                     <td class="p-2 text-left whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         {{ $item->procurement->pr_number }}</td>
-                                    <td class="p-2 text-left text-gray-900 dark:text-gray-100">{{ $item->description }}
+                                    <td class="p-2 text-left text-gray-900 dark:text-gray-100">
+                                        {{ $item->description }}
                                     </td>
                                     <td class="p-2 text-right whitespace-nowrap text-gray-900 dark:text-gray-100">
                                         <span class="text-gray-500">₱</span>
@@ -116,24 +119,61 @@
             {{-- Sticky Pagination for First Table --}}
             @if ($results && $results->hasPages())
                 <div
-                    class="flex-shrink-0 border-t border-gray-200 dark:border-neutral-700 px-4 py-2 bg-white dark:bg-neutral-900">
-                    <nav role="navigation" aria-label="Pagination Navigation" class="flex justify-between items-center">
+                    class="flex-shrink-0 border-t border-gray-200 dark:border-neutral-700 px-4 py-2 bg-white dark:bg-neutral-900 grid grid-cols-3 items-center">
+
+                    {{-- Column 1: Item Count (Left Aligned) --}}
+                    <div class="text-xs text-gray-500 text-left">
+                        Showing {{ $results->firstItem() }} to {{ $results->lastItem() }} of
+                        {{ $results->total() }} items
+                    </div>
+
+                    {{-- Column 2: Pagination (Center Aligned) --}}
+                    <nav role="navigation" aria-label="Pagination Navigation"
+                        class="flex justify-center items-center gap-3">
+
+                        {{-- Previous Button --}}
                         <button wire:click.prevent="previousPage('page')" @disabled($results->onFirstPage())
-                            class="relative inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300 dark:hover:text-white">
-                            {!! __('pagination.previous') !!}
+                            class="inline-flex items-center justify-center w-5 h-5 text-gray-600 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:text-emerald-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-5">
+                                <path fill-rule="evenodd"
+                                    d="M10.72 11.47a.75.75 0 0 0 0 1.06l7.5 7.5a.75.75 0 1 0 1.06-1.06L12.31 12l6.97-6.97a.75.75 0 0 0-1.06-1.06l-7.5 7.5Z"
+                                    clip-rule="evenodd" />
+                                <path fill-rule="evenodd"
+                                    d="M4.72 11.47a.75.75 0 0 0 0 1.06l7.5 7.5a.75.75 0 1 0 1.06-1.06L6.31 12l6.97-6.97a.75.75 0 0 0-1.06-1.06l-7.5 7.5Z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </button>
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Page {{ $results->currentPage() }} of
-                            {{ $results->lastPage() }}</span>
+
+                        {{-- Page Info --}}
+                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                            {{ $results->currentPage() }} of {{ $results->lastPage() }}
+                        </span>
+
+                        {{-- Next Button --}}
                         <button wire:click.prevent="nextPage('page')" @disabled(!$results->hasMorePages())
-                            class="relative inline-flex items-center px-2 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300 dark:hover:text-white">
-                            {!! __('pagination.next') !!}
+                            class="inline-flex items-center justify-center w-5 h-5 text-gray-600 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:text-emerald-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                class="size-5">
+                                <path fill-rule="evenodd"
+                                    d="M13.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L11.69 12 4.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                                    clip-rule="evenodd" />
+                                <path fill-rule="evenodd"
+                                    d="M19.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 1 1-1.06-1.06L17.69 12l-6.97-6.97a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </button>
                     </nav>
+
+                    {{-- Column 3: Empty Spacer (Right Aligned) --}}
+                    <div></div>
+
                 </div>
             @endif
+
         </div>
 
-        {{-- Second Table: Selected Items (Only shows when items are selected) --}}
+        {{-- Second Table: Selected PR (Unified for Lots and Items) --}}
         @if ($totalSelectedCount > 0)
             <div
                 class="flex-1 flex flex-col overflow-hidden min-h-0 border-t-2 border-emerald-300 dark:border-neutral-600">
@@ -142,143 +182,124 @@
                     <div
                         class="sticky top-0 bg-white dark:bg-neutral-800 z-20 border-b border-gray-200 dark:border-neutral-700 pl-2">
                         <h3 class="text-sm font-semibold text-gray-800 dark:text-white ">
-                            Selected Items ({{ $totalSelectedCount }})
+                            Selected ({{ $totalSelectedCount }})
                         </h3>
                     </div>
 
-                    {{-- SELECTED LOTS TABLE --}}
-                    @if ($selectedLots->isNotEmpty())
-                        <div>
-                            <table class="w-full text-xs bg-white dark:bg-neutral-800 rounded-lg">
-                                <thead class="sticky top-5 z-10 bg-gray-200 dark:bg-neutral-900">
-                                    <tr>
-                                        <th
-                                            class="p-2 text-left font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 w-5">
-                                            PR No.</th>
-                                        <th
-                                            class="p-2 text-left font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 ">
-                                            Procurement Program / Project</th>
-                                        <th
-                                            class="p-2 text-center font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 w-32">
-                                            ABC Amount</th>
-                                        <th
-                                            class="p-2 text-center font-semibold text-black dark:text-white w-12 bg-gray-200 dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600">
-                                        </th>
+                    <div>
+                        <table class="w-full text-xs divide-y divide-gray-200 dark:divide-neutral-700">
+                            <thead class="sticky top-5 z-10 bg-gray-200 dark:bg-neutral-900">
+                                <tr>
+                                    <th
+                                        class="p-2 text-left font-semibold text-black dark:text-white border-b border-gray-300 dark:border-neutral-600 w-20">
+                                        PR No.</th>
+                                    <th
+                                        class="p-2 text-left font-semibold text-black dark:text-white border-b border-gray-300 dark:border-neutral-600">
+                                        @if ($procurementType === 'perLot')
+                                            Procurement Program / Project
+                                        @else
+                                            Item Description
+                                        @endif
+                                    </th>
+                                    <th
+                                        class="p-2 text-right font-semibold text-black dark:text-white border-b border-gray-300 dark:border-neutral-600 w-32">
+                                        Amount</th>
+                                    <th
+                                        class="p-2 text-center font-semibold text-black dark:text-white w-12 border-b border-gray-300 dark:border-neutral-600">
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700 p-2">
+                                @foreach ($selectedPR as $pr)
+                                    <tr wire:key="selected-pr-{{ $pr['id'] }}">
+                                        <td class="p-2 text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                                            {{ $pr['pr_number'] }}
+                                        </td>
+                                        <td class="p-2 text-gray-900 dark:text-gray-100">
+                                            {{ $pr['description'] ?? $pr['procurement_program_project'] }}
+                                        </td>
+                                        <td class="p-2 text-right text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                                            <span class="text-gray-500">₱</span>
+                                            <span>{{ number_format($pr['amount'] ?? ($pr['abc'] ?? 0), 2) }}</span>
+                                        </td>
+                                        <td class="p-2 text-center">
+                                            <button wire:click.prevent="removeSelectedPR({{ $pr['id'] }})"
+                                                class="font-medium text-red-500 hover:text-red-700 text-sm">×</button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                                    @foreach ($selectedLots as $lot)
-                                        <tr wire:key="selected-lot-{{ $lot->id }}">
-                                            <td class="p-2 whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                                {{ $lot->pr_number }}</td>
-                                            <td class="p-2 text-gray-900 dark:text-gray-100">
-                                                {{ $lot->procurement_program_project }}</td>
-                                            <td
-                                                class="p-2 text-right whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                                <span class="text-gray-500">₱</span>
-                                                <span>{{ number_format($lot->abc ?? 0, 2) }}</span>
-                                            </td>
-                                            <td class="p-2 text-center">
-                                                <button wire:click.prevent="removeSelection({{ $lot->id }})"
-                                                    class="font-medium text-red-500 hover:text-red-700 text-lg">×</button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-
-                    {{-- SELECTED ITEMS TABLE --}}
-                    @if ($selectedItems->isNotEmpty())
-                        <div>
-                            <table class="w-full text-xs bg-white dark:bg-neutral-800 rounded-lg shadow">
-                                <thead class="sticky top-5 z-10 bg-gray-200 dark:bg-neutral-900">
-                                    <tr>
-                                        <th
-                                            class="p-2 text-left font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 w-20">
-                                            PR No.</th>
-                                        <th
-                                            class="p-2 text-left font-semibold text-black dark:text-white dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 ">
-                                            Item Description</th>
-                                        <th
-                                            class="p-2 text-center font-semibold text-black dark:text-white  dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600 w-32">
-                                            Amount</th>
-                                        <th
-                                            class="p-2 text-center font-semibold text-black dark:text-white w-12 bg-gray-200 dark:bg-neutral-900 border-b border-gray-300 dark:border-neutral-600">
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                                    @foreach ($selectedItems as $item)
-                                        <tr wire:key="selected-item-{{ $item->id }}">
-                                            <td class="p-2 text-black dark:text-white">
-                                                {{ $item->procurement->pr_number }}</td>
-                                            <td class="p-2 text-black dark:text-white">{{ $item->description }}
-                                            </td>
-                                            <td
-                                                class="p-2 text-right whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                                <span class="text-black dark:text-white">₱</span>
-                                                <span>{{ number_format($item->amount ?? 0, 2) }}</span>
-                                            </td>
-                                            <td class="p-2 text-center">
-                                                <button wire:click.prevent="removeItemSelection({{ $item->id }})"
-                                                    class="font-medium text-red-500 hover:text-red-700 text-lg">×</button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+                @if ($selectedPR->isNotEmpty() && $selectedPR->hasPages())
+                    <div
+                        class="flex-shrink-0 border-t border-gray-200 dark:border-neutral-700 px-4 py-2 bg-white dark:bg-neutral-900 grid grid-cols-3 items-center">
 
-                {{-- Sticky Pagination for Selected Items --}}
-                <div
-                    class="flex-shrink-0 border-t border-gray-200 dark:border-neutral-700 px-4 py-2 bg-white dark:bg-neutral-900">
-                    @if ($selectedLots->hasPages())
-                        <nav class="flex justify-between items-center mb-2">
-                            <button wire:click="previousCustomPage('selectedLotsPage')" @disabled($selectedLots->onFirstPage())
-                                class="px-2 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300">
-                                {!! __('pagination.previous') !!}
+                        {{-- Column 1: Item Count (Left Aligned) --}}
+                        <div class="text-xs text-gray-500 text-left">
+                            Showing {{ $selectedPR->firstItem() }} to {{ $selectedPR->lastItem() }} of
+                            {{ $selectedPR->total() }} items
+                        </div>
+
+                        {{-- Column 2: Pagination (Center Aligned) --}}
+                        <nav role="navigation" aria-label="Pagination Navigation"
+                            class="flex justify-center items-center gap-3">
+
+                            {{-- Previous Button --}}
+                            <button wire:click.prevent="nextCustomPage('selectedPRPage')" @disabled(!$selectedPR->hasMorePages())
+                                class="inline-flex items-center justify-center w-5 h-5 text-gray-600 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:text-emerald-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-5">
+                                    <path fill-rule="evenodd"
+                                        d="M10.72 11.47a.75.75 0 0 0 0 1.06l7.5 7.5a.75.75 0 1 0 1.06-1.06L12.31 12l6.97-6.97a.75.75 0 0 0-1.06-1.06l-7.5 7.5Z"
+                                        clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M4.72 11.47a.75.75 0 0 0 0 1.06l7.5 7.5a.75.75 0 1 0 1.06-1.06L6.31 12l6.97-6.97a.75.75 0 0 0-1.06-1.06l-7.5 7.5Z"
+                                        clip-rule="evenodd" />
+                                </svg>
                             </button>
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Lots: Page
-                                {{ $selectedLots->currentPage() }} of {{ $selectedLots->lastPage() }}</span>
-                            <button wire:click="nextCustomPage('selectedLotsPage')" @disabled(!$selectedLots->hasMorePages())
-                                class="px-2 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300">
-                                {!! __('pagination.next') !!}
+
+                            {{-- Page Info --}}
+                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                {{ $selectedPR->currentPage() }} of {{ $selectedPR->lastPage() }}
+                            </span>
+
+                            {{-- Next Button --}}
+                            <button wire:click.prevent="nextCustomPage('selectedPRPage')" @disabled(!$selectedPR->hasMorePages())
+                                class="inline-flex items-center justify-center w-5 h-5 text-gray-600 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-gray-400 dark:hover:text-emerald-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="size-5">
+                                    <path fill-rule="evenodd"
+                                        d="M13.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L11.69 12 4.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                                        clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M19.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 1 1-1.06-1.06L17.69 12l-6.97-6.97a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                                        clip-rule="evenodd" />
+                                </svg>
                             </button>
                         </nav>
-                    @endif
-                    @if ($selectedItems->hasPages())
-                        <nav class="flex justify-between items-center">
-                            <button wire:click="previousCustomPage('selectedItemsPage')" @disabled($selectedItems->onFirstPage())
-                                class="px-2 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300">
-                                {!! __('pagination.previous') !!}
-                            </button>
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Items: Page
-                                {{ $selectedItems->currentPage() }} of {{ $selectedItems->lastPage() }}</span>
-                            <button wire:click="nextCustomPage('selectedItemsPage')" @disabled(!$selectedItems->hasMorePages())
-                                class="px-2 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-neutral-800 dark:border-neutral-700 dark:text-gray-300">
-                                {!! __('pagination.next') !!}
-                            </button>
-                        </nav>
-                    @endif
-                </div>
+
+                        {{-- Column 3: Empty Spacer (Right Aligned) --}}
+                        <div></div>
+
+                    </div>
+                @endif
             </div>
         @endif
+
     </div>
 
     {{-- Footer with Select Button (Frozen at Bottom) --}}
-    <div class="flex-shrink-0 p-4 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
-        <div class="flex justify-end pt-2">
+    <div class="flex-shrink-0 p-2 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+        <div class="flex justify-end">
             <button wire:click="selectProcurements" @class([
                 'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm',
                 'text-white bg-emerald-600 hover:bg-emerald-700' => $totalSelectedCount > 0,
                 'text-gray-400 bg-gray-200 cursor-not-allowed dark:bg-neutral-800 dark:text-neutral-500' =>
                     $totalSelectedCount === 0,
             ]) @disabled($totalSelectedCount === 0)>
-                Select ({{ $totalSelectedCount }}) Items
+                Selected ({{ $totalSelectedCount }})
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
                     <path fill-rule="evenodd"
                         d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z"
