@@ -77,16 +77,13 @@ class BacApprovedPrCreatePage extends Component
         ]);
 
         // 5. Show success message
-        LivewireAlert::title('Saved!')
-            ->success()
-            ->text('BAC Approved PR has been saved successfully.')
-            ->toast()
-            ->position('top-end')
-            ->show();
+        session()->flash('alert', [
+            'type' => 'success',
+            'title' => 'Saved!',
+            'message' => 'Your BAC Approved Procurement has been created successfully.',
+        ]);
 
-        // 6. Optional: Redirect or reset form
-        // return $this->redirect('/path-to-list', navigate: true);
-        $this->resetForm();
+        return redirect()->route('bac-approved-pr.index');
     }
 
     public function updatedFormPrNumber($value)

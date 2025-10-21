@@ -70,12 +70,14 @@ class BacApprovedPrEditPage extends Component
 
         $this->bacapprovedpr->save();
 
-        LivewireAlert::title('Updated!')
-            ->success()
-            ->text('BAC Approved PR has been updated successfully.')
-            ->toast()
-            ->position('top-end')
-            ->show();
+        // 5. Show success message
+        session()->flash('alert', [
+            'type' => 'success',
+            'title' => 'Saved!',
+            'message' => 'BAC Approved Procurement has been updated successfully.',
+        ]);
+
+        return redirect()->route('bac-approved-pr.index');
     }
 
     public function viewPdf()

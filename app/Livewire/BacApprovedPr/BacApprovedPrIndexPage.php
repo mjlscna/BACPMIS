@@ -14,7 +14,19 @@ class BacApprovedPrIndexPage extends Component
     public string $search = '';
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
+    public function mount()
+    {
+        if (session('alert')) {
+            $alert = session('alert');
 
+            LivewireAlert::title($alert['title'])
+                ->{$alert['type']}() // dynamic call: success(), error(), etc.
+                    ->text($alert['message'])
+                    ->toast()
+                    ->position('top-end')
+                    ->show();
+        }
+    }
     public function sortBy(string $field): void
     {
         // If the same field is clicked, reverse the direction; otherwise, reset to ascending

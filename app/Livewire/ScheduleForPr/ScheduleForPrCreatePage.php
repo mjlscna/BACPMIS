@@ -7,31 +7,39 @@ use App\Models\PrItem;
 use App\Models\Procurement;
 use App\Models\ScheduleForProcurement;
 use App\Models\ScheduleForProcurementItems;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ScheduleForPrCreatePage extends Component
 {
+    use WithPagination;
     public $procurement = null;
+    public int $perPage = 10;
+    public $selectedPRPage = 1;
+
     public string $procurementType = '';
     public int $activeTab = 1;
 
     public array $selectedProcurements = [];
-    public array $selectedLots = [];
-    public array $selectedItemGroups = [];
 
-    public $form = [];
+    public $form = [
+        'totalAbcFormatted' => '₱0.00',
+        'twoPercent' => '₱0.00',
+        'fivePercent' => '₱0.00',
+    ];
 
     // Computed values
     public float $totalAbc = 0;
-    public string $totalAbcFormatted = '₱0.00';
-    public string $twoPercent = '₱0.00';
-    public string $fivePercent = '₱0.00';
     protected $listeners = ['procurementsSelected'];
+
     public function mount($procID = null)
     {
+        session()->forget(['selected_procurements', 'form_state']);
+
         $this->resetForm();
         $this->procurementType = request()->query('type', 'perLot');
 
@@ -60,8 +68,16 @@ class ScheduleForPrCreatePage extends Component
         // Initialize totals
         $this->calculateTotals();
     }
+    private function persistFormState(): void
+    {
+        session([
+            'form_state' => $this->form,
+            'selected_procurements' => $this->selectedProcurements,
+        ]);
+    }
     public function openSelectionModal()
     {
+        $this->persistFormState();
         session(['form_state' => $this->form]);
 
         $existingLotIds = collect($this->selectedProcurements)
@@ -86,31 +102,7 @@ class ScheduleForPrCreatePage extends Component
         // Recalculate the totals based on the new selection
         $this->calculateTotals();
     }
-    public function removeLot(int $procIndex): void
-    {
-        if (isset($this->selectedProcurements[$procIndex])) {
-            unset($this->selectedProcurements[$procIndex]);
-            $this->selectedProcurements = array_values($this->selectedProcurements);
-            $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
-        }
 
-        $this->calculateTotals();
-    }
-
-    public function removeItem(int $procIndex, int $itemIndex): void
-    {
-        if (isset($this->selectedProcurements[$procIndex]['items'][$itemIndex])) {
-            unset($this->selectedProcurements[$procIndex]['items'][$itemIndex]);
-
-            if (empty($this->selectedProcurements[$procIndex]['items'])) {
-                unset($this->selectedProcurements[$procIndex]);
-            }
-
-            $this->selectedProcurements = array_values($this->selectedProcurements);
-        }
-
-        $this->calculateTotals();
-    }
 
     public function onProcurementSelected(array $selections): void
     {
@@ -124,31 +116,127 @@ class ScheduleForPrCreatePage extends Component
             return;
         }
     }
+    // In app/Livewire/ScheduleForPr/ScheduleForPrCreatePage.php
 
-    /**
-     * Calculate total ABC, 2%, and 5% based on selected procurements/items.
-     */
     public function calculateTotals(): void
     {
-        $this->totalAbc = 0;
+        $this->totalAbc = collect($this->selectedProcurements)
+            ->flatMap(fn($proc) => !empty($proc['items']) ? $proc['items'] : [$proc])
+            ->sum(fn($entry) => floatval($entry['amount'] ?? $entry['abc'] ?? 0));
 
-        foreach ($this->selectedProcurements as $proc) {
-            if (!empty($proc['items'])) {
-                // per-item
-                foreach ($proc['items'] as $item) {
-                    $this->totalAbc += floatval($item['amount'] ?? 0);
+        // Update the values inside the $form array
+        $this->form['totalAbcFormatted'] = '₱ ' . number_format($this->totalAbc, 2);
+        $this->form['twoPercent'] = '₱ ' . number_format($this->totalAbc * 0.02, 2);
+        $this->form['fivePercent'] = '₱ ' . number_format($this->totalAbc * 0.05, 2);
+    }
+
+    // --- NEW/UPDATED PAGINATION METHODS ---
+
+    /**
+     * Use the new helper to create the paginated computed property.
+     */
+    public function getSelectedPRProperty()
+    {
+        $items = collect($this->selectedProcurements)
+            ->flatMap(function ($proc) {
+                if (!empty($proc['items'])) {
+                    // 'perItem': return each item, adding parent pr_number and unique keys
+                    return collect($proc['items'])->map(function ($item) use ($proc) {
+                        $item['pr_number'] = $proc['pr_number'];
+                        $item['is_item'] = true;
+                        // Use item 'id' (pr_item.id)
+                        $item['unique_key'] = 'item_' . $item['id'];
+                        return $item;
+                    });
+                } else {
+                    // 'perLot': return the proc itself, adding unique key
+                    $proc['is_item'] = false;
+                    // Use proc 'id' (procurement.id)
+                    $proc['unique_key'] = 'lot_' . $proc['id'];
+                    return [$proc]; // Must be wrapped in array for flatMap
                 }
-            } else {
-                // per-lot
-                $this->totalAbc += floatval($proc['abc'] ?? 0);
+            });
+
+        return $this->paginateCollection($items, $this->perPage, 'selectedPRPage');
+    }
+    public function removeSelectedPR(string $uniqueKey): void
+    {
+        [$type, $id] = explode('_', $uniqueKey);
+        $id = (int) $id;
+
+        if ($type === 'lot') {
+            // Remove a 'perLot' procurement
+            $this->selectedProcurements = collect($this->selectedProcurements)
+                ->filter(function ($proc) use ($id) {
+                    // Keep if it's a 'perItem' group OR if it's a 'perLot' and ID doesn't match
+                    return !empty($proc['items']) || (empty($proc['items']) && $proc['id'] !== $id);
+                })
+                ->values()
+                ->all();
+        } else { // type === 'item'
+            // Remove a 'perItem' item from its group
+            foreach ($this->selectedProcurements as $procIndex => &$proc) {
+                if (!empty($proc['items'])) {
+                    // Filter out the item with the matching ID
+                    $proc['items'] = collect($proc['items'])
+                        ->filter(fn($item) => $item['id'] !== $id)
+                        ->values()
+                        ->all();
+
+                    // If the 'items' array is now empty, remove the parent group
+                    if (empty($proc['items'])) {
+                        unset($this->selectedProcurements[$procIndex]);
+                    }
+                }
             }
+            // Re-index the main array
+            $this->selectedProcurements = array_values($this->selectedProcurements);
         }
 
-        // Format totals
-        $this->totalAbcFormatted = '₱' . number_format($this->totalAbc, 2);
-        $this->twoPercent = '₱' . number_format($this->totalAbc * 0.02, 2);
-        $this->fivePercent = '₱' . number_format($this->totalAbc * 0.05, 2);
+        $this->calculateTotals();
+
+        // After removal, check if the current page is now empty and go back
+        if ($this->SelectedPR->isEmpty() && $this->selectedPRPage > 1) {
+            $this->selectedPRPage--;
+        }
     }
+    /**
+     * Reusable helper to paginate a collection.
+     */
+    private function paginateCollection($collection, $perPage, $pageName)
+    {
+        $page = $this->$pageName ?? 1;
+        return new LengthAwarePaginator(
+            $collection->forPage($page, $perPage),
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'pageName' => $pageName]
+        );
+    }
+
+    /**
+     * Generic "next page" method.
+     */
+    public function nextCustomPage(string $pageName)
+    {
+        if (property_exists($this, $pageName)) {
+            $this->$pageName++;
+        }
+    }
+
+    /**
+     * Generic "previous page" method.
+     */
+    public function previousCustomPage(string $pageName)
+    {
+        if (property_exists($this, $pageName) && $this->$pageName > 1) {
+            $this->$pageName--;
+        }
+    }
+    // --- END PAGINATION METHODS ---
+
+
     public function save()
     {
         // --- 1. Validation ---
@@ -249,18 +337,21 @@ class ScheduleForPrCreatePage extends Component
         ]);
 
         return redirect()->route('schedule-for-procurement.index');
-
-    }// app/Livewire/ScheduleForPr/ScheduleForPrCreatePage.php
+    } // app/Livewire/ScheduleForPr/ScheduleForPrCreatePage.php
 
     public function resetForm(): void
     {
         // Reset the main form array
-        $this->form = [];
+        $this->form = [
+            'totalAbcFormatted' => '₱0.00',
+            'twoPercent' => '₱0.00',
+            'fivePercent' => '₱0.00',
+        ];
 
         // Reset all selections
         $this->selectedProcurements = [];
-        $this->selectedLots = [];
-        $this->selectedItemGroups = [];
+        // $this->selectedLots = []; // These are derived, no need to reset
+        // $this->selectedItemGroups = []; // These are derived, no need to reset
 
         // Recalculate totals, which will set them back to zero
         $this->calculateTotals();
@@ -282,14 +373,6 @@ class ScheduleForPrCreatePage extends Component
                 }
             }
         }
-
-        $this->selectedLots = collect($this->selectedProcurements)
-            ->filter(fn($proc) => empty($proc['items']))
-            ->all();
-
-        $this->selectedItemGroups = collect($this->selectedProcurements)
-            ->filter(fn($proc) => !empty($proc['items']))
-            ->all();
 
         $ActionTakenOptions = [
             ['id' => 'Done', 'name' => 'Done'],
