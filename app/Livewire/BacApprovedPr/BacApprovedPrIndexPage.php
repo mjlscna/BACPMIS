@@ -27,18 +27,6 @@ class BacApprovedPrIndexPage extends Component
                     ->show();
         }
     }
-    public function sortBy(string $field): void
-    {
-        // If the same field is clicked, reverse the direction; otherwise, reset to ascending
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortDirection = 'asc';
-        }
-
-        $this->sortField = $field;
-        $this->resetPage();
-    }
 
 
     public function viewPdf(string $url): void
@@ -53,7 +41,7 @@ class BacApprovedPrIndexPage extends Component
                 $query->where('pr_number', 'like', '%' . $this->search . '%')
                     ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
             })
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->latest('created_at')
             ->paginate(10);
 
         return view('livewire.bac-approved-pr.bac-approved-pr-index-page', [
