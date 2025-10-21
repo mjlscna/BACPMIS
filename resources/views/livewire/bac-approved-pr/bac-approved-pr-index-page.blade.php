@@ -107,7 +107,8 @@
                             class="px-1 py-1  text-center text-sm  bg-white dark:bg-neutral-800 text-black dark:text-white">
                             {{ $pr->procurement->pr_number ?? 'N/A' }}
                         </td>
-                        <td class="px-1 py-1 text-left  bg-white dark:bg-neutral-800 text-black dark:text-white ">
+                        <td
+                            class="px-1 py-1 text-left text-sm bg-white dark:bg-neutral-800 text-black dark:text-white ">
                             {{ $pr->procurement->procurement_program_project ?? 'N/A' }}
                         </td>
                         <td class="px-1 py-1 text-center text-sm text-black dark:text-white">

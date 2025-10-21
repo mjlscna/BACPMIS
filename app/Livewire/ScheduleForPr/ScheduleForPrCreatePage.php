@@ -102,31 +102,7 @@ class ScheduleForPrCreatePage extends Component
         // Recalculate the totals based on the new selection
         $this->calculateTotals();
     }
-    public function removeLot(int $procIndex): void
-    {
-        if (isset($this->selectedProcurements[$procIndex])) {
-            unset($this->selectedProcurements[$procIndex]);
-            $this->selectedProcurements = array_values($this->selectedProcurements);
-            $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
-        }
 
-        $this->calculateTotals();
-    }
-
-    public function removeItem(int $procIndex, int $itemIndex): void
-    {
-        if (isset($this->selectedProcurements[$procIndex]['items'][$itemIndex])) {
-            unset($this->selectedProcurements[$procIndex]['items'][$itemIndex]);
-
-            if (empty($this->selectedProcurements[$procIndex]['items'])) {
-                unset($this->selectedProcurements[$procIndex]);
-            }
-
-            $this->selectedProcurements = array_values($this->selectedProcurements);
-        }
-
-        $this->calculateTotals();
-    }
 
     public function onProcurementSelected(array $selections): void
     {
@@ -149,9 +125,9 @@ class ScheduleForPrCreatePage extends Component
             ->sum(fn($entry) => floatval($entry['amount'] ?? $entry['abc'] ?? 0));
 
         // Update the values inside the $form array
-        $this->form['totalAbcFormatted'] = '₱' . number_format($this->totalAbc, 2);
-        $this->form['twoPercent'] = '₱' . number_format($this->totalAbc * 0.02, 2);
-        $this->form['fivePercent'] = '₱' . number_format($this->totalAbc * 0.05, 2);
+        $this->form['totalAbcFormatted'] = '₱ ' . number_format($this->totalAbc, 2);
+        $this->form['twoPercent'] = '₱ ' . number_format($this->totalAbc * 0.02, 2);
+        $this->form['fivePercent'] = '₱ ' . number_format($this->totalAbc * 0.05, 2);
     }
 
     // --- NEW/UPDATED PAGINATION METHODS ---
@@ -161,10 +137,69 @@ class ScheduleForPrCreatePage extends Component
      */
     public function getSelectedPRProperty()
     {
-        $items = collect($this->selectedProcurements);
+        $items = collect($this->selectedProcurements)
+            ->flatMap(function ($proc) {
+                if (!empty($proc['items'])) {
+                    // 'perItem': return each item, adding parent pr_number and unique keys
+                    return collect($proc['items'])->map(function ($item) use ($proc) {
+                        $item['pr_number'] = $proc['pr_number'];
+                        $item['is_item'] = true;
+                        // Use item 'id' (pr_item.id)
+                        $item['unique_key'] = 'item_' . $item['id'];
+                        return $item;
+                    });
+                } else {
+                    // 'perLot': return the proc itself, adding unique key
+                    $proc['is_item'] = false;
+                    // Use proc 'id' (procurement.id)
+                    $proc['unique_key'] = 'lot_' . $proc['id'];
+                    return [$proc]; // Must be wrapped in array for flatMap
+                }
+            });
+
         return $this->paginateCollection($items, $this->perPage, 'selectedPRPage');
     }
+    public function removeSelectedPR(string $uniqueKey): void
+    {
+        [$type, $id] = explode('_', $uniqueKey);
+        $id = (int) $id;
 
+        if ($type === 'lot') {
+            // Remove a 'perLot' procurement
+            $this->selectedProcurements = collect($this->selectedProcurements)
+                ->filter(function ($proc) use ($id) {
+                    // Keep if it's a 'perItem' group OR if it's a 'perLot' and ID doesn't match
+                    return !empty($proc['items']) || (empty($proc['items']) && $proc['id'] !== $id);
+                })
+                ->values()
+                ->all();
+        } else { // type === 'item'
+            // Remove a 'perItem' item from its group
+            foreach ($this->selectedProcurements as $procIndex => &$proc) {
+                if (!empty($proc['items'])) {
+                    // Filter out the item with the matching ID
+                    $proc['items'] = collect($proc['items'])
+                        ->filter(fn($item) => $item['id'] !== $id)
+                        ->values()
+                        ->all();
+
+                    // If the 'items' array is now empty, remove the parent group
+                    if (empty($proc['items'])) {
+                        unset($this->selectedProcurements[$procIndex]);
+                    }
+                }
+            }
+            // Re-index the main array
+            $this->selectedProcurements = array_values($this->selectedProcurements);
+        }
+
+        $this->calculateTotals();
+
+        // After removal, check if the current page is now empty and go back
+        if ($this->SelectedPR->isEmpty() && $this->selectedPRPage > 1) {
+            $this->selectedPRPage--;
+        }
+    }
     /**
      * Reusable helper to paginate a collection.
      */
