@@ -41,7 +41,7 @@ class ScheduleForPrIndexPage extends Component
                 $query->where('ib_number', 'like', "%{$this->search}%")
                     ->orWhere('project_name', 'like', "%{$this->search}%");
             })
-            ->latest('opening_of_bids') // Order by the most recent opening date
+            ->latest('created_at') // Order by the most recent opening date
             ->paginate(10);
 
         return view('livewire.schedule-for-pr.schedule-for-pr-index-page', [
