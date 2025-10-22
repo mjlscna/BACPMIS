@@ -83,6 +83,10 @@ Route::middleware(['jwt'])->group(function () {
             ->name('create')
             ->middleware('can:create_mode::of::procurement');
 
+        Route::get('/{id}/edit', ModeOfProcurementEditPage::class)
+            ->name('edit')
+            ->middleware('can:edi_mode::of::procurement');
+
 
     });
 

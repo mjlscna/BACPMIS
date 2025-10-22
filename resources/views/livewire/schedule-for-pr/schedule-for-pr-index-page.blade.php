@@ -183,13 +183,13 @@
                                 {{ optional($schedule->next_bidding_schedule)->format('M d, Y') }}
                             </td>
                             <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
-                                ₱{{ number_format($schedule->ABC, 2) }}
+                                ₱ {{ number_format($schedule->ABC, 2) }}
                             </td>
                             <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
-                                ₱{{ number_format($schedule->two_percent, 2) }}
+                                ₱ {{ number_format($schedule->two_percent, 2) }}
                             </td>
                             <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
-                                ₱{{ number_format($schedule->five_percent, 2) }}
+                                ₱ {{ number_format($schedule->five_percent, 2) }}
                             </td>
                         </tr>
                     @empty

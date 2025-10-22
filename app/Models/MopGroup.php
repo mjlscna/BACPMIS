@@ -8,32 +8,28 @@ use Illuminate\Database\Eloquent\Model;
 class MopGroup extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
 
+        'ref_number',
+        'status',
+        'procurable_type',
+        'uid',
+        'mode_of_procurement_id',
+        'mode_order',
+    ];
+
+    public function modeOfProcurement()
+    {
+        return $this->belongsTo(ModeOfProcurement::class, 'mode_of_procurement_id');
+    }
     public function procurements()
     {
-        // morphedByMany(RelatedModel, name, table, foreignKey, relatedKey, parentKey, relatedModelKey)
-        return $this->morphedByMany(
-            Procurement::class,
-            'biddable',
-            'mop_group_items',
-            'mop_group_id',
-            'biddable_id',
-            'id',
-            'procID'
-        );
+        return $this->belongsToMany(Procurement::class, 'mop_group_procurement');
     }
 
     public function prItems()
     {
-        return $this->morphedByMany(
-            PrItem::class,
-            'biddable',
-            'mop_group_items',
-            'mop_group_id',
-            'biddable_id',
-            'id',
-            'prItemID'
-        );
+        return $this->belongsToMany(PrItem::class, 'mop_group_pr_item', 'mop_group_id', 'pr_item_id');
     }
+
 }

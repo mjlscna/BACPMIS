@@ -5,6 +5,7 @@ namespace App\Livewire\ModeOfProcurement;
 use App\Models\MopGroup;
 use App\Models\PrItem;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -16,29 +17,40 @@ use App\Models\MopLot;
 use App\Models\BidSchedule;
 use App\Models\NtfBidSchedule;
 use App\Models\PrSvp;
+use Livewire\WithPagination;
 
 class ModeOfProcurementCreatePage extends Component
 {
+    use WithPagination;
     public $procurement = null;
     public string $procurementType = '';
-    public $procID;
     public int $activeTab = 1;
     public array $selectedProcurements = [];
-    public array $selectedLots = [];
-    public array $selectedItemGroups = [];
+    public int $perPage = 10;
+    public $selectedPRPage = 1;
     public ?int $mopGroupId = null;
     public $form = [
         'modes' => [],
     ];
-
+    public array $selectedLots = [];
+    public array $selectedItemGroups = [];
+    protected $listeners = ['procurementsSelected'];
 
     public function mount($procID = null)
     {
+        session()->forget(['selected_procurements', 'form_state']);
+
+        $this->resetForm();
         $this->procurementType = request()->query('type', 'perLot');
 
         if (session()->has('selected_procurements')) {
             $this->selectedProcurements = session('selected_procurements');
             $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
+        }
+
+        if (session()->has('form_state')) {
+            $this->form = session('form_state', []); // Restore the form data
+            session()->forget('form_state'); // Clean up the session
         }
 
         $this->procID = $procID ?? $this->form['procurement_ids'][0] ?? null;
@@ -53,71 +65,148 @@ class ModeOfProcurementCreatePage extends Component
             }
         }
     }
-    public function removeLot(int $procIndex): void
+    private function persistFormState(): void
     {
-        if (isset($this->selectedProcurements[$procIndex])) {
-            unset($this->selectedProcurements[$procIndex]);
-            $this->selectedProcurements = array_values($this->selectedProcurements); // Re-index the array
-            $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
-        }
+        session([
+            'form_state' => $this->form,
+            'selected_procurements' => $this->selectedProcurements,
+        ]);
     }
-    public function removeItem(int $procIndex, int $itemIndex): void
+    public function openSelectionModal()
     {
-        if (isset($this->selectedProcurements[$procIndex]['items'][$itemIndex])) {
-            // Remove the specific item
-            unset($this->selectedProcurements[$procIndex]['items'][$itemIndex]);
+        $this->persistFormState();
+        session(['form_state' => $this->form]);
 
-            // If no items are left in this group, remove the entire procurement entry
-            if (empty($this->selectedProcurements[$procIndex]['items'])) {
-                unset($this->selectedProcurements[$procIndex]);
-            }
+        $existingLotIds = collect($this->selectedProcurements)
+            ->filter(fn($proc) => empty($proc['items']))
+            ->pluck('id')
+            ->toArray();
 
-            // Re-index the main array to keep it clean
-            $this->selectedProcurements = array_values($this->selectedProcurements);
-        }
+        $existingItemIds = collect($this->selectedProcurements)
+            ->filter(fn($proc) => !empty($proc['items']))
+            ->flatMap(fn($proc) => collect($proc['items'])->pluck('id'))
+            ->toArray();
+
+        // Pass the current selections to the modal
+        $this->dispatch('open-mode-modal', existingLotIds: $existingLotIds, existingItemIds: $existingItemIds);
     }
+
+    public function procurementsSelected(array $selectedData): void
+    {
+        // Replace the component's current selections with the new ones from the modal
+        $this->selectedProcurements = $selectedData;
+
+    }
+    public function onProcurementSelected(array $selections): void
+    {
+        $this->selectedProcurements = $selections;
+    }
+
     public function hydrateForm()
     {
         if (!$this->procurement) {
             return;
         }
+    }
+    public function getSelectedPRProperty()
+    {
+        $items = collect($this->selectedProcurements)
+            ->flatMap(function ($proc) {
+                if (!empty($proc['items'])) {
+                    // 'perItem': return each item, adding parent pr_number and unique keys
+                    return collect($proc['items'])->map(function ($item) use ($proc) {
+                        $item['pr_number'] = $proc['pr_number'];
+                        $item['is_item'] = true;
+                        // Use item 'id' (pr_item.id)
+                        $item['unique_key'] = 'item_' . $item['id'];
+                        return $item;
+                    });
+                } else {
+                    // 'perLot': return the proc itself, adding unique key
+                    $proc['is_item'] = false;
+                    // Use proc 'id' (procurement.id)
+                    $proc['unique_key'] = 'lot_' . $proc['id'];
+                    return [$proc]; // Must be wrapped in array for flatMap
+                }
+            });
 
-        $modesFromDb = MopLot::with(['bidSchedules', 'ntfBidSchedules', 'prSvp'])
-            ->where('procID', $this->procurement->procID)
-            ->orderBy('mode_order', 'desc')
-            ->get();
+        return $this->paginateCollection($items, $this->perPage, 'selectedPRPage');
+    }
 
-        if ($modesFromDb->isEmpty()) {
-            $mopLot = MopLot::where('procID', $this->procurement->procID)->first();
-            if ($mopLot) {
-                $this->form['modes'] = [
-                    [
-                        'uid' => $mopLot->uid,
-                        'mode_of_procurement_id' => $mopLot->mode_of_procurement_id,
-                        'mode_order' => $mopLot->mode_order,
-                        'bid_schedules' => [],
-                    ]
-                ];
+    public function removeSelectedPR(string $uniqueKey): void
+    {
+        [$type, $id] = explode('_', $uniqueKey);
+        $id = (int) $id;
+
+        if ($type === 'lot') {
+            // Remove a 'perLot' procurement
+            $this->selectedProcurements = collect($this->selectedProcurements)
+                ->filter(function ($proc) use ($id) {
+                    // Keep if it's a 'perItem' group OR if it's a 'perLot' and ID doesn't match
+                    return !empty($proc['items']) || (empty($proc['items']) && $proc['id'] !== $id);
+                })
+                ->values()
+                ->all();
+        } else { // type === 'item'
+            // Remove a 'perItem' item from its group
+            foreach ($this->selectedProcurements as $procIndex => &$proc) {
+                if (!empty($proc['items'])) {
+                    // Filter out the item with the matching ID
+                    $proc['items'] = collect($proc['items'])
+                        ->filter(fn($item) => $item['id'] !== $id)
+                        ->values()
+                        ->all();
+
+                    // If the 'items' array is now empty, remove the parent group
+                    if (empty($proc['items'])) {
+                        unset($this->selectedProcurements[$procIndex]);
+                    }
+                }
             }
-            return;
+            // Re-index the main array
+            $this->selectedProcurements = array_values($this->selectedProcurements);
         }
 
-        $this->form['modes'] = $modesFromDb->map(function ($mode) {
-            $bidSchedules = $mode->bidSchedules->toArray();
-            $ntfSchedules = $mode->ntfBidSchedules->toArray();
-            $prSvp = $mode->prSvp ? [$mode->prSvp->toArray()] : [];
-
-            $allSchedules = array_merge($bidSchedules, $ntfSchedules, $prSvp);
-            usort($allSchedules, fn($a, $b) => ($a['bidding_number'] ?? 0) <=> ($b['bidding_number'] ?? 0));
-
-            return [
-                'uid' => $mode->uid,
-                'mode_of_procurement_id' => $mode->mode_of_procurement_id,
-                'mode_order' => $mode->mode_order,
-                'bid_schedules' => $allSchedules,
-            ];
-        })->toArray();
+        // After removal, check if the current page is now empty and go back
+        if ($this->SelectedPR->isEmpty() && $this->selectedPRPage > 1) {
+            $this->selectedPRPage--;
+        }
     }
+    /**
+     * Reusable helper to paginate a collection.
+     */
+    private function paginateCollection($collection, $perPage, $pageName)
+    {
+        $page = $this->$pageName ?? 1;
+        return new LengthAwarePaginator(
+            $collection->forPage($page, $perPage),
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'pageName' => $pageName]
+        );
+    }
+
+    /**
+     * Generic "next page" method.
+     */
+    public function nextCustomPage(string $pageName)
+    {
+        if (property_exists($this, $pageName)) {
+            $this->$pageName++;
+        }
+    }
+
+    /**
+     * Generic "previous page" method.
+     */
+    public function previousCustomPage(string $pageName)
+    {
+        if (property_exists($this, $pageName) && $this->$pageName > 1) {
+            $this->$pageName--;
+        }
+    }
+    // --- END PAGINATION METHODS ---
 
     public function getShowAddModeButtonProperty()
     {
@@ -130,11 +219,6 @@ class ModeOfProcurementCreatePage extends Component
         });
 
         return !$hasDefaultMode && !$hasPendingOrEmptySchedule;
-    }
-
-    public function onProcurementSelected(array $selections): void
-    {
-        $this->selectedProcurements = $selections;
     }
 
     public function addMode()
@@ -320,6 +404,7 @@ class ModeOfProcurementCreatePage extends Component
             ]
         );
     }
+
     private function validateData()
     {
         // Base rules for all modes and shared fields
@@ -377,12 +462,14 @@ class ModeOfProcurementCreatePage extends Component
             }
         }
     }
+
     private function prepareModes()
     {
         $modes = $this->form['modes'];
         usort($modes, fn($a, $b) => ($a['mode_order'] ?? 0) <=> ($b['mode_order'] ?? 0));
         return $modes;
     }
+
     public function checkSuccessfulBidOrNtf()
     {
         if (empty($this->procID)) {
@@ -396,6 +483,7 @@ class ModeOfProcurementCreatePage extends Component
                 ->where('ntf_bidding_result', 'SUCCESSFUL')
                 ->exists();
     }
+
     public function checkSuccessfulSvp()
     {
         if (empty($this->procID)) {
@@ -412,6 +500,7 @@ class ModeOfProcurementCreatePage extends Component
             ->whereNotNull('abstract_of_canvass_date')
             ->exists();
     }
+
     public function reindexBiddingNumbers()
     {
         foreach ($this->form['modes'] as $modeIndex => $mode) {
@@ -429,6 +518,7 @@ class ModeOfProcurementCreatePage extends Component
             ->where('mode_of_procurement_id', $modeId)
             ->exists();
     }
+
     public function nextStep()
     {
         if ($this->activeTab < 3) {
@@ -448,7 +538,6 @@ class ModeOfProcurementCreatePage extends Component
         $this->activeTab = $step;
     }
 
-
     public function save()
     {
         if ($this->activeTab === 1) {
@@ -457,6 +546,7 @@ class ModeOfProcurementCreatePage extends Component
             $this->saveTab2();
         }
     }
+
     public function saveTab1()
     {
         if (empty($this->selectedProcurements)) {
@@ -469,21 +559,34 @@ class ModeOfProcurementCreatePage extends Component
 
         try {
             $group = DB::transaction(function () {
+                // 1. Create the parent group
                 $mopGroup = MopGroup::create([
+                    'ref_number' => 'MOP-' . now()->format('YmdHis'),
                     'status' => 'draft',
-                    'ref_number' => 'MOPG-' . now()->timestamp,
+                    'procurable_type' => $this->procurementType,
+                    'uid' => 'MOP1-0',
+                    'mode_of_procurement_id' => 1,
+                    'mode_order' => 0,
                 ]);
 
-                $lotProcIDs = collect($this->selectedLots)->pluck('procID');
+                // --- CHANGED HERE ---
+                // Pluck 'procID' for 'perLot'
+                $lotIDs = collect($this->selectedLots)->pluck('procID');
 
-                $itemPrItemIDs = collect($this->selectedItemGroups)->pluck('items.*.prItemID')->flatten();
+                // --- CHANGED HERE ---
+                // Pluck 'prItemID' for 'perItem'
+                $itemIDs = collect($this->selectedItemGroups)
+                    ->pluck('items.*.prItemID')
+                    ->flatten();
 
-                if ($lotProcIDs->isNotEmpty()) {
-                    $mopGroup->procurements()->attach($lotProcIDs);
+                if ($lotIDs->isNotEmpty()) {
+                    // This will now attach using the procID values
+                    $mopGroup->procurements()->attach($lotIDs);
                 }
 
-                if ($itemPrItemIDs->isNotEmpty()) {
-                    $mopGroup->prItems()->attach($itemPrItemIDs);
+                if ($itemIDs->isNotEmpty()) {
+                    // This will now attach using the prItemID values
+                    $mopGroup->prItems()->attach($itemIDs);
                 }
 
                 return $mopGroup;
@@ -496,16 +599,17 @@ class ModeOfProcurementCreatePage extends Component
                 ->text('You can now proceed to define the Mode of Procurement.')
                 ->toast()->position('top-end')->show();
 
-            $this->activeTab = 2;
+            $this->activeTab = 2; // Move to the next tab
 
         } catch (\Exception $e) {
-            Log::error('Error saving Tab 1 selections: ' . $e->getMessage());
-            LivewireAlert::title('Actual Error') // Change the title to see it's different
+            Log::error('Error saving MOP Details selections: ' . $e->getMessage());
+            LivewireAlert::title('Error Saving Selections')
                 ->error()
-                ->text($e->getMessage()) // <-- THIS SHOWS THE REAL DATABASE ERROR
+                ->text('An error occurred: ' . $e->getMessage())
                 ->toast()->position('top-end')->show();
         }
     }
+
     public function saveTab2()
     {
         if (!$this->mopGroupId) {
@@ -522,6 +626,7 @@ class ModeOfProcurementCreatePage extends Component
 
         return redirect()->to('/your-dashboard'); // Redirect after final save
     }
+
     private function createMopFor(Model $model): void
     {
         foreach ($this->form['modes'] as $modeData) {
@@ -542,6 +647,16 @@ class ModeOfProcurementCreatePage extends Component
             }
         }
     }
+
+    public function resetForm(): void
+    {
+        // Reset all selections
+        $this->selectedProcurements = [];
+
+        // If you use Livewire's built-in validation, you might want to reset its state too
+        $this->resetValidation();
+    }
+
     public function render()
     {
         $modes = ModeOfProcurement::where('is_active', true)

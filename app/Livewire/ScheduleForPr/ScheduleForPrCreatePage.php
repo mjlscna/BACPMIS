@@ -3,7 +3,6 @@
 namespace App\Livewire\ScheduleForPr;
 
 use App\Models\BiddingStatus;
-use App\Models\PrItem;
 use App\Models\Procurement;
 use App\Models\ScheduleForProcurement;
 use App\Models\ScheduleForProcurementItems;
@@ -22,7 +21,6 @@ class ScheduleForPrCreatePage extends Component
     public $selectedPRPage = 1;
 
     public string $procurementType = '';
-    public int $activeTab = 1;
 
     public array $selectedProcurements = [];
 
@@ -116,7 +114,6 @@ class ScheduleForPrCreatePage extends Component
             return;
         }
     }
-    // In app/Livewire/ScheduleForPr/ScheduleForPrCreatePage.php
 
     public function calculateTotals(): void
     {
@@ -159,6 +156,7 @@ class ScheduleForPrCreatePage extends Component
 
         return $this->paginateCollection($items, $this->perPage, 'selectedPRPage');
     }
+
     public function removeSelectedPR(string $uniqueKey): void
     {
         [$type, $id] = explode('_', $uniqueKey);
@@ -359,6 +357,7 @@ class ScheduleForPrCreatePage extends Component
         // If you use Livewire's built-in validation, you might want to reset its state too
         $this->resetValidation();
     }
+
     public function render()
     {
         $existingLotIds = [];
