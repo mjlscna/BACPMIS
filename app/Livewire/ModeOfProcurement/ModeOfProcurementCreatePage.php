@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Livewire\Component;
@@ -559,9 +560,28 @@ class ModeOfProcurementCreatePage extends Component
 
         try {
             $group = DB::transaction(function () {
-                // 1. Create the parent group
+                // Get current year
+                $year = now()->format('Y');
+
+                // Find the last ref_number for the current year
+                $lastNumber = MopGroup::whereYear('created_at', $year)
+                    ->where('ref_number', 'like', "MOP-$year-%")
+                    ->orderByDesc('id')
+                    ->value('ref_number');
+
+                // Extract the last numeric part and increment
+                $nextNumber = 1;
+                if ($lastNumber) {
+                    $lastNum = (int) Str::afterLast($lastNumber, '-');
+                    $nextNumber = $lastNum + 1;
+                }
+
+                // Format: MOP-YEAR-0001
+                $refNumber = sprintf('MOP-%s-%04d', $year, $nextNumber);
+
+                // Create the parent group
                 $mopGroup = MopGroup::create([
-                    'ref_number' => 'MOP-' . now()->format('YmdHis'),
+                    'ref_number' => $refNumber,
                     'status' => 'draft',
                     'procurable_type' => $this->procurementType,
                     'uid' => 'MOP1-0',
@@ -569,23 +589,18 @@ class ModeOfProcurementCreatePage extends Component
                     'mode_order' => 0,
                 ]);
 
-                // --- CHANGED HERE ---
-                // Pluck 'procID' for 'perLot'
+                // Collect IDs based on type
                 $lotIDs = collect($this->selectedLots)->pluck('procID');
-
-                // --- CHANGED HERE ---
-                // Pluck 'prItemID' for 'perItem'
                 $itemIDs = collect($this->selectedItemGroups)
                     ->pluck('items.*.prItemID')
                     ->flatten();
 
+                // Attach relations
                 if ($lotIDs->isNotEmpty()) {
-                    // This will now attach using the procID values
                     $mopGroup->procurements()->attach($lotIDs);
                 }
 
                 if ($itemIDs->isNotEmpty()) {
-                    // This will now attach using the prItemID values
                     $mopGroup->prItems()->attach($itemIDs);
                 }
 
@@ -599,7 +614,7 @@ class ModeOfProcurementCreatePage extends Component
                 ->text('You can now proceed to define the Mode of Procurement.')
                 ->toast()->position('top-end')->show();
 
-            $this->activeTab = 2; // Move to the next tab
+            $this->activeTab = 2;
 
         } catch (\Exception $e) {
             Log::error('Error saving MOP Details selections: ' . $e->getMessage());
@@ -609,6 +624,7 @@ class ModeOfProcurementCreatePage extends Component
                 ->toast()->position('top-end')->show();
         }
     }
+
 
     public function saveTab2()
     {
