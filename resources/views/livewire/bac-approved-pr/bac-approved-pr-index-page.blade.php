@@ -131,16 +131,34 @@
         </table>
     </div>
 
-    <div class="flex flex-col items-center w-full p-2 border-t border-gray-200 dark:border-neutral-700">
+    <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-2 border-t border-gray-200 dark:border-neutral-700 gap-2 sm:gap-4">
 
-        <div class="text-xs text-gray-500">
-            {{ $approvedPrs->firstItem() }} to {{ $approvedPrs->lastItem() }} of
-            {{ $approvedPrs->total() }} items
+        {{-- Left: Per-page selector --}}
+        <div class="flex items-center gap-x-2 sm:justify-start w-full sm:w-auto">
+            <label for="perPage" class="text-xs text-gray-600 dark:text-gray-300">Show</label>
+            <select id="perPage" wire:model.live="perPage"
+                class="text-xs border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
         </div>
 
-        <div>
-            {{ $approvedPrs->links('vendor.pagination.tailwind') }}
+        {{-- Center: Summary + Pagination --}}
+        <div class="flex flex-col items-center justify-center w-full">
+            <div class="text-xs text-gray-500 text-center">
+                Showing {{ $approvedPrs->firstItem() }} to {{ $approvedPrs->lastItem() }} of
+                {{ $approvedPrs->total() }} items
+            </div>
+            <div class="flex justify-center">
+                {{ $approvedPrs->links('vendor.pagination.tailwind') }}
+            </div>
         </div>
 
     </div>
+
+
 </div>

@@ -13,8 +13,10 @@ class ScheduleForPrIndexPage extends Component
 
     public $search = '';
     public $perPage = 10;
-
-    // Use the default tailwind theme for pagination
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
     protected $paginationTheme = 'tailwind';
     public function mount()
     {
@@ -34,6 +36,10 @@ class ScheduleForPrIndexPage extends Component
     {
         $this->resetPage();
     }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
     public function render()
     {
         $schedules = ScheduleForProcurement::with('biddingStatus') // Eager load the status relationship
@@ -42,7 +48,7 @@ class ScheduleForPrIndexPage extends Component
                     ->orWhere('project_name', 'like', "%{$this->search}%");
             })
             ->latest('created_at') // Order by the most recent opening date
-            ->paginate(10);
+            ->paginate($this->perPage);
 
         return view('livewire.schedule-for-pr.schedule-for-pr-index-page', [
             'schedules' => $schedules,

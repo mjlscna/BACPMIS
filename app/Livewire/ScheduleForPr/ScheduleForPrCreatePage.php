@@ -28,6 +28,7 @@ class ScheduleForPrCreatePage extends Component
         'totalAbcFormatted' => '₱0.00',
         'twoPercent' => '₱0.00',
         'fivePercent' => '₱0.00',
+        'thirtyPercent' => '₱0.00',
     ];
 
     // Computed values
@@ -125,6 +126,7 @@ class ScheduleForPrCreatePage extends Component
         $this->form['totalAbcFormatted'] = '₱ ' . number_format($this->totalAbc, 2);
         $this->form['twoPercent'] = '₱ ' . number_format($this->totalAbc * 0.02, 2);
         $this->form['fivePercent'] = '₱ ' . number_format($this->totalAbc * 0.05, 2);
+        $this->form['thirtyPercent'] = '₱ ' . number_format($this->totalAbc * 0.30, 2);
     }
 
     // --- NEW/UPDATED PAGINATION METHODS ---
@@ -344,6 +346,7 @@ class ScheduleForPrCreatePage extends Component
             'totalAbcFormatted' => '₱0.00',
             'twoPercent' => '₱0.00',
             'fivePercent' => '₱0.00',
+            'thirtyPercent' => '₱0.00',
         ];
 
         // Reset all selections

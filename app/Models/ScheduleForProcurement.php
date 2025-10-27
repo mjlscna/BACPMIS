@@ -25,7 +25,8 @@ class ScheduleForProcurement extends Model
         'google_drive_link',
         'ABC',
         'two_percent',
-        'five_percent'
+        'five_percent',
+        'thirty_percent',
     ];
 
     protected $casts = [

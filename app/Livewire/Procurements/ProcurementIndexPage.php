@@ -13,6 +13,10 @@ class ProcurementIndexPage extends Component
 
     // Pagination
     public $perPage = 10;
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
     protected $paginationTheme = 'tailwind';
 
     // Search
@@ -86,6 +90,11 @@ class ProcurementIndexPage extends Component
     {
         $this->resetPage();
     }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function viewPdf(string $filepath): void
     {
         $url = asset('storage/' . $filepath);

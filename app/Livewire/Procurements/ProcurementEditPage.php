@@ -37,6 +37,10 @@ class ProcurementEditPage extends Component
 
         $this->form = $procurement->toArray();
 
+        $this->form['approved_ppmp'] = (bool) ($this->form['approved_ppmp'] ?? false);
+        $this->form['app_updated'] = (bool) ($this->form['app_updated'] ?? false);
+        $this->form['early_procurement'] = (bool) ($this->form['early_procurement'] ?? false);
+
         // Normalize procurement_type default
         if (!in_array($this->form['procurement_type'] ?? null, ['perItem', 'perLot'])) {
             $this->form['procurement_type'] = 'perLot';
@@ -229,9 +233,10 @@ class ProcurementEditPage extends Component
 
     public function save()
     {
-        // Normalize binary and numeric fields
         $this->form['approved_ppmp'] = (bool) ($this->form['approved_ppmp'] ?? false);
         $this->form['app_updated'] = (bool) ($this->form['app_updated'] ?? false);
+        $this->form['early_procurement'] = (bool) ($this->form['early_procurement'] ?? false);
+
         $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc'] ?? 0));
 
         if (!in_array($this->form['procurement_type'] ?? '', ['perItem', 'perLot'])) {
@@ -335,7 +340,6 @@ class ProcurementEditPage extends Component
         // --- Update procurement record ---
         $this->procurement->update(array_merge($this->form, [
             'procID' => $this->procID,
-            'early_procurement' => $this->form['early_procurement'] ?? null,
             'abc_50k' => $this->form['abc'] >= 50000 ? 'above 50k' : '50k or less',
         ]));
 

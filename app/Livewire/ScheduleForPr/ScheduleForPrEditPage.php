@@ -34,6 +34,7 @@ class ScheduleForPrEditPage extends Component
     public string $totalAbcFormatted = '₱0.00';
     public string $twoPercent = '₱0.00';
     public string $fivePercent = '₱0.00';
+    public string $thirtyPercent = '₱0.00';
 
     protected $listeners = ['procurementsSelected'];
 
@@ -126,6 +127,7 @@ class ScheduleForPrEditPage extends Component
         $this->totalAbcFormatted = '₱' . number_format($this->totalAbc, 2);
         $this->twoPercent = '₱' . number_format($this->totalAbc * 0.02, 2);
         $this->fivePercent = '₱' . number_format($this->totalAbc * 0.05, 2);
+        $this->thirtyPercent = '₱' . number_format($this->totalAbc * 0.30, 2);
     }
 
     public function openSelectionModal()
@@ -334,6 +336,7 @@ class ScheduleForPrEditPage extends Component
                 'ABC' => $this->totalAbc,
                 'two_percent' => $this->totalAbc * 0.02,
                 'five_percent' => $this->totalAbc * 0.05,
+                'thirty_percent' => $this->totalAbc * 0.30,
             ]);
 
             // Clear old links and recreate

@@ -18,10 +18,17 @@ class HomePage extends Component
     public $form = [
         'items' => [],
     ];
-
-    protected $queryString = ['search'];
+    public int $perPage = 10;
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
 
     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage()
     {
         $this->resetPage();
     }
@@ -52,7 +59,7 @@ class HomePage extends Component
                     ->orWhere('procurement_program_project', 'like', "%{$this->search}%");
             })
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate($this->perPage);
 
         return view('livewire.home-page', [
             'procurements' => $procurements,

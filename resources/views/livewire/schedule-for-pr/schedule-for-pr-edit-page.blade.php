@@ -7,9 +7,9 @@
 
         <div class="space-y-8 p-4 pt-5">
 
-            <div class="grid grid-cols-4 md:grid-cols-7 gap-4">
+            <div class="grid grid-cols-7 md:grid-cols-10 gap-4">
 
-                <x-forms.readonly-input id="ib_number" label="IB Number" model="form.ib_number" :form="$form"
+                <x-forms.input id="ib_number" label="IB Number" model="form.ib_number" :form="$form" :required="true"
                     colspan="col-span-1" />
 
                 <x-forms.date id="opening_of_bids" label="Opening of Bids" model="form.opening_of_bids" :form="$form"
@@ -81,13 +81,16 @@
 
             {{-- These are the original readonly inputs from your edit page, as requested --}}
             <x-forms.readonly-input id="total_abc" label="Total ABC" model="totalAbcFormatted" :form="$this"
-                :textAlign="'right'" colspan="w-40" {{-- Use width instead of colspan in flex --}} />
+                :textAlign="'right'" colspan="w-32" {{-- Use width instead of colspan in flex --}} />
 
             <x-forms.readonly-input id="two_percent" label="2%" model="twoPercent" :form="$this"
-                :textAlign="'right'" colspan="w-40" />
+                :textAlign="'right'" colspan="w-32" />
 
             <x-forms.readonly-input id="five_percent" label="5%" model="fivePercent" :form="$this"
-                :textAlign="'right'" colspan="w-40" />
+                :textAlign="'right'" colspan="w-32" />
+
+            <x-forms.readonly-input id="thirty_percent" label="30%" model="thirtyPercent" :form="$this"
+                :textAlign="'right'" colspan="w-32" />
         </div>
 
         {{-- This is the new, updated table section from your create page --}}

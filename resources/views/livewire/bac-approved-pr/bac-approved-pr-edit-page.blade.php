@@ -2,7 +2,7 @@
 
     {{-- Form Fields --}}
     <div class="bg-white p-6 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
-        <div class="grid grid-cols-7 md:grid-cols-7 gap-6">
+        <div class="grid grid-cols-7 md:grid-cols-10 gap-6">
 
             {{-- PR Number Dropdown --}}
 
@@ -12,7 +12,7 @@
             {{-- Procurement Program / Project --}}
 
             <x-forms.textarea id="procurement_program_project" label="Procurement Program / Project"
-                model="form.procurement_program_project" :required="true" :rows="$textareaRows" colspan="col-span-6"
+                model="form.procurement_program_project" :required="true" :rows="$textareaRows" colspan="col-span-9"
                 :readonly="true" />
 
             <x-forms.input id="document_url" type="text" label="Approved PR Document URL" model="form.filepath"

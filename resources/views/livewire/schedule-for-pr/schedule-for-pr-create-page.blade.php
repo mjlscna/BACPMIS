@@ -7,7 +7,7 @@
 
         <div class="space-y-8 p-4 pt-5">
 
-            <div class="grid grid-cols-4 md:grid-cols-7 gap-4">
+            <div class="grid grid-cols-7 md:grid-cols-10 gap-4">
 
                 <x-forms.input id="ib_number" label="IB Number" model="form.ib_number" :form="$form" :required="true"
                     colspan="col-span-1" />
@@ -67,6 +67,9 @@
                 :textAlign="'right'" colspan="w-32" />
 
             <x-forms.readonly-input id="five_percent" label="5%" model="form.fivePercent" :form="$form"
+                :textAlign="'right'" colspan="w-32" />
+
+            <x-forms.readonly-input id="thirty_percent" label="30%" model="form.thirtyPercent" :form="$form"
                 :textAlign="'right'" colspan="w-32" />
         </div>
 
