@@ -8,11 +8,8 @@
         <div class="grid grid-cols-2 md:grid-cols-10 gap-4">
             <!-- PR Number -->
             <div class="col-span-1">
-                <label for="pr_number" class="block text-sm font-medium text-gray-700 dark:text-white mb-1">
-                    PR No.
-                </label>
-                <x-forms.readonly-input id="pr_number" model="form.pr_number" :form="$form" :required="true"
-                    :colspan="1" textAlign="right" class="flex-1" />
+                <x-forms.input id="pr_number" label="PR No." model="form.pr_number" :form="$form" :required="true"
+                    textAlign="right" :readonly="false" :disabled="false" />
             </div>
 
             <!-- Procurement Program / Project -->
@@ -175,7 +172,7 @@
                 </div>
                 <!-- Early Procurement Toggle -->
                 <div>
-                    <x-forms.early-procurement model="form.early_procurement" :form="$form" :clickable="false" />
+                    <x-forms.early-procurement model="form.early_procurement" :form="$form" :clickable="true" />
                 </div>
             </div>
         </div>

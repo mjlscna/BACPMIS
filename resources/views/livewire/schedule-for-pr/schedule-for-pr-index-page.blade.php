@@ -46,7 +46,7 @@
                             Opening of Bids
                         </th>
                         <th
-                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[272px] z-30 bg-gray-200 dark:bg-neutral-900 w-lg">
+                            class="px-1 py-1 text-left text-xs font-medium text-black dark:text-white uppercase sticky left-[272px] z-30 bg-gray-200 dark:bg-neutral-900 w-sm">
                             Name of Project
                         </th>
                         <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
@@ -55,20 +55,24 @@
                         <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-34">
                             Bidding Status
                         </th>
+
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                            ABC Amount
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                            2%
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                            5%
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
+                            30%
+                        </th>
                         <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-28">
                             Action Taken
                         </th>
                         <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
                             Next Bidding
-                        </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
-                            ABC Amount
-                        </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
-                            2%
-                        </th>
-                        <th class="px-1 py-1 text-center text-xs font-medium text-black dark:text-white uppercase w-32">
-                            5%
                         </th>
                     </tr>
                 </thead>
@@ -176,20 +180,24 @@
                                 </span>
                             </td>
 
+
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱ {{ number_format($schedule->ABC, 2) }}
+                            </td>
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱ {{ number_format($schedule->two_percent, 2) }}
+                            </td>
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱ {{ number_format($schedule->five_percent, 2) }}
+                            </td>
+                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
+                                ₱ {{ number_format($schedule->thirty_percent, 2) }}
+                            </td>
                             <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
                                 {{ $schedule->action_taken }}
                             </td>
                             <td class="px-1 py-1 text-center text-sm text-black dark:text-neutral-200">
                                 {{ optional($schedule->next_bidding_schedule)->format('M d, Y') }}
-                            </td>
-                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
-                                ₱{{ number_format($schedule->ABC, 2) }}
-                            </td>
-                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
-                                ₱{{ number_format($schedule->two_percent, 2) }}
-                            </td>
-                            <td class="px-1 py-1 text-right text-sm text-black dark:text-neutral-200">
-                                ₱{{ number_format($schedule->five_percent, 2) }}
                             </td>
                         </tr>
                     @empty
@@ -204,18 +212,35 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex flex-col items-center w-full p-2 border-t border-gray-200 dark:border-neutral-700">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-2 border-t border-gray-200 dark:border-neutral-700 gap-2 sm:gap-4">
 
-            <div class="text-xs text-gray-500">
-                {{ $schedules->firstItem() }} to {{ $schedules->lastItem() }} of
-                {{ $schedules->total() }} items
+            {{-- Left: Per-page selector --}}
+            <div class="flex items-center gap-x-2 sm:justify-start w-full sm:w-auto">
+                <label for="perPage" class="text-xs text-gray-600 dark:text-gray-300">Show</label>
+                <select id="perPage" wire:model.live="perPage"
+                    class="text-xs border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
             </div>
 
-            <div>
-                {{ $schedules->links('vendor.pagination.tailwind') }}
+            {{-- Center: Summary + Pagination --}}
+            <div class="flex flex-col items-center justify-center w-full">
+                <div class="text-xs text-gray-500 text-center">
+                    Showing {{ $schedules->firstItem() }} to {{ $schedules->lastItem() }} of
+                    {{ $schedules->total() }} items
+                </div>
+                <div class="flex justify-center">
+                    {{ $schedules->links('vendor.pagination.tailwind') }}
+                </div>
             </div>
 
         </div>
+
         <div @keydown.escape.window="showTypeModal = false" x-show="showTypeModal" x-cloak
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div @click.outside="showTypeModal = false"

@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class ModeProcSelectModal extends Component
+class SelectModal extends Component
 {
     use WithPagination;
 
@@ -16,7 +16,7 @@ class ModeProcSelectModal extends Component
 
     public bool $showModal = false;
     public string $search = '';
-    public int $perPage = 5;
+    public int $perPage = 10;
     public array $existingSelection = [];
     public string $procurementType = '';
 
@@ -26,20 +26,23 @@ class ModeProcSelectModal extends Component
     public array $selectedItemIds = [];
 
     public int $perPageSelected = 5;
-    public int $selectedLotsPage = 1;
-    public int $selectedItemsPage = 1;
+    public int $selectedPRPage = 1;
 
     protected array $queryString = ['search'];
     protected $listeners = ['open-mode-modal' => 'open'];
 
-    public function open()
+    public function open(array $existingLotIds = [], array $existingItemIds = [])
     {
         $this->resetState();
-        $this->selectedLotIds = $this->existingLotIds;
-        $this->selectedItemIds = $this->existingItemIds;
+
+        // Restore previous selections
+        $this->existingLotIds = $existingLotIds;
+        $this->existingItemIds = $existingItemIds;
+        $this->selectedLotIds = $existingLotIds;
+        $this->selectedItemIds = $existingItemIds;
+
         $this->resetPage();
-        $this->resetPage('selectedLotsPage');
-        $this->resetPage('selectedItemsPage');
+        $this->resetPage('selectedPRPage');
         $this->showModal = true;
     }
 
@@ -48,16 +51,40 @@ class ModeProcSelectModal extends Component
         $this->showModal = false;
     }
 
-    public function removeSelection(int $procurementId): void
+    public function removeSelectedPR(int $id): void
     {
-        $this->selectedLotIds = array_diff($this->selectedLotIds, [$procurementId]);
+        // Check if it's in selectedLotIds and remove it
+        if (in_array($id, $this->selectedLotIds)) {
+            $this->selectedLotIds = array_diff($this->selectedLotIds, [$id]);
+        }
+        // Check if it's in selectedItemIds and remove it
+        elseif (in_array($id, $this->selectedItemIds)) {
+            $this->selectedItemIds = array_diff($this->selectedItemIds, [$id]);
+        }
     }
 
-    public function removeItemSelection(int $itemId): void
+    public function toggleSelection($type, $id)
     {
-        $this->selectedItemIds = array_diff($this->selectedItemIds, [$itemId]);
-    }
+        $id = (int) $id;
 
+        if ($type === 'lot') {
+            if (in_array($id, $this->selectedLotIds)) {
+                // If it's already in the array, remove it
+                $this->selectedLotIds = array_diff($this->selectedLotIds, [$id]);
+            } else {
+                // If it's not in the array, add it
+                $this->selectedLotIds[] = $id;
+            }
+        } elseif ($type === 'item') {
+            if (in_array($id, $this->selectedItemIds)) {
+                // If it's already in the array, remove it
+                $this->selectedItemIds = array_diff($this->selectedItemIds, [$id]);
+            } else {
+                // If it's not in the array, add it
+                $this->selectedItemIds[] = $id;
+            }
+        }
+    }
     public function selectProcurements()
     {
         $selectedData = [];
@@ -97,14 +124,8 @@ class ModeProcSelectModal extends Component
             }
         }
 
-        if (empty($selectedData)) {
-            $this->close();
-            return;
-        }
-
-        session()->flash('selected_procurements', $selectedData);
+        $this->dispatch('procurementsSelected', selectedData: $selectedData);
         $this->close();
-        return redirect()->route('mode-of-procurement.create', ['type' => $this->procurementType]);
     }
 
     private function formatProcurementData(Procurement $proc): array
@@ -185,7 +206,9 @@ class ModeProcSelectModal extends Component
             $results = $query->latest()->paginate($this->perPage);
         }
 
-        // Selected lots and items collections for the bottom section
+        // --- START OF CHANGES ---
+
+        // 1. Get the raw collections
         $selectedLotsCollection = !empty($this->selectedLotIds)
             ? Procurement::whereIn('id', $this->selectedLotIds)->get()
             : collect();
@@ -194,15 +217,41 @@ class ModeProcSelectModal extends Component
             ? PrItem::with('procurement')->whereIn('id', $this->selectedItemIds)->get()
             : collect();
 
-        $selectedLots = $this->paginateCollection($selectedLotsCollection, $this->perPageSelected, 'selectedLotsPage');
-        $selectedItems = $this->paginateCollection($selectedItemsCollection, $this->perPageSelected, 'selectedItemsPage');
-        $totalSelectedCount = $selectedLotsCollection->count() + $selectedItemsCollection->count();
+        // 2. Format them into consistent arrays (matching what the Blade file expects)
+        $formattedLots = $selectedLotsCollection->map(function ($lot) {
+            return [
+                'id' => $lot->id,
+                'pr_number' => $lot->pr_number,
+                'procurement_program_project' => $lot->procurement_program_project, // for description
+                'abc' => $lot->abc, // for amount
+            ];
+        });
 
-        return view('livewire.mode-of-procurement.mode-proc-select-modal', [
+        $formattedItems = $selectedItemsCollection->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'pr_number' => $item->procurement->pr_number,
+                'description' => $item->description, // for description
+                'amount' => $item->amount, // for amount
+            ];
+        });
+
+        // 3. Merge them into one collection
+        $allSelected = $formattedLots->merge($formattedItems);
+
+        // 4. Paginate the merged collection using the correct page name
+        $selectedPR = $this->paginateCollection($allSelected, $this->perPageSelected, 'selectedPRPage');
+
+        // 5. Get the total count
+        $totalSelectedCount = $allSelected->count();
+
+        // --- END OF CHANGES ---
+
+        return view('livewire.mode-of-procurement.select-modal', [
             'results' => $results,
             'totalSelectedCount' => $totalSelectedCount,
-            'selectedLots' => $selectedLots,
-            'selectedItems' => $selectedItems,
+            'selectedPR' => $selectedPR, // Pass the new unified variable
+            // 'selectedLots' and 'selectedItems' are no longer needed here
         ]);
     }
 }

@@ -14,13 +14,20 @@ class BacApprovedPrIndexPage extends Component
     public string $search = '';
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
+    public int $perPage = 10; // 🆕 Default per-page value
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
+
     public function mount()
     {
         if (session('alert')) {
             $alert = session('alert');
 
             LivewireAlert::title($alert['title'])
-                ->{$alert['type']}() // dynamic call: success(), error(), etc.
+                ->{$alert['type']}()
                     ->text($alert['message'])
                     ->toast()
                     ->position('top-end')
@@ -28,21 +35,30 @@ class BacApprovedPrIndexPage extends Component
         }
     }
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 
     public function viewPdf(string $url): void
     {
         $this->dispatch('show-pdf-modal', url: $url);
     }
+
     public function render()
     {
-        $approvedPrs = BACApprovedPR::with('procurement') // Eager load the relationship
+        $approvedPrs = BACApprovedPR::with('procurement')
             ->whereHas('procurement', function ($query) {
-                // Search on the related procurement's PR number or project name
                 $query->where('pr_number', 'like', '%' . $this->search . '%')
                     ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
             })
-            ->latest('created_at')
-            ->paginate(10);
+            ->latest($this->sortField)
+            ->paginate($this->perPage);
 
         return view('livewire.bac-approved-pr.bac-approved-pr-index-page', [
             'approvedPrs' => $approvedPrs,
