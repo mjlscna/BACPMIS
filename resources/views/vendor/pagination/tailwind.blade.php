@@ -3,7 +3,7 @@
         {{-- Previous Page Link --}}
         @if ($paginator->onFirstPage())
             <button type="button" disabled aria-label="Previous"
-                class="min-h-9.5 min-w-9.5 py-2 px-2.5 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-400 cursor-not-allowed dark:text-white/20">
+                class="min-h-6 min-w-6 p-1 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-400 cursor-not-allowed dark:text-white/20">
                 <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path d="M15 18L9 12l6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -12,7 +12,7 @@
             </button>
         @else
             <button wire:click="previousPage" aria-label="Previous"
-                class="min-h-9.5 min-w-9.5 py-2 px-2.5 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10">
+                class="min-h-6 min-w-6 p-1 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10">
                 <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path d="M15 18L9 12l6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -26,7 +26,7 @@
             {{-- "Three Dots" Separator --}}
             @if (is_string($element))
                 <span
-                    class="min-h-9.5 min-w-9.5 py-2 px-2.5 inline-flex justify-center items-center text-sm rounded-lg text-gray-400 dark:text-white/20">
+                    class="min-h-6 min-w-6 p-1 inline-flex justify-center items-center text-sm rounded-lg text-gray-400 dark:text-white/20">
                     {{ $element }}
                 </span>
             @endif
@@ -52,7 +52,7 @@
         {{-- Next Page Link --}}
         @if ($paginator->hasMorePages())
             <button wire:click="nextPage" aria-label="Next"
-                class="min-h-9.5 min-w-9.5 py-2 px-2.5 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10">
+                class="min-h-6 min-w-6 p-1 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-800 hover:bg-gray-100 focus:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10">
                 <span class="sr-only">Next</span>
                 <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
@@ -61,7 +61,7 @@
             </button>
         @else
             <button type="button" disabled aria-label="Next"
-                class="min-h-9.5 min-w-9.5 py-2 px-2.5 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-400 cursor-not-allowed dark:text-white/20">
+                class="min-h-6 min-w-6 p-1 inline-flex justify-center items-center gap-x-2 text-sm rounded-lg text-gray-400 cursor-not-allowed dark:text-white/20">
                 <span class="sr-only">Next</span>
                 <svg class="shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
