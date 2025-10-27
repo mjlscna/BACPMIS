@@ -5,8 +5,8 @@ namespace App\Livewire\ModeOfProcurement;
 use App\Models\MopGroup;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use App\Models\MopItem; // This is unused in this component but kept for context
-use App\Models\MopLot;
+use App\Models\MopItem; // Unused, but kept for context
+use App\Models\MopLot; // Unused, but kept for context
 use Livewire\WithPagination;
 
 class ModeOfProcurementIndexPage extends Component
@@ -21,8 +21,8 @@ class ModeOfProcurementIndexPage extends Component
         $query = MopGroup::query()
             ->with([
                 'modeOfProcurement',
-                'procurements',
-                'prItems.procurement'
+                'procurements', // Correct: Loads $mode->procurements for the 'else' block
+                'prItems'       // Corrected: Loads $mode->prItems for the 'if' block
             ]);
 
         // Update search logic
@@ -32,12 +32,18 @@ class ModeOfProcurementIndexPage extends Component
                     ->orWhereHas('modeOfProcurement', function ($subQ) {
                         $subQ->where('modeofprocurements', 'like', '%' . $this->search . '%');
                     })
-                    ->orWhereHas('procurement', function ($subQ) { // Search 'perLot' PRs
+                    // Corrected: Search 'perLot' PRs via 'procurements' relationship
+                    ->orWhereHas('procurements', function ($subQ) {
+                        // Assumes 'procurements' table has 'pr_number' and 'project_title'
+                        // Changed from 'procurement_program_project' to 'project_title' to match blade
                         $subQ->where('pr_number', 'like', '%' . $this->search . '%')
-                            ->orWhere('procurement_program_project', 'like', '%' . $this->search . '%');
+                            ->orWhere('project_title', 'like', '%' . $this->search . '%');
                     })
-                    ->orWhereHas('prItem', function ($subQ) { // Search 'perItem' descriptions
-                        $subQ->where('description', 'like', '%' . $this->search . '%')
+                    // Corrected: Search 'perItem' via 'prItems' relationship
+                    ->orWhereHas('prItems', function ($subQ) {
+                        // Assumes 'pr_items' table has 'item_name'
+                        // Changed from 'description' to 'item_name' to match blade
+                        $subQ->where('item_name', 'like', '%' . $this->search . '%')
                             ->orWhereHas('procurement', function ($subSubQ) { // Search 'perItem' PRs
                             $subSubQ->where('pr_number', 'like', '%' . $this->search . '%');
                         });

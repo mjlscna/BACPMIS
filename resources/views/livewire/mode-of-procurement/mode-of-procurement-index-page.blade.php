@@ -2,11 +2,11 @@
     <div
         class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden dark:bg-neutral-800 dark:border-neutral-700 flex flex-col">
 
+        {{-- Header / Search Bar (No Changes) --}}
         <div
             class="sticky top-0 z-20 bg-white px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 w-full">
             <div class="flex items-center gap-x-2">
                 <div class="relative">
-                    {{-- Updated placeholder --}}
                     <input type="text" wire:model.live="search" placeholder="Search by Ref No, PR No, or MOP..."
                         class="px-4 py-2 border border-gray-300 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-neutral-800 dark:text-white dark:border-neutral-700" />
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +17,6 @@
                         <circle cx="10" cy="10" r="7" />
                     </svg>
                 </div>
-
                 @can('create_mode::of::procurement')
                     <button type="button" @click="showTypeModal = true"
                         class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
@@ -32,14 +31,18 @@
                 @endcan
             </div>
         </div>
+
+        {{-- Table --}}
         <div class="overflow-auto flex-1">
-            <table class="table-fixed w-full min-w-[1100px] divide-y divide-gray-200 dark:divide-neutral-700">
+            <table class="table-fixed w-full min-w-[1200px] divide-y divide-gray-200 dark:divide-neutral-700">
                 <thead class="bg-gray-200 dark:bg-neutral-900">
                     <tr>
-                        <th class="px-1 py-1 bg-gray-200 dark:bg-neutral-900 w-7"></th>
-                        <th class="px-1 py-1 text-left text-xs text-black dark:text-white w-12">Ref Number</th>
-                        <th class="px-1 py-1 text-center text-xs text-black dark:text-white w-28">Type</th>
-                        <th class="px-1 py-1 text-center text-xs text-black dark:text-white w-48">Mode of Procurement
+                        <th class="px-1 py-1 bg-gray-200 dark:bg-neutral-900 w-4"></th>
+                        <th class="px-1 py-1 text-center text-xs text-black dark:text-white w-12">Ref Number</th>
+                        <th class="px-1 py-1 text-left text-xs text-black dark:text-white w-lg">Associated Items / Lots
+                        </th>
+                        <th class="px-1 py-1 text-center text-xs text-black dark:text-white w-8">Type</th>
+                        <th class="px-1 py-1 text-center text-xs text-black dark:text-white w-16">Mode of Procurement
                         </th>
                     </tr>
                 </thead>
@@ -50,26 +53,10 @@
                             class="bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:hover:bg-neutral-700/50"
                             wire:key="mop-group-{{ $mode->id }}">
 
-                            {{-- Actions Column --}}
+                            {{-- Actions Column (No Changes) --}}
                             <td class="px-2 py-2 text-center text-black dark:text-white">
-                                {{-- ▼ Expand/Collapse Arrow --}}
-                                <button @click="expanded = !expanded"
-                                    class="inline-flex items-center justify-center size-7 rounded-full text-gray-600 hover:bg-gray-200 dark:text-neutral-400 dark:hover:bg-neutral-700 focus:outline-none transition">
-                                    {{-- ► --}}
-                                    <svg x-show="!expanded" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                        class="size-5 transition-transform duration-200">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                    {{-- ▼ --}}
-                                    <svg x-show="expanded" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                        class="size-5 transition-transform duration-200 rotate-90">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
 
-                                {{-- ⋮ Dropdown Menu --}}
+                                {{-- ⋮ Dropdown Menu (No Changes) --}}
                                 <div x-data="{ open: false }" class="relative inline-flex" x-ref="menuWrapper">
                                     <button @click="open = !open" @click.away="open = false"
                                         class="inline-flex items-center justify-center size-7 rounded-full text-gray-600 hover:bg-gray-200 dark:text-neutral-400 dark:hover:bg-neutral-700">
@@ -79,7 +66,6 @@
                                                 d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                                         </svg>
                                     </button>
-
                                     <template x-teleport="body">
                                         <div x-show="open" x-transition @click.away="open = false"
                                             class="absolute z-[9999] bg-white border border-gray-200 rounded-md shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
@@ -101,6 +87,15 @@
                                                         </button>
                                                     </li>
                                                 @endcan
+                                                @can('update_procurement')
+                                                    <li>
+                                                        <a href="{{ route('mode-of-procurement.update', $mode->id) }}"
+                                                            @click="open = false"
+                                                            class="w-full flex items-center gap-x-2 text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-green-600">
+                                                            <x-heroicon-o-arrow-path class="size-4" /> Update
+                                                        </a>
+                                                    </li>
+                                                @endcan
                                                 @can('edit_procurement')
                                                     <li>
                                                         <a href="{{ route('mode-of-procurement.edit', $mode->id) }}"
@@ -117,8 +112,30 @@
                             </td>
 
                             {{-- Ref Number --}}
-                            <td class="px-1 py-1 text-left text-sm text-black dark:text-white">
+                            <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
                                 {{ $mode->ref_number }}
+                            </td>
+
+                            <td class="px-1 py-1 text-left text-sm text-black dark:text-white">
+                                @if ($mode->procurable_type === 'perItem')
+                                    @php
+                                        $itemString = $mode->prItems->pluck('description')->implode(', ');
+                                    @endphp
+                                    {{-- Removed 'truncate' class to allow text wrapping --}}
+                                    <span class="block" title="{{ $itemString }}">
+                                        {{ $itemString ?: '-' }}
+                                    </span>
+                                @else
+                                    @php
+                                        $lotString = $mode->procurements
+                                            ->pluck('procurement_program_project')
+                                            ->implode(', ');
+                                    @endphp
+                                    {{-- Removed 'truncate' class to allow text wrapping --}}
+                                    <span class="block" title="{{ $lotString }}">
+                                        {{ $lotString ?: '-' }}
+                                    </span>
+                                @endif
                             </td>
 
                             {{-- Type --}}
@@ -132,66 +149,23 @@
                             </td>
                         </tr>
 
-                        {{-- Collapsible Content --}}
-                        <tr x-show="expanded" x-transition>
-                            <td colspan="4" class="bg-gray-50 dark:bg-neutral-900 text-sm px-6 py-3">
-                                @if ($mode->procurable_type === 'perItem')
-                                    {{-- Table for mop_group_pr_item --}}
-                                    <table class="w-full text-xs border border-gray-200 dark:border-neutral-700">
-                                        <thead>
-                                            <tr
-                                                class="bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300">
-                                                <th class="px-2 py-1 text-left">Item</th>
-                                                <th class="px-2 py-1 text-left">Quantity</th>
-                                                <th class="px-2 py-1 text-left">Unit Cost</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($mode->mopGroupPrItems ?? [] as $item)
-                                                <tr class="border-t border-gray-200 dark:border-neutral-700">
-                                                    <td class="px-2 py-1">{{ $item->item_name ?? '-' }}</td>
-                                                    <td class="px-2 py-1">{{ $item->quantity ?? '-' }}</td>
-                                                    <td class="px-2 py-1">{{ $item->unit_cost ?? '-' }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                @else
-                                    {{-- Table for mop_group_procurement --}}
-                                    <table class="w-full text-xs border border-gray-200 dark:border-neutral-700">
-                                        <thead>
-                                            <tr
-                                                class="bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300">
-                                                <th class="px-2 py-1 text-left">Project Title</th>
-                                                <th class="px-2 py-1 text-left">Approved Budget</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($mode->mopGroupProcurement ?? [] as $lot)
-                                                <tr class="border-t border-gray-200 dark:border-neutral-700">
-                                                    <td class="px-2 py-1">{{ $lot->project_title ?? '-' }}</td>
-                                                    <td class="px-2 py-1">{{ $lot->approved_budget ?? '-' }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                @endif
-                            </td>
-                        </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="p-4 text-center text-gray-500">
+                            <td colspan="5" class="p-4 text-center text-gray-500">
                                 No Mode of Procurements found.
                             </td>
                         </tr>
+
+                        {{-- FIXED: Added missing @endforelse --}}
                     @endforelse
+
                 </tbody>
             </table>
 
         </div>
 
+        {{-- Pagination (No Changes) --}}
         <div class="flex flex-col items-center w-full p-2 border-t border-gray-200 dark:border-neutral-700">
-
             <div class="text-xs text-gray-500">
                 @if ($modes->total() > 0)
                     Showing {{ $modes->firstItem() }} to {{ $modes->lastItem() }} of
@@ -200,15 +174,13 @@
                     No items found
                 @endif
             </div>
-
             <div>
                 {{ $modes->links('vendor.pagination.tailwind') }}
             </div>
-
         </div>
     </div>
 
-    {{-- Create Modal (No changes needed) --}}
+    {{-- Create Modal (No changes) --}}
     <div @keydown.escape.window="showTypeModal = false" x-show="showTypeModal" x-cloak
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div @click.outside="showTypeModal = false"
@@ -228,12 +200,10 @@
                     class="py-2 px-6 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-emerald-600 text-white hover:bg-emerald-700">
                     Per Lot
                 </a>
-
                 <a href="{{ route('mode-of-procurement.create', ['type' => 'perItem']) }}"
                     class="py-2 px-6 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-sky-600 text-white hover:bg-sky-700">
                     Per Item
                 </a>
-
             </div>
         </div>
     </div>

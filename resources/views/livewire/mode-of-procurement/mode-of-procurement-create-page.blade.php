@@ -1,3 +1,17 @@
+@if (session()->has('success_message'))
+    <script>
+        document.addEventListener('alpine:init', () => {
+            window.Livewire.dispatch('swal:alert', {
+                type: 'success',
+                title: 'Selections Saved!',
+                text: '{{ session('success_message') }}',
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+@endif
+
 <div class="space-y-6 px-2 pb-[5rem]">
     <div class="relative bg-white rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
         <div
@@ -209,10 +223,31 @@
             @if ($activeTab == 2)
                 <div
                     class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Bidding Schedules</h3>
-                    <p class="text-gray-600 dark:text-gray-300 mt-2">Your form components for bidding schedules will go
-                        here.
-                    </p>
+                    @foreach (collect($form['modes'])->values() as $modeIndex => $mode)
+                        <div class="bg-white p-4 rounded-xl shadow border border-emerald-600 space-y-6">
+
+                            {{-- Mode of Procurement Select --}}
+                            <div class="flex justify-center">
+                                <div class="bg-white p-4 rounded-xl border border-gray-200 inline-block">
+                                    @php
+                                        $isModeLocked =
+                                            !$isEditing &&
+                                            collect($mode['bid_schedules'] ?? [])->contains(
+                                                fn($s) => !empty($s['bidding_result']) ||
+                                                    !empty($s['ntf_bidding_result']),
+                                            );
+                                    @endphp
+
+                                    <x-forms.select id="mode_of_procurement_{{ $modeIndex }}"
+                                        label="Mode of Procurement"
+                                        model="form.modes.{{ $modeIndex }}.mode_of_procurement_id" :form="$form"
+                                        :options="$modeOfProcurements" optionValue="id" optionLabel="modeofprocurements"
+                                        :required="false" :viewOnly="$viewOnlyTab2 || $isModeLocked" wireModifier="defer" />
+                                </div>
+                            </div>
+
+                        </div>
+                    @endforeach
                 </div>
             @endif
 
@@ -220,7 +255,8 @@
                 <div
                     class="bg-white p-4 rounded-xl shadow border border-gray-200 dark:bg-neutral-700 dark:border-neutral-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Awarding</h3>
-                    <p class="text-gray-600 dark:text-gray-300 mt-2">Your form components for awarding will go here.</p>
+                    <p class="text-gray-600 dark:text-gray-300 mt-2">Your form components for awarding will go here.
+                    </p>
                 </div>
             @endif
         </div>

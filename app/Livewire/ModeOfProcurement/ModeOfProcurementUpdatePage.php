@@ -20,7 +20,7 @@ use App\Models\NtfBidSchedule;
 use App\Models\PrSvp;
 use Livewire\WithPagination;
 
-class ModeOfProcurementCreatePage extends Component
+class ModeOfProcurementUpdatePage extends Component
 {
     use WithPagination;
     public $procurement = null;
@@ -37,88 +37,34 @@ class ModeOfProcurementCreatePage extends Component
     public array $selectedItemGroups = [];
     protected $listeners = ['procurementsSelected'];
 
-    // Correct the mount method signature to accept 'id' from the route
-    public function mount($id = null)
+    public function mount($procID = null)
     {
         session()->forget(['selected_procurements', 'form_state']);
+
         $this->resetForm();
+        $this->procurementType = request()->query('type', 'perLot');
 
-        if ($id) {
-            // ----- UPDATE MODE -----
-            // We are on the .../{id}/update URL
-            $this->activeTab = 2; // Skip to Tab 2
-            $this->mopGroupId = $id;
-
-            // Load the group and its related items
-            $mopGroup = MopGroup::with(['procurements', 'prItems.procurement'])->findOrFail($id);
-            $this->procurementType = $mopGroup->procurable_type;
-
-            // Re-populate $selectedProcurements to reflect the saved group
-            if ($this->procurementType === 'perLot') {
-                $this->selectedProcurements = $mopGroup->procurements->map(function ($proc) {
-                    return [
-                        'id' => $proc->procID, // Use the correct primary key
-                        'pr_number' => $proc->pr_number,
-                        'procurement_program_project' => $proc->procurement_program_project,
-                        'items' => null, // Signifies it's a lot
-                    ];
-                })->toArray();
-            } else { // 'perItem'
-                // Group items by their parent PR
-                $this->selectedProcurements = $mopGroup->prItems
-                    ->groupBy('procID')
-                    ->map(function ($items) {
-                        $proc = $items->first()->procurement; // Get parent PR details
-                        if (!$proc)
-                            return null;
-
-                        return [
-                            'id' => $proc->procID, // Parent PR's ID
-                            'pr_number' => $proc->pr_number,
-                            'procurement_program_project' => $proc->procurement_program_project,
-                            'items' => $items->map(function ($item) {
-                                return [
-                                    'id' => $item->prItemID, // The item's primary key
-                                    'description' => $item->description,
-                                    'amount' => $item->amount,
-                                    // ... other item fields
-                                ];
-                            })->values()->all(),
-                        ];
-                    })
-                    ->filter() // Remove nulls
-                    ->values()
-                    ->toArray();
-            }
-
-            // TODO: You also need to load the saved MOP details (from Tab 2)
-            // into $this->form['modes'] here.
-
-        } else {
-            // ----- CREATE MODE -----
-            // We are on the .../create URL
-            $this->activeTab = 1;
-            $this->procurementType = request()->query('type', 'perLot');
-
-            // This session logic is fine for create mode
-            if (session()->has('selected_procurements')) {
-                $this->selectedProcurements = session('selected_procurements');
-            }
-            if (session()->has('form_state')) {
-                $this->form = session('form_state', []);
-                session()->forget('form_state');
-            }
+        if (session()->has('selected_procurements')) {
+            $this->selectedProcurements = session('selected_procurements');
+            $this->form['procurement_ids'] = array_column($this->selectedProcurements, 'id');
         }
 
-        // REMOVED: The following logic conflicts with the grouping wizard.
-        // It is for editing a SINGLE PR, not a GROUP.
-        /*
+        if (session()->has('form_state')) {
+            $this->form = session('form_state', []); // Restore the form data
+            session()->forget('form_state'); // Clean up the session
+        }
+
         $this->procID = $procID ?? $this->form['procurement_ids'][0] ?? null;
+
         if ($this->procID) {
             $this->procurement = Procurement::where('procID', $this->procID)->first();
-            // ... etc
+
+            if ($this->procurement) {
+                $this->form['pr_number'] = $this->procurement->pr_number;
+                $this->form['procurement_program_project'] = $this->procurement->procurement_program_project;
+                $this->hydrateForm();
+            }
         }
-        */
     }
     private function persistFormState(): void
     {
@@ -614,17 +560,23 @@ class ModeOfProcurementCreatePage extends Component
 
         try {
             $group = DB::transaction(function () {
-                // ... (Your ref_number generation logic is correct)
+                // Get current year
                 $year = now()->format('Y');
+
+                // Find the last ref_number for the current year
                 $lastNumber = MopGroup::whereYear('created_at', $year)
                     ->where('ref_number', 'like', "MOP-$year-%")
                     ->orderByDesc('id')
                     ->value('ref_number');
+
+                // Extract the last numeric part and increment
                 $nextNumber = 1;
                 if ($lastNumber) {
                     $lastNum = (int) Str::afterLast($lastNumber, '-');
                     $nextNumber = $lastNum + 1;
                 }
+
+                // Format: MOP-YEAR-0001
                 $refNumber = sprintf('MOP-%s-%04d', $year, $nextNumber);
 
                 // Create the parent group
@@ -632,19 +584,15 @@ class ModeOfProcurementCreatePage extends Component
                     'ref_number' => $refNumber,
                     'status' => 'draft',
                     'procurable_type' => $this->procurementType,
-                    'uid' => 'MOP1-0', // Placeholder, fine
-                    'mode_of_procurement_id' => 1, // Default, fine
+                    'uid' => 'MOP1-0',
+                    'mode_of_procurement_id' => 1,
                     'mode_order' => 0,
                 ]);
 
-                // ----- FIXED: Collect IDs from the correct source array -----
-                $lotIDs = collect($this->selectedProcurements)
-                    ->filter(fn($proc) => empty($proc['items'])) // 'perLot'
-                    ->pluck('procID'); // 'id' is procID
-
-                $itemIDs = collect($this->selectedProcurements)
-                    ->filter(fn($proc) => !empty($proc['items'])) // 'perItem'
-                    ->pluck('items.*.prItemID') // 'id' is prItemID
+                // Collect IDs based on type
+                $lotIDs = collect($this->selectedLots)->pluck('procID');
+                $itemIDs = collect($this->selectedItemGroups)
+                    ->pluck('items.*.prItemID')
                     ->flatten();
 
                 // Attach relations
@@ -659,14 +607,14 @@ class ModeOfProcurementCreatePage extends Component
                 return $mopGroup;
             });
 
-            // ----- CHANGED: Redirect to the UPDATE route -----
+            $this->mopGroupId = $group->id;
 
-            // Flash a success message to the session
-            session()->flash('success_message', 'Selections Saved! You can now proceed to define the Mode of Procurement.');
+            LivewireAlert::title('Selections Saved!')
+                ->success()
+                ->text('You can now proceed to define the Mode of Procurement.')
+                ->toast()->position('top-end')->show();
 
-            // Redirect to the 'update' route with the new ID
-            // This will reload the component, and mount() will run in "update mode"
-            return redirect()->route('mode-of-procurement.update', ['ref_number' => $group->ref_number]);
+            $this->activeTab = 2;
 
         } catch (\Exception $e) {
             Log::error('Error saving MOP Details selections: ' . $e->getMessage());
