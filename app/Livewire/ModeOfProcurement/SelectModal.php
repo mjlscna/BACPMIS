@@ -179,20 +179,33 @@ class SelectModal extends Component
         $results = null;
 
         if ($this->procurementType === 'perLot') {
+            // 🔹 Get all Procurement.procID values already used in MOP
+            $usedProcIds = \App\Models\Mop::where('procurable_type', Procurement::class)
+                ->pluck('procurable_id')
+                ->toArray();
+
             $query = Procurement::query()
                 ->with('division')
                 ->where('procurement_type', 'perLot')
+                ->whereNotIn('procID', $usedProcIds) // 🔥 exclude already used procurements
                 ->when(
                     $this->search,
                     fn($q) =>
                     $q->where('pr_number', 'like', "%{$this->search}%")
                         ->orWhere('procurement_program_project', 'like', "%{$this->search}%")
                 );
+
             $results = $query->latest()->paginate($this->perPage);
         } elseif ($this->procurementType === 'perItem') {
+            // 🔹 Get all PrItem.prItemID values already used in MOP
+            $usedPrItemIds = \App\Models\Mop::where('procurable_type', PrItem::class)
+                ->pluck('procurable_id')
+                ->toArray();
+
             $query = PrItem::query()
                 ->with('procurement.division')
                 ->whereHas('procurement', fn($q) => $q->where('procurement_type', 'perItem'))
+                ->whereNotIn('prItemID', $usedPrItemIds) // 🔥 exclude already used items
                 ->when(
                     $this->search,
                     fn($q) =>
@@ -203,8 +216,10 @@ class SelectModal extends Component
                             $subQ->where('pr_number', 'like', "%{$this->search}%")
                         )
                 );
+
             $results = $query->latest()->paginate($this->perPage);
         }
+
 
         // --- START OF CHANGES ---
 

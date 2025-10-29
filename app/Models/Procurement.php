@@ -183,7 +183,7 @@ class Procurement extends Model
     }
     public function mops(): MorphMany
     {
-        return $this->morphMany(Mop::class, 'procurable');
+        return $this->morphMany(Mop::class, 'procurable', 'procurable_type', 'procurable_id', 'procID');
     }
     public function mopGroups()
     {

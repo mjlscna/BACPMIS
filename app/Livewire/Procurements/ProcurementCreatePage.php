@@ -332,11 +332,10 @@ class ProcurementCreatePage extends Component
             ]);
         }
 
-
         session()->flash('alert', [
             'type' => 'success',
             'title' => 'Saved!',
-            'message' => 'Your Procurement has been created successfully.',
+            'message' => 'Your Mode of Procurement has been created successfully.',
         ]);
 
         return redirect()->route('procurements.index');

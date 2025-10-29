@@ -41,7 +41,7 @@ class PrItem extends Model
     }
     public function mops(): MorphMany
     {
-        return $this->morphMany(Mop::class, 'procurable');
+        return $this->morphMany(Mop::class, 'procurable', 'procurable_type', 'procurable_id', 'prItemID');
     }
     public function mopGroups(): MorphToMany
     {

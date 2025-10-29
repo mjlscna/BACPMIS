@@ -12,15 +12,7 @@ class MopGroup extends Model
         'ref_number',
         'status',
         'procurable_type',
-        'uid',
-        'mode_of_procurement_id',
-        'mode_order',
     ];
-
-    public function modeOfProcurement()
-    {
-        return $this->belongsTo(ModeOfProcurement::class, 'mode_of_procurement_id');
-    }
 
     /**
      * CORRECTED RELATIONSHIP

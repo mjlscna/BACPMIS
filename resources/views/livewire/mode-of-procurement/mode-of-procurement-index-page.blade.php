@@ -89,7 +89,7 @@
                                                 @endcan
                                                 @can('update_procurement')
                                                     <li>
-                                                        <a href="{{ route('mode-of-procurement.update', $mode->id) }}"
+                                                        <a href="{{ route('mode-of-procurement.update', $mode->ref_number) }}"
                                                             @click="open = false"
                                                             class="w-full flex items-center gap-x-2 text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-700 text-green-600">
                                                             <x-heroicon-o-arrow-path class="size-4" /> Update
@@ -116,22 +116,23 @@
                                 {{ $mode->ref_number }}
                             </td>
 
+                            {{-- ** UPDATED: Associated Items / Lots ** --}}
                             <td class="px-1 py-1 text-left text-sm text-black dark:text-white">
                                 @if ($mode->procurable_type === 'perItem')
                                     @php
+                                        // Use 'description' to match CreatePage logic
                                         $itemString = $mode->prItems->pluck('description')->implode(', ');
                                     @endphp
-                                    {{-- Removed 'truncate' class to allow text wrapping --}}
                                     <span class="block" title="{{ $itemString }}">
                                         {{ $itemString ?: '-' }}
                                     </span>
                                 @else
                                     @php
+                                        // Use 'procurement_program_project' to match CreatePage logic
                                         $lotString = $mode->procurements
                                             ->pluck('procurement_program_project')
                                             ->implode(', ');
                                     @endphp
-                                    {{-- Removed 'truncate' class to allow text wrapping --}}
                                     <span class="block" title="{{ $lotString }}">
                                         {{ $lotString ?: '-' }}
                                     </span>
@@ -143,9 +144,24 @@
                                 {{ $mode->procurable_type === 'perItem' ? 'Per Item' : 'Per Lot' }}
                             </td>
 
-                            {{-- Mode of Procurement --}}
+                            {{-- ** UPDATED: Mode of Procurement ** --}}
                             <td class="px-1 py-1 text-center text-sm text-black dark:text-white">
-                                {{ $mode->modeOfProcurement?->modeofprocurements }}
+                                @php
+                                    // Get the collection of items (whichever one is not empty)
+                                    $items = $mode->prItems->isNotEmpty() ? $mode->prItems : $mode->procurements;
+
+                                    // Get the first item from that collection
+                                    $firstItem = $items->first();
+
+                                    // Get that item's MOPs (which are already eager-loaded)
+// Find the one with the highest mode_order
+$currentMop = $firstItem?->mops->sortByDesc('mode_order')->first();
+
+                                    // Get the name
+                                    $currentModeName = $currentMop?->modeDetails?->modeofprocurements;
+                                @endphp
+                                {{-- Display the name, or 'Pending' if it's the default (mode_order 0) --}}
+                                {{ $currentModeName ?? 'Pending' }}
                             </td>
                         </tr>
 
@@ -155,8 +171,6 @@
                                 No Mode of Procurements found.
                             </td>
                         </tr>
-
-                        {{-- FIXED: Added missing @endforelse --}}
                     @endforelse
 
                 </tbody>
