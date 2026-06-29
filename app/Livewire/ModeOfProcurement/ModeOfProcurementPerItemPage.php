@@ -29,6 +29,11 @@ class ModeOfProcurementPerItemPage extends Component
     const ABC_THRESHOLD = 200000;
     const MODE_PENDING = 1;
 
+    // Stages set purely from the selected mode (no real data entered yet). A
+    // placeholder stage may replace another placeholder/null stage, but it must
+    // NEVER replace a data-derived stage (e.g. Canvass, Abstract of Canvass).
+    const PLACEHOLDER_STAGES = [1, 3, 31, 32];
+
     // Helper methods to eliminate magic numbers
     public function isCompetitiveBidding(?int $modeId): bool
     {
@@ -1194,9 +1199,10 @@ class ModeOfProcurementPerItemPage extends Component
      *   - The current item has a non-pending mode
      *   - That item's stage is still at the initial pending stage (1)
      *
-     * Stage mapping:
-     *   Mode  2-6  (Competitive Bidding)  → Stage 31
-     *   Mode 7-24  (SVP / Alternative)    → Stage 32
+     * Stage mapping (placeholder stages):
+     *   Mode 2     (Competitive Bidding) → Stage 3  (For Pre-Procurement)
+     *   Mode 3-6   (Competitive Bidding) → Stage 31 (For Bidding Schedule)
+     *   Mode 7-24  (SVP / Alternative)   → Stage 32 (For Other Mode of Procurement)
      */
     private function autoUpdateStageForModeFromPendingPerItem(): void
     {
@@ -1213,63 +1219,99 @@ class ModeOfProcurementPerItemPage extends Component
             }
         }
 
-        $modeInitialStages = [1, 3, 29, 31, 32];
-
         foreach ($latestByPrItemID as $prItemID => $currentItem) {
             $latestModeId = (int) ($currentItem['mode_of_procurement_id'] ?? 0);
 
-            // Determine target stage from the current mode
+            // Determine the placeholder stage implied purely by the selected mode.
+            // All SVP/alternative modes — including 7 (Direct Contracting) and
+            // 19 (Lease of Real Property and Venue) — are data-driven: they start
+            // at the generic stage 32 and advance only once real data is entered.
             if ($latestModeId === 2) {
-                $targetStageId = 3;
-            } elseif (\in_array($latestModeId, [7, 19])) {
-                $targetStageId = 29;
+                $targetStageId = 3;            // For Pre-Procurement
             } elseif ($this->isCompetitiveBidding($latestModeId)) {
-                $targetStageId = 31;
+                $targetStageId = 31;           // For Bidding Schedule
             } elseif ($this->isSvpMode($latestModeId)) {
-                $targetStageId = 32;
+                $targetStageId = 32;           // For Other Mode of Procurement
             } else {
                 continue; // Mode is still pending (1) or unrecognised
             }
 
-            $latestStage = PrItemPrstage::where('procID', $this->procID)
-                ->where('prItemID', $prItemID)
-                ->orderBy('created_at', 'desc')
-                ->orderBy('id', 'desc')
-                ->first();
-
-            // Never override stage 7 (Forwarded to PMU)
-            if ($latestStage && $latestStage->pr_stage_id == 7) {
-                continue;
-            }
-
-            $currentStageId = $latestStage ? $latestStage->pr_stage_id : null;
-
-            // Only update if no field-based advancement has happened yet
-            if ($currentStageId !== null && !\in_array($currentStageId, $modeInitialStages)) {
-                continue;
-            }
-
-            if ($targetStageId === $currentStageId) {
-                continue;
-            }
-
-            DB::transaction(function () use ($prItemID, $targetStageId, $currentStageId) {
-                PrItemPrstage::create([
-                    'procID' => $this->procID,
-                    'prItemID' => $prItemID,
-                    'pr_stage_id' => $targetStageId,
-                    'stage_history' => $currentStageId ? (string) $currentStageId : null,
-                ]);
-
-                PrItemRemark::create([
-                    'procID' => $this->procID,
-                    'prItemID' => $prItemID,
-                    'remarks_id' => 3, // Ongoing
-                    'notes' => null,
-                    'remark_history' => now(),
-                ]);
-            });
+            $this->recordAutoStageForPrItem($prItemID, $targetStageId, true);
         }
+    }
+
+    /**
+     * Centralized writer for every automatic stage transition (per PR item).
+     *
+     * Guarantees, for all auto-stage updates:
+     *   - Stage 7 (Forwarded to PMU) is never overridden (explicit human action).
+     *   - No duplicate record when the target already equals the current stage.
+     *   - A placeholder/mode stage (For Pre-Procurement, For Bidding Schedule,
+     *     For Other Mode of Procurement) can NEVER replace a data-derived stage.
+     *     Data-derived stages stay fully flexible, so a user correcting fields
+     *     (clearing the wrong one, filling another) moves the stage up or down to
+     *     match what is actually entered.
+     *
+     * @param mixed $prItemID       PR item to update.
+     * @param int   $targetStageId  Stage implied by the current mode/data.
+     * @param bool  $isPlaceholder  True for mode-derived (placeholder) stages.
+     * @param bool  $allowDowngrade False to block moving to a lower stage id —
+     *                              used by partial recomputers (e.g. bidding).
+     */
+    private function recordAutoStageForPrItem($prItemID, int $targetStageId, bool $isPlaceholder, bool $allowDowngrade = true): void
+    {
+        $latestStage = PrItemPrstage::where('procID', $this->procID)
+            ->where('prItemID', $prItemID)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        // Never override an explicit Forward to PMU action
+        if ($latestStage && $latestStage->pr_stage_id == 7) {
+            return;
+        }
+
+        $currentStageId = $latestStage ? (int) $latestStage->pr_stage_id : null;
+
+        // Already at the target – nothing to do
+        if ($targetStageId === $currentStageId) {
+            return;
+        }
+
+        // Placeholder/mode stages must never clobber a data-derived stage
+        if (
+            $isPlaceholder
+            && $currentStageId !== null
+            && !\in_array($currentStageId, self::PLACEHOLDER_STAGES, true)
+        ) {
+            return;
+        }
+
+        // Guard for recomputers that only know part of the hierarchy
+        if (
+            !$allowDowngrade
+            && $currentStageId !== null
+            && $currentStageId > $targetStageId
+        ) {
+            return;
+        }
+
+        DB::transaction(function () use ($prItemID, $targetStageId, $currentStageId) {
+            PrItemPrstage::create([
+                'procID' => $this->procID,
+                'prItemID' => $prItemID,
+                'pr_stage_id' => $targetStageId,
+                'stage_history' => $currentStageId ? (string) $currentStageId : null,
+            ]);
+
+            PrItemRemark::create([
+                'procID' => $this->procID,
+                'prItemID' => $prItemID,
+                'remarks_id' => 3, // Ongoing
+                'notes' => null,
+                'remark_history' => now(),
+            ]);
+        });
     }
 
     /**
@@ -1311,19 +1353,9 @@ class ModeOfProcurementPerItemPage extends Component
                 continue;
             }
 
-            // Get the latest stage for this specific item
-            $latestStage = PrItemPrstage::where('procID', $this->procID)
-                ->where('prItemID', $prItemID)
-                ->orderBy('created_at', 'desc')
-                ->orderBy('id', 'desc')
-                ->first();
-
-            // Stage 7 (Forwarded to PMU) is an explicit human action – never override it
-            if ($latestStage && $latestStage->pr_stage_id == 7) {
-                continue;
-            }
-
             // Walk up the hierarchy; last matching condition wins (highest stage)
+            // for the data currently entered. Removing a field lets the stage fall
+            // back to the next-highest filled field (flexible corrections).
             $targetStageId = null;
 
             // Stage 15 – Resolution to Recommend for Other Mode
@@ -1366,29 +1398,10 @@ class ModeOfProcurementPerItemPage extends Component
                 continue; // No applicable stage determined
             }
 
-            $currentStageId = $latestStage ? $latestStage->pr_stage_id : null;
-
-            // Only write to DB if the stage actually changed
-            if ($targetStageId === $currentStageId) {
-                continue;
-            }
-
-            DB::transaction(function () use ($prItemID, $targetStageId, $currentStageId) {
-                PrItemPrstage::create([
-                    'procID' => $this->procID,
-                    'prItemID' => $prItemID,
-                    'pr_stage_id' => $targetStageId,
-                    'stage_history' => $currentStageId ? (string) $currentStageId : null,
-                ]);
-
-                PrItemRemark::create([
-                    'procID' => $this->procID,
-                    'prItemID' => $prItemID,
-                    'remarks_id' => 3, // Ongoing
-                    'notes' => null,
-                    'remark_history' => now(),
-                ]);
-            });
+            // Data-derived write: fully flexible so corrections can move the stage
+            // up or down to match the current data. recordAutoStageForPrItem()
+            // still guards stage 7 and skips no-op repeats.
+            $this->recordAutoStageForPrItem($prItemID, $targetStageId, false);
         }
     }
 
@@ -1413,17 +1426,6 @@ class ModeOfProcurementPerItemPage extends Component
                 continue;
             }
 
-            $latestStage = PrItemPrstage::where('procID', $this->procID)
-                ->where('prItemID', $prItemID)
-                ->orderBy('created_at', 'desc')
-                ->orderBy('id', 'desc')
-                ->first();
-
-            // Never override Stage 7 (Forwarded to PMU)
-            if ($latestStage && $latestStage->pr_stage_id == 7) {
-                continue;
-            }
-
             $targetStageId = null;
 
             // Stage 4 – For Pre-Bid Conference
@@ -1435,33 +1437,9 @@ class ModeOfProcurementPerItemPage extends Component
                 continue;
             }
 
-            $currentStageId = $latestStage ? $latestStage->pr_stage_id : null;
-
-            // Don't downgrade an already-higher stage
-            if ($currentStageId !== null && $currentStageId > $targetStageId) {
-                continue;
-            }
-
-            if ($targetStageId === $currentStageId) {
-                continue;
-            }
-
-            DB::transaction(function () use ($prItemID, $targetStageId, $currentStageId) {
-                PrItemPrstage::create([
-                    'procID' => $this->procID,
-                    'prItemID' => $prItemID,
-                    'pr_stage_id' => $targetStageId,
-                    'stage_history' => $currentStageId ? (string) $currentStageId : null,
-                ]);
-
-                PrItemRemark::create([
-                    'procID' => $this->procID,
-                    'prItemID' => $prItemID,
-                    'remarks_id' => 3, // Ongoing
-                    'notes' => null,
-                    'remark_history' => now(),
-                ]);
-            });
+            // This recomputer only knows the Pre-Bid stage, so it must not
+            // downgrade an item that has already advanced past it.
+            $this->recordAutoStageForPrItem($prItemID, $targetStageId, false, false);
         }
     }
 
