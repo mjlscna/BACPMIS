@@ -20,6 +20,9 @@
     $lookup = Str::startsWith($model, 'form.') ? Str::after($model, 'form.') : $model;
 
     $initialValue = data_get($form, $lookup, 0);
+
+    // Always display two decimals to match the decimal(15,2) column.
+    $initialDisplay = number_format((float) $initialValue, 2, '.', ',');
 @endphp
 
 <div class="flex flex-col {{ $colspan }}">
@@ -33,11 +36,12 @@
     </label>
 
     @if ($viewOnly)
-        <div class="text-sm font-semibold text-gray-900">₱ {{ number_format($initialValue, 2, '.', ',') }}</div>
+        <div class="text-sm font-semibold text-gray-900 dark:text-white">₱
+            {{ number_format($initialValue, 2, '.', ',') }}</div>
     @else
         <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-white">₱</span>
-            <input type="text" inputmode="decimal" id="{{ $id }}" x-data="{ display: '{{ number_format($initialValue, 2, '.', ',') }}' }" x-model="display"
+            <input type="text" inputmode="decimal" id="{{ $id }}" x-data="{ display: '{{ $initialDisplay }}' }" x-model="display"
                 @input="
                     let raw = $event.target.value.replace(/[^0-9.]/g, '');
                     let dot = raw.indexOf('.');
@@ -52,7 +56,7 @@
                     display = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     $wire.set('form.{{ $lookup }}', amount);
                 "
-                class="mt-1 block w-full pl-8 pr-3 py-2 rounded-md text-sm text-right dark:text-white border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 {{ $disabled ? 'bg-gray-100 cursor-not-allowed' : '' }}"
+                class="mt-1 block w-full pl-8 pr-3 py-2 rounded-md text-sm text-right border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white {{ $disabled ? 'bg-gray-100 dark:bg-neutral-700 cursor-not-allowed' : '' }}"
                 :readonly="{{ $disabled ? 'true' : 'false' }}" {{ $required && !$disabled ? 'required' : '' }} />
         </div>
     @endif

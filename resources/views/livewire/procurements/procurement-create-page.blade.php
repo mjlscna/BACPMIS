@@ -333,4 +333,9 @@
     </div>
     <!-- Bottom Spacer to prevent content hiding under fixed footer and overall footer -->
     <div class="h-32"></div>
+
+    {{-- Review-before-save confirmation modal --}}
+    <x-forms.procurement-review-modal :form="$form" :categories="$categories" :divisions="$divisions"
+        :clusterCommittees="$clusterCommittees" :venueSpecifics="$venueSpecifics" :venueProvinces="$venueProvinces"
+        :endUsers="$endUsers" :fundSources="$fundSources" />
 </div>

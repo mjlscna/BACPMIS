@@ -158,12 +158,12 @@
                     </div>
                     <ul class="max-h-40 overflow-y-auto" x-ref="list" role="listbox" id="{{ $id }}-listbox">
                         {{-- A clickable "blank" option --}}
-                        <li @click="selectOption(null)" role="option" :aria-selected="(!value && value !== 0) ? 'true' : 'false'"
+                        <li @mousedown.prevent @click="selectOption(null)" role="option" :aria-selected="(!value && value !== 0) ? 'true' : 'false'"
                             class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-50 dark:text-white dark:hover:bg-emerald-700">
                             <span class="block truncate italic text-gray-500">Select</span>
                         </li>
                         <template x-for="(option, index) in filteredOptions" :key="option.value">
-                            <li @click="selectOption(option)" @mousemove="highlight = index" :data-index="index"
+                            <li @mousedown.prevent @click="selectOption(option)" @mousemove="highlight = index" :data-index="index"
                                 :id="`{{ $id }}-opt-${index}`" role="option"
                                 :aria-selected="value == option.value ? 'true' : 'false'"
                                 :class="{
