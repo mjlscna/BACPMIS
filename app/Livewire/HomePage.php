@@ -21,6 +21,7 @@ class HomePage extends Component
 
     public $selectedDivision = 'all';
     public $selectedYear;
+    public $selectedQuarter = 'all';
     public $search = '';
     public $selectedProcurement = null;
     public $expandedProcurementId = null;
@@ -36,6 +37,7 @@ class HomePage extends Component
         'search' => ['except' => ''],
         'selectedDivision' => ['except' => 'all'],
         'selectedYear' => ['except' => 'all'],
+        'selectedQuarter' => ['except' => 'all'],
         'perPage' => ['except' => 10],
     ];
 
@@ -55,7 +57,17 @@ class HomePage extends Component
         $this->resetPage();
     }
 
-    public function updatingSelectedYear()
+    public function updatingSelectedYear($value)
+    {
+        // Quarter only applies within a specific year; clear it for "All Years".
+        if ($value === 'all') {
+            $this->selectedQuarter = 'all';
+        }
+
+        $this->resetPage();
+    }
+
+    public function updatingSelectedQuarter()
     {
         $this->resetPage();
     }
@@ -78,9 +90,37 @@ class HomePage extends Component
     }
 
     /**
-     * Base query with the dashboard's active filters (division + receipt year)
-     * applied. Every stat property builds off this so a single change to the
-     * filters propagates everywhere.
+     * Start/end dates (within the selected year) for the chosen quarter, or null
+     * when no specific year+quarter is selected.
+     */
+    private function getQuarterDates(): ?array
+    {
+        if (
+            !$this->selectedYear || $this->selectedYear === 'all'
+            || !$this->selectedQuarter || $this->selectedQuarter === 'all'
+        ) {
+            return null;
+        }
+
+        $quarterRange = [
+            1 => ['01-01', '03-31'],
+            2 => ['04-01', '06-30'],
+            3 => ['07-01', '09-30'],
+            4 => ['10-01', '12-31'],
+        ];
+
+        $range = $quarterRange[(int) $this->selectedQuarter] ?? null;
+        if (!$range) {
+            return null;
+        }
+
+        return [$this->selectedYear . '-' . $range[0], $this->selectedYear . '-' . $range[1]];
+    }
+
+    /**
+     * Base query with the dashboard's active filters (division + PR-number year
+     * prefix + optional quarter) applied. Every stat property builds off this so
+     * a single change to the filters propagates everywhere.
      */
     private function baseQuery()
     {
@@ -91,20 +131,26 @@ class HomePage extends Component
         }
 
         if ($this->selectedYear && $this->selectedYear !== 'all') {
-            $query->whereYear('procurements.date_receipt', $this->selectedYear);
+            $query->where('procurements.pr_number', 'like', $this->selectedYear . '-%');
+        }
+
+        if ($quarterDates = $this->getQuarterDates()) {
+            $query->whereBetween('procurements.date_receipt', $quarterDates);
         }
 
         return $query;
     }
 
     /**
-     * Distinct years present in date_receipt, newest first, for the year filter.
+     * Distinct years present in the pr_number prefix (e.g. "2026-00001" -> 2026),
+     * newest first, for the year filter.
      */
     public function getAvailableYearsProperty()
     {
         return Procurement::query()
-            ->whereNotNull('date_receipt')
-            ->selectRaw('YEAR(date_receipt) as year')
+            ->whereNotNull('pr_number')
+            ->where('pr_number', 'like', '%-%')
+            ->selectRaw('SUBSTRING_INDEX(pr_number, "-", 1) as year')
             ->distinct()
             ->orderByDesc('year')
             ->pluck('year')
@@ -246,7 +292,11 @@ class HomePage extends Component
             ->where('procurements.divisions_id', $this->selectedDivisionId);
 
         if ($this->selectedYear && $this->selectedYear !== 'all') {
-            $baseQuery->whereYear('procurements.date_receipt', $this->selectedYear);
+            $baseQuery->where('procurements.pr_number', 'like', $this->selectedYear . '-%');
+        }
+
+        if ($quarterDates = $this->getQuarterDates()) {
+            $baseQuery->whereBetween('procurements.date_receipt', $quarterDates);
         }
 
         return $baseQuery
