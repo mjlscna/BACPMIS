@@ -144,10 +144,10 @@
             <div class="mt-1 grid grid-cols-7 gap-4">
                 <x-forms.select id="selectedStageId" label="Procurement Stage" model="selectedStageId"
                     :form="[]" :options="$stages" optionValue="id" optionLabel="procurementstage"
-                    :required="false" colspan="col-span-1" :searchable="false" />
+                    :required="false" colspan="col-span-1" :searchable="true" />
 
                 <x-forms.select id="remarksId" label="Remark" model="remarksId" :form="[]" :options="$remarks"
-                    optionValue="id" optionLabel="remarks" :required="false" colspan="col-span-1" :searchable="false" />
+                    optionValue="id" optionLabel="remarks" :required="false" colspan="col-span-1" :searchable="true" />
 
                 <x-forms.textarea id="lotNotes" label="Notes" model="lotNotes" :form="[]" :required="false"
                     :maxlength="5000" :rows="1" colspan="col-span-5" placeholder="Notes here"

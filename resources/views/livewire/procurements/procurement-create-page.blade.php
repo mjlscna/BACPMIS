@@ -194,7 +194,7 @@
             <!-- Category -->
             <x-forms.select id="category_id" label="Category" model="form.category_id" :form="$form"
                 :options="$categories" optionValue="id" optionLabel="category" :required="true" wireModifier="live"
-                colspan="col-span-2" :searchable="false" />
+                colspan="col-span-2" :searchable="true" />
             <!-- Category Type (Read-only) -->
             <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type"
                 :form="$form" :required="false" :colspan="1" />
@@ -210,11 +210,11 @@
             <!-- Division -->
             <x-forms.select id="divisions_id" label="Division" model="form.divisions_id" :form="$form"
                 :options="$divisions" optionValue="id" optionLabel="divisions" :required="true" colspan="col-span-4"
-                :searchable="false" />
+                :searchable="true" />
             <!-- Cluster / Committee -->
             <x-forms.select id="cluster_committees_id" label="Cluster / Committee" model="form.cluster_committees_id"
                 :form="$form" :options="$clusterCommittees" optionValue="id" optionLabel="clustercommittee"
-                :required="true" colspan="col-span-2" :searchable="false" />
+                :required="true" colspan="col-span-2" :searchable="true" />
 
         </div>
     </div>
@@ -225,11 +225,11 @@
             <!-- Venue Specific -->
             <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id"
                 :form="$form" :options="$venueSpecifics" optionValue="id" optionLabel="name" :required="false"
-                colspan="col-span-2" :searchable="false" />
+                colspan="col-span-2" :searchable="true" />
             <!-- Venue Province/HUC -->
             <x-forms.select id="venue_province_huc_id" label="Venue|Province/HUC" model="form.venue_province_huc_id"
                 :form="$form" :options="$venueProvinces" optionValue="id" optionLabel="province_huc" :required="false"
-                colspan="col-span-2" :searchable="false" />
+                colspan="col-span-2" :searchable="true" />
             <!-- Category / Venue (Read-only) -->
             <x-forms.readonly-input id="category_venue" label="Category / Venue" model="form.category_venue"
                 :form="$form" :required="false" colspan="col-span-4" />
@@ -286,7 +286,7 @@
                 <div class="col-span-1">
                     <x-forms.select id="fund_source_id" label="Source of Funds" model="form.fund_source_id"
                         :form="$form" :options="$fundSources" optionValue="id" optionLabel="fundsources"
-                        :required="true" :searchable="false" />
+                        :required="true" :searchable="true" />
                 </div>
 
                 <!-- Expense Class -->
