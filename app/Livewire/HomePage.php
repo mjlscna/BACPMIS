@@ -20,7 +20,7 @@ class HomePage extends Component
     protected string $paginationTheme = 'tailwind';
 
     public $selectedDivision = 'all';
-    public $timeRange = 'month';
+    public $selectedYear;
     public $search = '';
     public $selectedProcurement = null;
     public $expandedProcurementId = null;
@@ -35,9 +35,15 @@ class HomePage extends Component
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedDivision' => ['except' => 'all'],
-        'timeRange' => ['except' => 'month'],
+        'selectedYear' => ['except' => 'all'],
         'perPage' => ['except' => 10],
     ];
+
+    public function mount()
+    {
+        // Default to the current year when none is provided via the query string.
+        $this->selectedYear ??= (string) now()->year;
+    }
 
     public function updatingSearch()
     {
@@ -49,7 +55,7 @@ class HomePage extends Component
         $this->resetPage();
     }
 
-    public function updatingTimeRange()
+    public function updatingSelectedYear()
     {
         $this->resetPage();
     }
@@ -71,30 +77,43 @@ class HomePage extends Component
         }
     }
 
-    private function getDateFilter()
+    /**
+     * Base query with the dashboard's active filters (division + receipt year)
+     * applied. Every stat property builds off this so a single change to the
+     * filters propagates everywhere.
+     */
+    private function baseQuery()
     {
-        return match ($this->timeRange) {
-            'week' => now()->subWeek(),
-            'month' => now()->subMonth(),
-            'quarter' => now()->subQuarter(),
-            'year' => now()->subYear(),
-            default => now()->subMonth(),
-        };
+        $query = Procurement::query();
+
+        if ($this->selectedDivision !== 'all') {
+            $query->where('procurements.divisions_id', $this->selectedDivision);
+        }
+
+        if ($this->selectedYear && $this->selectedYear !== 'all') {
+            $query->whereYear('procurements.date_receipt', $this->selectedYear);
+        }
+
+        return $query;
     }
 
-    private function getDivisionFilter($query)
+    /**
+     * Distinct years present in date_receipt, newest first, for the year filter.
+     */
+    public function getAvailableYearsProperty()
     {
-        if ($this->selectedDivision !== 'all') {
-            $query->where('divisions_id', $this->selectedDivision);
-        }
-        return $query;
+        return Procurement::query()
+            ->whereNotNull('date_receipt')
+            ->selectRaw('YEAR(date_receipt) as year')
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->map(fn($year) => (string) $year);
     }
 
     public function getSummaryStatsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         $total = (clone $baseQuery)->count();
 
@@ -152,9 +171,7 @@ class HomePage extends Component
 
     public function getProcurementByBacTypeProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         return (clone $baseQuery)
             ->join('bac_types', 'procurements.bac_type_id', '=', 'bac_types.id')
@@ -172,9 +189,7 @@ class HomePage extends Component
 
     public function getDivisionCountsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         return (clone $baseQuery)
             ->join('divisions', 'procurements.divisions_id', '=', 'divisions.id')
@@ -196,10 +211,8 @@ class HomePage extends Component
 
     public function getRecentProcurementsProperty()
     {
-        $baseQuery = Procurement::query()
+        $baseQuery = $this->baseQuery()
             ->with(['division', 'prLotPrstages.procurementStage']);
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
 
         return $baseQuery
             ->orderByDesc('created_at')
@@ -232,6 +245,10 @@ class HomePage extends Component
         $baseQuery = Procurement::query()
             ->where('procurements.divisions_id', $this->selectedDivisionId);
 
+        if ($this->selectedYear && $this->selectedYear !== 'all') {
+            $baseQuery->whereYear('procurements.date_receipt', $this->selectedYear);
+        }
+
         return $baseQuery
             ->join('cluster_committees', 'procurements.cluster_committees_id', '=', 'cluster_committees.id')
             ->select(
@@ -253,9 +270,7 @@ class HomePage extends Component
 
     public function getCategoryCountsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         $result = (clone $baseQuery)
             ->join('categories', 'procurements.category_id', '=', 'categories.id')
@@ -298,10 +313,8 @@ class HomePage extends Component
 
     public function getCategoryTypeCountsProperty()
     {
-        $baseQuery = Procurement::query()
-            ->whereNotNull('procurements.category_type_id'); // Add this line
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery()
+            ->whereNotNull('procurements.category_type_id');
 
         return (clone $baseQuery)
             ->join('category_types', 'procurements.category_type_id', '=', 'category_types.id')
@@ -319,10 +332,8 @@ class HomePage extends Component
 
     public function getVenueSpecificCountsProperty()
     {
-        $baseQuery = Procurement::query()
+        $baseQuery = $this->baseQuery()
             ->whereNotNull('procurements.venue_specific_id');
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
 
         return (clone $baseQuery)
             ->join('venue_specifics', 'procurements.venue_specific_id', '=', 'venue_specifics.id')
@@ -340,10 +351,8 @@ class HomePage extends Component
 
     public function getVenueProvinceHucCountsProperty()
     {
-        $baseQuery = Procurement::query()
+        $baseQuery = $this->baseQuery()
             ->whereNotNull('procurements.venue_province_huc_id');
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
 
         return (clone $baseQuery)
             ->join('province_hucs', 'procurements.venue_province_huc_id', '=', 'province_hucs.id')
@@ -361,9 +370,7 @@ class HomePage extends Component
 
     public function getProcurementStagePerLotCountsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         return (clone $baseQuery)
             ->join('pr_lot_prstage', 'procurements.procID', '=', 'pr_lot_prstage.procID')
@@ -379,9 +386,7 @@ class HomePage extends Component
 
     public function getProcurementStagePerItemCountsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         return (clone $baseQuery)
             ->join('pr_item_prstage', 'procurements.procID', '=', 'pr_item_prstage.procID')
@@ -397,9 +402,7 @@ class HomePage extends Component
 
     public function getRemarksPerLotCountsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         return (clone $baseQuery)
             ->join('pr_lot_remark', 'procurements.procID', '=', 'pr_lot_remark.procID')
@@ -415,9 +418,7 @@ class HomePage extends Component
 
     public function getRemarksPerItemCountsProperty()
     {
-        $baseQuery = Procurement::query();
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
+        $baseQuery = $this->baseQuery();
 
         return (clone $baseQuery)
             ->join('pr_item_remark', 'procurements.procID', '=', 'pr_item_remark.procID')
@@ -432,10 +433,8 @@ class HomePage extends Component
     }
     public function getFundSourceCountsProperty()
     {
-        $baseQuery = Procurement::query()
+        $baseQuery = $this->baseQuery()
             ->whereNotNull('procurements.fund_source_id');
-
-        $baseQuery = $this->getDivisionFilter($baseQuery);
 
         return (clone $baseQuery)
             ->join('fund_sources', 'procurements.fund_source_id', '=', 'fund_sources.id')
@@ -473,6 +472,7 @@ class HomePage extends Component
             'remarksPerItemCounts' => $this->remarksPerItemCounts,
             'fundSourceCounts' => $this->fundSourceCounts,
             'divisions' => Division::where('is_active', true)->get(),
+            'availableYears' => $this->availableYears,
         ]);
     }
 
