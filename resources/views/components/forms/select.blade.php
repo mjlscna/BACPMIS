@@ -98,12 +98,24 @@
                 selectHighlighted() {
                     const option = this.filteredOptions[this.highlight];
                     if (option) this.selectOption(option);
+                },
+                escapeHtml(str) {
+                    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                },
+                highlightLabel(label) {
+                    const text = this.escapeHtml(label);
+                    if (this.search === '') return text;
+                    const q = this.escapeHtml(this.search);
+                    const i = text.toLowerCase().indexOf(q.toLowerCase());
+                    if (i === -1) return text;
+                    return text.slice(0, i) + `<strong class='font-semibold'>` + text.slice(i, i + q.length) + `</strong>` + text.slice(i + q.length);
                 }
-            }" x-init="$watch('open', isOpen => { if (isOpen) { highlight = 0; $nextTick(() => $refs.searchInput.focus()) } }); $watch('search', () => highlight = 0)" class="relative mt-1" @click.outside="open = false" @focusout="if (!$el.contains($event.relatedTarget)) open = false">
+            }" x-init="$watch('open', isOpen => { if (isOpen) { const i = filteredOptions.findIndex(o => o.value == value); highlight = i >= 0 ? i : 0; $nextTick(() => { $refs.searchInput.focus(); const el = $refs.list?.querySelector(`[data-index=&quot;${highlight}&quot;]`); if (el) el.scrollIntoView({ block: 'nearest' }); }) } }); $watch('search', () => highlight = 0)" class="relative mt-1" @click.outside="open = false" @focusout="if (!$el.contains($event.relatedTarget)) open = false">
 
                 {{-- Trigger + clear, wrapped so the clear button is a sibling (valid HTML), not nested --}}
                 <div class="relative">
-                    <button type="button" x-ref="trigger" @mousedown="suppressOpen = true"
+                    <button type="button" x-ref="trigger" role="combobox" aria-haspopup="listbox"
+                        :aria-expanded="open" aria-controls="{{ $id }}-listbox" @mousedown="suppressOpen = true"
                         @focus="if (!suppressOpen) { open = true } suppressOpen = false"
                         @click="open = !open" @keydown.escape.stop="open = false"
                         @keydown.enter.prevent="open = true" @keydown.arrow-down.prevent="open = true" id="{{ $id }}"
@@ -137,26 +149,38 @@
                     style="display: none;">
                     <div class="p-2">
                         <input type="search" x-ref="searchInput" x-model.debounce.300ms="search"
+                            aria-controls="{{ $id }}-listbox"
+                            :aria-activedescendant="open && filteredOptions.length ? `{{ $id }}-opt-${highlight}` : null"
                             @keydown.arrow-down.prevent="move(1)" @keydown.arrow-up.prevent="move(-1)"
                             @keydown.enter.prevent="selectHighlighted()" @keydown.escape.prevent.stop="open = false"
                             placeholder="Search options..."
                             class="block w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white">
                     </div>
-                    <ul class="max-h-40 overflow-y-auto" x-ref="list">
+                    <ul class="max-h-40 overflow-y-auto" x-ref="list" role="listbox" id="{{ $id }}-listbox">
                         {{-- A clickable "blank" option --}}
-                        <li @click="selectOption(null)"
+                        <li @click="selectOption(null)" role="option" :aria-selected="(!value && value !== 0) ? 'true' : 'false'"
                             class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-50 dark:text-white dark:hover:bg-emerald-700">
                             <span class="block truncate italic text-gray-500">Select</span>
                         </li>
                         <template x-for="(option, index) in filteredOptions" :key="option.value">
                             <li @click="selectOption(option)" @mousemove="highlight = index" :data-index="index"
+                                :id="`{{ $id }}-opt-${index}`" role="option"
+                                :aria-selected="value == option.value ? 'true' : 'false'"
                                 :class="{
                                     'bg-indigo-100 dark:bg-indigo-900': value == option.value,
                                     'bg-indigo-50 dark:bg-emerald-700': highlight === index
                                 }"
                                 class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 dark:text-white">
                                 <span class="block truncate" :class="{ 'font-semibold': value == option.value }"
-                                    x-text="option.label"></span>
+                                    x-html="highlightLabel(option.label)"></span>
+                                <span x-show="value == option.value"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-2 text-indigo-600 dark:text-emerald-300">
+                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </span>
                             </li>
                         </template>
                         <template x-if="filteredOptions.length === 0 && search !== ''">

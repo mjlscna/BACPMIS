@@ -37,10 +37,15 @@
     @else
         <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-white">₱</span>
-            <input type="text" id="{{ $id }}" x-data="{ display: '{{ number_format($initialValue, 2, '.', ',') }}' }" x-model="display"
+            <input type="text" inputmode="decimal" id="{{ $id }}" x-data="{ display: '{{ number_format($initialValue, 2, '.', ',') }}' }" x-model="display"
                 @input="
-                    display = $event.target.value.replace(/[^0-9.]/g, '');
-                    $wire.set('form.{{ $lookup }}', parseFloat(display) || 0);
+                    let raw = $event.target.value.replace(/[^0-9.]/g, '');
+                    let dot = raw.indexOf('.');
+                    let intDigits = (dot === -1 ? raw : raw.slice(0, dot)).replace(/\D/g, '');
+                    let decDigits = (dot === -1 ? '' : raw.slice(dot + 1).replace(/\D/g, '').slice(0, 2));
+                    let grouped = intDigits ? parseInt(intDigits, 10).toLocaleString('en-US') : (dot !== -1 ? '0' : '');
+                    display = grouped + (dot !== -1 ? '.' + decDigits : '');
+                    $wire.set('form.{{ $lookup }}', parseFloat((intDigits || '0') + '.' + (decDigits || '0')) || 0);
                 "
                 @blur="
                     let amount = parseFloat(String(display).replace(/[^0-9.]/g, '')) || 0;
