@@ -194,7 +194,7 @@
             <!-- Category -->
             <x-forms.select id="category_id" label="Category" model="form.category_id" :form="$form"
                 :options="$categories" optionValue="id" optionLabel="category" :required="true" wireModifier="live"
-                colspan="col-span-2" :searchable="false" />
+                colspan="col-span-2" :searchable="true" />
             <!-- Category Type (Read-only) -->
             <x-forms.readonly-input id="category_type" label="Category Type" model="form.category_type"
                 :form="$form" :required="false" :colspan="1" />
@@ -210,11 +210,11 @@
             <!-- Division -->
             <x-forms.select id="divisions_id" label="Division" model="form.divisions_id" :form="$form"
                 :options="$divisions" optionValue="id" optionLabel="divisions" :required="true" colspan="col-span-4"
-                :searchable="false" />
+                :searchable="true" />
             <!-- Cluster / Committee -->
             <x-forms.select id="cluster_committees_id" label="Cluster / Committee" model="form.cluster_committees_id"
                 :form="$form" :options="$clusterCommittees" optionValue="id" optionLabel="clustercommittee"
-                :required="true" colspan="col-span-2" :searchable="false" />
+                :required="true" colspan="col-span-2" :searchable="true" />
 
         </div>
     </div>
@@ -225,11 +225,11 @@
             <!-- Venue Specific -->
             <x-forms.select id="venue_specific_id" label="Venue|Specific" model="form.venue_specific_id"
                 :form="$form" :options="$venueSpecifics" optionValue="id" optionLabel="name" :required="false"
-                colspan="col-span-2" :searchable="false" />
+                colspan="col-span-2" :searchable="true" />
             <!-- Venue Province/HUC -->
             <x-forms.select id="venue_province_huc_id" label="Venue|Province/HUC" model="form.venue_province_huc_id"
                 :form="$form" :options="$venueProvinces" optionValue="id" optionLabel="province_huc" :required="false"
-                colspan="col-span-2" :searchable="false" />
+                colspan="col-span-2" :searchable="true" />
             <!-- Category / Venue (Read-only) -->
             <x-forms.readonly-input id="category_venue" label="Category / Venue" model="form.category_venue"
                 :form="$form" :required="false" colspan="col-span-4" />
@@ -286,7 +286,7 @@
                 <div class="col-span-1">
                     <x-forms.select id="fund_source_id" label="Source of Funds" model="form.fund_source_id"
                         :form="$form" :options="$fundSources" optionValue="id" optionLabel="fundsources"
-                        :required="true" :searchable="false" />
+                        :required="true" :searchable="true" />
                 </div>
 
                 <!-- Expense Class -->
@@ -314,16 +314,28 @@
     <div
         class="fixed bottom-4 right-0 left-0 lg:left-48 flex justify-end p-2 border-t border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-700 z-30">
         <div class="w-full max-w-[110rem] mx-auto sm:px-6 lg:px-8 flex justify-end">
-            <button wire:click="save"
-                class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
+            <button wire:click="save" wire:target="save" wire:loading.attr="disabled"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                <svg wire:loading.remove wire:target="save" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
-                Save
+                <svg wire:loading wire:target="save" class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="save">Save</span>
+                <span wire:loading wire:target="save">Saving…</span>
             </button>
         </div>
     </div>
     <!-- Bottom Spacer to prevent content hiding under fixed footer and overall footer -->
     <div class="h-32"></div>
+
+    {{-- Review-before-save confirmation modal --}}
+    <x-forms.procurement-review-modal :form="$form" :categories="$categories" :divisions="$divisions"
+        :clusterCommittees="$clusterCommittees" :venueSpecifics="$venueSpecifics" :venueProvinces="$venueProvinces"
+        :endUsers="$endUsers" :fundSources="$fundSources" />
 </div>

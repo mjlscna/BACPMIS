@@ -36,6 +36,7 @@ class ProcurementCreatePage extends Component
     protected Category|null $categoryCache = null;
     public $form = [];
     public $showTable = true;
+    public $showReview = false;
     public $page = 1;
     public $perPage = 10;
 
@@ -176,7 +177,12 @@ class ProcurementCreatePage extends Component
         logger('Updated category_venue to: ' . $this->form['category_venue']);
     }
 
-    public function save()
+    /**
+     * Normalize the form and run all validation rules.
+     * Shared by save() (which opens the review modal) and confirmSave()
+     * (which persists) so the rules live in exactly one place.
+     */
+    protected function validateForm(): bool
     {
 
         // Normalize binary and numeric fields
@@ -239,7 +245,7 @@ class ProcurementCreatePage extends Component
                 ->toast()
                 ->position('top-end')
                 ->show();
-            return;
+            return false;
         }
 
         // --- 2. Extra validation for items if perItem ---
@@ -261,8 +267,33 @@ class ProcurementCreatePage extends Component
                     ->toast()
                     ->position('top-end')
                     ->show();
-                return; // 🔥 stop before creating procurement
+                return false; // 🔥 stop before creating procurement
             }
+        }
+
+        return true;
+    }
+
+    /**
+     * Step 1: validate, then open the review modal for confirmation.
+     */
+    public function save()
+    {
+        if (!$this->validateForm()) {
+            return;
+        }
+
+        $this->showReview = true;
+    }
+
+    /**
+     * Step 2: re-validate (guards against bypass) and persist the record.
+     */
+    public function confirmSave()
+    {
+        if (!$this->validateForm()) {
+            $this->showReview = false; // a field no longer passes; close so the error toast is visible
+            return;
         }
 
         // Nullify optional fields

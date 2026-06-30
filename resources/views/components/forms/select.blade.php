@@ -10,7 +10,7 @@
     'optionLabel' => 'name',
     'colspan' => '',
     'wireModifier' => 'live',
-    'searchable' => false,
+    'searchable' => true,
 ])
 
 @php
@@ -32,6 +32,10 @@
 
     // Determine the display value for the 'viewOnly' mode.
     $displayValue = collect($normalizedOptions)->firstWhere('value', $value)['label'] ?? '—';
+
+    // Livewire 3 entangle: deferred by default, ".live" for live binding.
+    // (".defer" is Livewire 2 syntax and breaks the searchable component.)
+    $entangleSuffix = $wireModifier === 'live' ? '.live' : '';
 @endphp
 
 <div class="flex flex-col {{ $colspan }}">
@@ -58,9 +62,11 @@
             <div x-data="{
                 // ... x-data object remains the same
                 open: false,
+                suppressOpen: false,
                 search: '',
+                highlight: 0,
                 options: {{ json_encode($normalizedOptions) }},
-                value: $wire.entangle('{{ $model }}').{{ $wireModifier }},
+                value: $wire.entangle('{{ $model }}'){{ $entangleSuffix }},
                 get selectedLabel() {
                     if (!this.value && this.value !== 0) return 'Select';
                     const selected = this.options.find(opt => opt.value == this.value);
@@ -76,26 +82,58 @@
                     this.value = option ? option.value : null;
                     this.open = false;
                     this.search = '';
+                    this.highlight = 0;
+                    this.suppressOpen = true; // returning focus to the trigger must not re-open the panel
+                    this.$nextTick(() => this.$refs.trigger?.focus());
+                },
+                move(direction) {
+                    const count = this.filteredOptions.length;
+                    if (count === 0) return;
+                    this.highlight = (this.highlight + direction + count) % count;
+                    this.$nextTick(() => {
+                        const el = this.$refs.list?.querySelector(`[data-index=&quot;${this.highlight}&quot;]`);
+                        if (el) el.scrollIntoView({ block: 'nearest' });
+                    });
+                },
+                selectHighlighted() {
+                    const option = this.filteredOptions[this.highlight];
+                    if (option) this.selectOption(option);
+                },
+                escapeHtml(str) {
+                    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                },
+                highlightLabel(label) {
+                    const text = this.escapeHtml(label);
+                    if (this.search === '') return text;
+                    const q = this.escapeHtml(this.search);
+                    const i = text.toLowerCase().indexOf(q.toLowerCase());
+                    if (i === -1) return text;
+                    return text.slice(0, i) + `<strong class='font-semibold'>` + text.slice(i, i + q.length) + `</strong>` + text.slice(i + q.length);
                 }
-            }" x-init="$watch('open', isOpen => { if (isOpen) { $nextTick(() => $refs.searchInput.focus()) } })" class="relative mt-1" @click.outside="open = false">
+            }" x-init="$watch('open', isOpen => { if (isOpen) { const i = filteredOptions.findIndex(o => o.value == value); highlight = i >= 0 ? i : 0; $nextTick(() => { $refs.searchInput.focus(); const el = $refs.list?.querySelector(`[data-index=&quot;${highlight}&quot;]`); if (el) el.scrollIntoView({ block: 'nearest' }); }) } }); $watch('search', () => highlight = 0)" class="relative mt-1" @click.outside="open = false" @focusout="if (!$el.contains($event.relatedTarget)) open = false">
 
-                {{-- Trigger Button --}}
-                <button type="button" @click="open = !open" id="{{ $id }}"
-                    class="relative w-full cursor-default rounded-md border bg-white py-2 pl-3 pr-10 text-left text-sm dark:bg-neutral-700 dark:text-white focus:outline-none focus:ring-1 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500 @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror">
-                    <span class="block truncate" x-text="selectedLabel"></span>
+                {{-- Trigger + clear, wrapped so the clear button is a sibling (valid HTML), not nested --}}
+                <div class="relative">
+                    <button type="button" x-ref="trigger" role="combobox" aria-haspopup="listbox"
+                        :aria-expanded="open" aria-controls="{{ $id }}-listbox" @mousedown="suppressOpen = true"
+                        @focus="if (!suppressOpen) { open = true } suppressOpen = false"
+                        @click="open = !open" @keydown.escape.stop="open = false"
+                        @keydown.enter.prevent="open = true" @keydown.arrow-down.prevent="open = true" id="{{ $id }}"
+                        class="relative w-full cursor-default rounded-md border bg-white py-2 pl-3 pr-10 text-left text-sm dark:bg-neutral-700 dark:text-white focus:outline-none focus:ring-1 @error($model) border-red-500 focus:ring-red-500 focus:border-red-500 @else border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 @enderror">
+                        <span class="block truncate" x-text="selectedLabel"></span>
 
-                    {{-- ▼▼▼ REVISED ICON SECTION ▼▼▼ --}}
+                        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a.75.75 0 01.53.22l3.5 3.5a.75.75 0 01-1.06 1.06L10 4.81 6.53 8.28a.75.75 0 01-1.06-1.06l3.5-3.5A.75.75 0 0110 3zm-3.72 9.28a.75.75 0 011.06 0L10 15.19l3.47-3.47a.75.75 0 111.06 1.06l-4 4a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </button>
 
-                    <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                            fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M10 3a.75.75 0 01.53.22l3.5 3.5a.75.75 0 01-1.06 1.06L10 4.81 6.53 8.28a.75.75 0 01-1.06-1.06l3.5-3.5A.75.75 0 0110 3zm-3.72 9.28a.75.75 0 011.06 0L10 15.19l3.47-3.47a.75.75 0 111.06 1.06l-4 4a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </span>
-
-                    <button x-show="value" x-transition @click.prevent.stop="value = null" type="button"
+                    {{-- Clear button: sibling of the trigger, kept out of the tab order --}}
+                    <button x-show="value" x-transition @click.prevent.stop="value = null" type="button" tabindex="-1"
                         class="absolute inset-y-0 right-7 flex items-center rounded-full p-0.5 text-gray-500 hover:bg-gray-200 hover:text-gray-700 focus:outline-none dark:hover:bg-neutral-600 dark:hover:text-white"
                         style="display: none;">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -103,9 +141,7 @@
                                 d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                         </svg>
                     </button>
-
-                    {{-- ▲▲▲ END REVISED SECTION ▲▲▲ --}}
-                </button>
+                </div>
 
                 {{-- Dropdown Panel (Unchanged) --}}
                 <div x-show="open" x-transition
@@ -113,21 +149,38 @@
                     style="display: none;">
                     <div class="p-2">
                         <input type="search" x-ref="searchInput" x-model.debounce.300ms="search"
+                            aria-controls="{{ $id }}-listbox"
+                            :aria-activedescendant="open && filteredOptions.length ? `{{ $id }}-opt-${highlight}` : null"
+                            @keydown.arrow-down.prevent="move(1)" @keydown.arrow-up.prevent="move(-1)"
+                            @keydown.enter.prevent="selectHighlighted()" @keydown.escape.prevent.stop="open = false"
                             placeholder="Search options..."
                             class="block w-full rounded-md border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white">
                     </div>
-                    <ul class="max-h-40 overflow-y-auto">
+                    <ul class="max-h-40 overflow-y-auto" x-ref="list" role="listbox" id="{{ $id }}-listbox">
                         {{-- A clickable "blank" option --}}
-                        <li @click="selectOption(null)"
+                        <li @mousedown.prevent @click="selectOption(null)" role="option" :aria-selected="(!value && value !== 0) ? 'true' : 'false'"
                             class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-50 dark:text-white dark:hover:bg-emerald-700">
                             <span class="block truncate italic text-gray-500">Select</span>
                         </li>
-                        <template x-for="option in filteredOptions" :key="option.value">
-                            <li @click="selectOption(option)"
-                                :class="{ 'bg-indigo-100 dark:bg-indigo-900': value == option.value }"
-                                class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-indigo-50 dark:text-white dark:hover:bg-emerald-700">
+                        <template x-for="(option, index) in filteredOptions" :key="option.value">
+                            <li @mousedown.prevent @click="selectOption(option)" @mousemove="highlight = index" :data-index="index"
+                                :id="`{{ $id }}-opt-${index}`" role="option"
+                                :aria-selected="value == option.value ? 'true' : 'false'"
+                                :class="{
+                                    'bg-indigo-100 dark:bg-indigo-900': value == option.value,
+                                    'bg-indigo-50 dark:bg-emerald-700': highlight === index
+                                }"
+                                class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 dark:text-white">
                                 <span class="block truncate" :class="{ 'font-semibold': value == option.value }"
-                                    x-text="option.label"></span>
+                                    x-html="highlightLabel(option.label)"></span>
+                                <span x-show="value == option.value"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-2 text-indigo-600 dark:text-emerald-300">
+                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </span>
                             </li>
                         </template>
                         <template x-if="filteredOptions.length === 0 && search !== ''">

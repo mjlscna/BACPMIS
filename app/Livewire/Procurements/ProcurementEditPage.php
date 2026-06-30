@@ -26,6 +26,7 @@ class ProcurementEditPage extends Component
     public $form = [];
     protected ?Category $categoryCache = null;
     public $showTable = true;
+    public $showReview = false;
     public $textareaRows = 1;
     public $page = 1;
     public $perPage = 10;
@@ -236,7 +237,12 @@ class ProcurementEditPage extends Component
         }
     }
 
-    public function save()
+    /**
+     * Normalize the form and run all validation rules.
+     * Shared by save() (which opens the review modal) and confirmSave()
+     * (which persists) so the rules live in exactly one place.
+     */
+    protected function validateForm(): bool
     {
         $this->form['approved_ppmp'] = (bool) ($this->form['approved_ppmp'] ?? false);
         $this->form['app_updated'] = (bool) ($this->form['app_updated'] ?? false);
@@ -296,7 +302,7 @@ class ProcurementEditPage extends Component
                 ->toast()
                 ->position('top-end')
                 ->show();
-            return;
+            return false;
         }
 
         // --- 2. Item validation if perItem ---
@@ -318,8 +324,33 @@ class ProcurementEditPage extends Component
                     ->toast()
                     ->position('top-end')
                     ->show();
-                return;
+                return false;
             }
+        }
+
+        return true;
+    }
+
+    /**
+     * Step 1: validate, then open the review modal for confirmation.
+     */
+    public function save()
+    {
+        if (!$this->validateForm()) {
+            return;
+        }
+
+        $this->showReview = true;
+    }
+
+    /**
+     * Step 2: re-validate (guards against bypass) and persist the record.
+     */
+    public function confirmSave()
+    {
+        if (!$this->validateForm()) {
+            $this->showReview = false; // a field no longer passes; close so the error toast is visible
+            return;
         }
 
         // Nullify optional fields
