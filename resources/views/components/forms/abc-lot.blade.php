@@ -42,7 +42,11 @@
                     display = $event.target.value.replace(/[^0-9.]/g, '');
                     $wire.set('form.{{ $lookup }}', parseFloat(display) || 0);
                 "
-                @blur="display = parseFloat(display || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })"
+                @blur="
+                    let amount = parseFloat(String(display).replace(/[^0-9.]/g, '')) || 0;
+                    display = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    $wire.set('form.{{ $lookup }}', amount);
+                "
                 class="mt-1 block w-full pl-8 pr-3 py-2 rounded-md text-sm text-right dark:text-white border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 {{ $disabled ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                 :readonly="{{ $disabled ? 'true' : 'false' }}" {{ $required && !$disabled ? 'required' : '' }} />
         </div>
