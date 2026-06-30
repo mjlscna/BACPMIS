@@ -1,7 +1,6 @@
 <div class="space-y-6">
     <!-- Filters -->
-    <div
-        class="bg-white dark:bg-neutral-700 rounded-2xl shadow-xl p-4 border border-gray-100 dark:border-neutral-700">
+    <div class="bg-white dark:bg-neutral-700 rounded-2xl shadow-xl p-4 border border-gray-100 dark:border-neutral-700">
         <div class="flex flex-wrap items-center gap-3">
             <div class="bg-emerald-500/10 p-2.5 rounded-xl">
                 <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
@@ -13,7 +12,8 @@
 
             <!-- Year (Date of Receipt) -->
             <div class="relative flex-1 min-w-[9rem] sm:flex-none">
-                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-emerald-600 dark:text-emerald-400">
+                <span
+                    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-emerald-600 dark:text-emerald-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -35,7 +35,8 @@
 
             <!-- Division -->
             <div class="relative flex-1 min-w-[10rem] sm:flex-none">
-                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-purple-600 dark:text-purple-400">
+                <span
+                    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-purple-600 dark:text-purple-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -178,8 +179,8 @@
                     class="group relative bg-gradient-to-br from-gray-50 to-white dark:from-neutral-800 dark:to-neutral-800 rounded-xl p-5 border-2 border-gray-200 dark:border-neutral-600 hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-lg transition-all duration-300 cursor-pointer">
 
                     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
@@ -210,8 +211,8 @@
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <div class="bg-indigo-500/10 p-3 rounded-xl">
-                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>

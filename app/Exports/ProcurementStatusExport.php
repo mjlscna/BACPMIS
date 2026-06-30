@@ -96,6 +96,9 @@ class ProcurementStatusExport implements FromCollection, WithCustomStartCell, Wi
         $this->applyFilters($completedQuery);
         $completed = $completedQuery->get();
 
+        // Mirror the on-screen table (render()): a non-perLot PR is "on-going"
+        // if it has at least one item whose LATEST stage is not 7 (covers both
+        // pure-ongoing and mixed PRs), so its non-7 items are listed here.
         $ongoingQuery = Procurement::query()->with($baseWith)
             ->whereBetween('date_receipt', [$this->startDate, $this->endDate])
             ->where('pr_number', 'like', $this->year . '-%')
@@ -103,7 +106,7 @@ class ProcurementStatusExport implements FromCollection, WithCustomStartCell, Wi
                 $q->where(fn($s) => $s->where('procurement_type', 'perLot')
                     ->whereDoesntHave('prLotPrstages', fn($sq) => $sq->where('pr_stage_id', 7)))
                     ->orWhere(fn($s) => $s->where('procurement_type', '!=', 'perLot')
-                        ->whereDoesntHave('prItemPrstages', fn($sq) => $sq->where('pr_stage_id', 7)));
+                        ->whereHas('pr_items', fn($sq) => $sq->whereDoesntHave('prstage', fn($st) => $st->where('pr_stage_id', 7))));
             })->latest('date_receipt');
         $this->applyFilters($ongoingQuery);
         $ongoing = $ongoingQuery->get();
@@ -111,50 +114,37 @@ class ProcurementStatusExport implements FromCollection, WithCustomStartCell, Wi
         [$cBid, $cSvp, $cSupply] = $this->loadMaps($completed, true);
         [$oBid, $oSvp, $oSupply] = $this->loadMaps($ongoing, false);
 
-        // Pass 1: build rows and accumulate totals
+        // ── COMPLETED rows — mirror render(): per-perLot one row; for non-perLot
+        //    list every item of a PR that has reached stage 7 in its history. ──
         $completedDataRows = collect();
-        $partialOngoingRows = collect(); // non-stage-7 items from completed non-perLot PRs
-
         foreach ($completed as $p) {
             if ($p->procurement_type === 'perLot') {
-                $row = $this->buildRow($p, null, $cBid, $cSvp, $cSupply);
-                $this->completedAbcTotal += ($row[17] !== '' ? (float) $row[17] : 0);
-                $this->completedContractTotal += ($row[20] !== '' && $row[20] !== null ? (float) $row[20] : 0);
-                $completedDataRows->push($row);
+                $completedDataRows->push($this->buildRow($p, null, $cBid, $cSvp, $cSupply));
             } else {
-                foreach ($p->pr_items as $item) {
-                    $row = $this->buildRow($p, $item, $cBid, $cSvp, $cSupply);
-                    if ($item->prstage?->pr_stage_id == 7) {
-                        $this->completedAbcTotal += ($row[17] !== '' ? (float) $row[17] : 0);
-                        $this->completedContractTotal += ($row[20] !== '' && $row[20] !== null ? (float) $row[20] : 0);
-                        $completedDataRows->push($row);
-                    } else {
-                        // Not yet at stage 7 → belongs in ongoing
-                        $this->ongoingAbcTotal += ($row[17] !== '' ? (float) $row[17] : 0);
-                        $partialOngoingRows->push($row);
-                    }
+                foreach ($p->pr_items->filter(
+                    fn($i) => $i->procurement?->prItemPrstages?->contains(fn($s) => $s->pr_stage_id == 7)
+                ) as $item) {
+                    $completedDataRows->push($this->buildRow($p, $item, $cBid, $cSvp, $cSupply));
                 }
             }
         }
 
+        // ── ON-GOING rows — mirror render(): per-perLot one row; for non-perLot
+        //    list items whose LATEST stage is not 7. ──
         $ongoingDataRows = collect();
         foreach ($ongoing as $p) {
             if ($p->procurement_type === 'perLot') {
-                $row = $this->buildRow($p, null, $oBid, $oSvp, $oSupply);
-                $this->ongoingAbcTotal += ($row[17] !== '' ? (float) $row[17] : 0);
-                $ongoingDataRows->push($row);
+                $ongoingDataRows->push($this->buildRow($p, null, $oBid, $oSvp, $oSupply));
             } else {
-                foreach ($p->pr_items as $item) {
-                    $row = $this->buildRow($p, $item, $oBid, $oSvp, $oSupply);
-                    $this->ongoingAbcTotal += ($row[17] !== '' ? (float) $row[17] : 0);
-                    $ongoingDataRows->push($row);
+                foreach ($p->pr_items->filter(fn($i) => ($i->prstage?->pr_stage_id ?? 0) != 7) as $item) {
+                    $ongoingDataRows->push($this->buildRow($p, $item, $oBid, $oSvp, $oSupply));
                 }
             }
         }
 
-        // Merge non-stage-7 items from completed PRs into the ongoing section
-        $ongoingDataRows = $ongoingDataRows->merge($partialOngoingRows);
-
+        // Totals computed separately so the summary matches the page exactly
+        // (the page's totals are latest-stage based; the listed rows above are not).
+        $this->computeTotals($completed);
         $savings = $this->completedAbcTotal - $this->completedContractTotal;
 
         // Pass 2: assemble
@@ -173,6 +163,49 @@ class ProcurementStatusExport implements FromCollection, WithCustomStartCell, Wi
         $rows->push(['__total' => ['subtype' => 'ongoing_abc', 'label' => 'Total Allotted Budget of On-Going Procurement Activities', 'value' => $this->ongoingAbcTotal]]);
 
         return $rows;
+    }
+
+    // Mirrors ProcurementStatusPage::computeTotals() so the export's summary
+    // figures match the page. "Completed" counts a non-perLot item only when its
+    // LATEST stage is 7; everything else falls to the on-going budget total.
+    private function computeTotals($completed): void
+    {
+        foreach ($completed as $p) {
+            if ($p->procurement_type === 'perLot') {
+                $this->completedAbcTotal += (float) ($p->abc ?? 0);
+                $this->completedContractTotal += (float) ($p->postProcurement?->awarded_amount ?? 0);
+            } else {
+                foreach ($p->pr_items as $item) {
+                    if ($item->prstage?->pr_stage_id == 7) {
+                        $this->completedAbcTotal += (float) ($item->amount ?? 0);
+                        $this->completedContractTotal += (float) ($item->postProcurement?->awarded_amount ?? 0);
+                    } else {
+                        $this->ongoingAbcTotal += (float) ($item->amount ?? 0);
+                    }
+                }
+            }
+        }
+
+        $ongoingAll = Procurement::query()->with(['pr_items'])
+            ->whereBetween('date_receipt', [$this->startDate, $this->endDate])
+            ->where('pr_number', 'like', $this->year . '-%')
+            ->where(function ($q) {
+                $q->where(fn($s) => $s->where('procurement_type', 'perLot')
+                    ->whereDoesntHave('prLotPrstages', fn($sq) => $sq->where('pr_stage_id', 7)))
+                    ->orWhere(fn($s) => $s->where('procurement_type', '!=', 'perLot')
+                        ->whereDoesntHave('prItemPrstages', fn($sq) => $sq->where('pr_stage_id', 7)));
+            });
+        $this->applyFilters($ongoingAll);
+
+        foreach ($ongoingAll->get() as $p) {
+            if ($p->procurement_type === 'perLot') {
+                $this->ongoingAbcTotal += (float) ($p->abc ?? 0);
+            } else {
+                foreach ($p->pr_items as $item) {
+                    $this->ongoingAbcTotal += (float) ($item->amount ?? 0);
+                }
+            }
+        }
     }
 
     private function applyFilters($query): void
