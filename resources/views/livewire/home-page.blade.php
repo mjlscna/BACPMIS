@@ -33,6 +33,31 @@
                 </span>
             </div>
 
+            <!-- Quarter (Date of Receipt) -->
+            <div class="relative flex-1 min-w-[9rem] sm:flex-none">
+                <span
+                    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600 dark:text-amber-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </span>
+                <select wire:model.live="selectedQuarter" aria-label="Filter by quarter"
+                    @disabled($selectedYear === 'all')
+                    class="appearance-none w-full sm:min-w-[10rem] pl-10 pr-9 py-2.5 rounded-xl border-2 border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-gray-100 cursor-pointer transition-all hover:border-amber-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <option value="all">All Quarters</option>
+                    <option value="1">1st Quarter</option>
+                    <option value="2">2nd Quarter</option>
+                    <option value="3">3rd Quarter</option>
+                    <option value="4">4th Quarter</option>
+                </select>
+                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </div>
+
             <!-- Division -->
             <div class="relative flex-1 min-w-[10rem] sm:flex-none">
                 <span
