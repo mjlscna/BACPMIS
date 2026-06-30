@@ -1,4 +1,64 @@
 <div class="space-y-6">
+    <!-- Filters -->
+    <div
+        class="bg-white dark:bg-neutral-700 rounded-2xl shadow-xl p-4 border border-gray-100 dark:border-neutral-700">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="bg-emerald-500/10 p-2.5 rounded-xl">
+                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 13.414V19a1 1 0 01-.293.707l-2 2A1 1 0 0111 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+            </div>
+
+            <!-- Year (Date of Receipt) -->
+            <div class="relative flex-1 min-w-[9rem] sm:flex-none">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-emerald-600 dark:text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </span>
+                <select wire:model.live="selectedYear" aria-label="Filter by year"
+                    class="appearance-none w-full sm:min-w-[10rem] pl-10 pr-9 py-2.5 rounded-xl border-2 border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-gray-100 cursor-pointer transition-all hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30">
+                    <option value="all">All Years</option>
+                    @foreach ($availableYears as $year)
+                        <option value="{{ $year }}">{{ $year }}</option>
+                    @endforeach
+                </select>
+                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </div>
+
+            <!-- Division -->
+            <div class="relative flex-1 min-w-[10rem] sm:flex-none">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-purple-600 dark:text-purple-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </span>
+                <select wire:model.live="selectedDivision" aria-label="Filter by division"
+                    class="appearance-none w-full sm:min-w-[13rem] pl-10 pr-9 py-2.5 rounded-xl border-2 border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-gray-100 cursor-pointer transition-all hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30">
+                    <option value="all">All Divisions</option>
+                    @foreach ($divisions as $division)
+                        <option value="{{ $division->id }}">
+                            {{ $division->abbreviation ?? $division->divisions }}
+                        </option>
+                    @endforeach
+                </select>
+                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Summary Section -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <!-- Total Procurements Card -->
