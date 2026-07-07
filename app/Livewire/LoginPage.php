@@ -30,6 +30,8 @@ class LoginPage extends Component
     {
         $this->validate();
 
+        $this->errorMessage = null;
+
         $credentials = [
             'email' => $this->email,
             'password' => $this->password,
@@ -48,8 +50,8 @@ class LoginPage extends Component
         $response = $apiService->login($credentials);
 
         if (!isset($response['statusCode']) || $response['statusCode'] != 200) {
-            session()->flash('errorMessage', $response['message'] ?? 'Invalid credentials');
-            return redirect()->route('login');
+            $this->errorMessage = $response['message'] ?? 'Invalid credentials';
+            return;
         }
 
         // Get API employee id
@@ -83,8 +85,8 @@ class LoginPage extends Component
         if ($user) {
             Auth::login($user);
         } else {
-            session()->flash('errorMessage', 'Could not verify your employee ID from the API.');
-            return redirect()->route('login');
+            $this->errorMessage = 'Could not verify your employee ID from the API.';
+            return;
         }
 
         // Store JWT for API requests

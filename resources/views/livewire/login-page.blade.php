@@ -116,9 +116,9 @@
                                 @submit="localStorage.setItem('last_login_email', $wire.email)">
                                 <!-- Session Status -->
                                 <div>
-                                    @if (session('errorMessage'))
+                                    @if ($errorMessage)
                                         <p class="mb-4 text-red-500 text-center dark:text-red-400">
-                                            {{ session('errorMessage') }}</p>
+                                            {{ $errorMessage }}</p>
                                     @endif
                                 </div>
 

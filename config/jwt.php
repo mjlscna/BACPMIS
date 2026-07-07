@@ -28,7 +28,7 @@ return [
     */
 
     'api' => [
-        'base_url' => env('API_BASE_URL', 'http://192.168.100.162:8081/'),
+        'base_url' => env('API_BASE_URL'),
         'timeout' => env('API_TIMEOUT', 10),
     ],
 

@@ -18,8 +18,8 @@ class ApiService
         $this->refreshThreshold = config('jwt.refresh_threshold', 240);
 
         $this->client = new Client([
-            'base_uri' => config('jwt.api.base_url', 'http://192.168.100.162:8081/'),
-            'timeout' => config('jwt.api.timeout', 10.0),
+            'base_uri' => config('jwt.api.base_url'),
+            'timeout' => config('jwt.api.timeout'),
         ]);
     }
 
