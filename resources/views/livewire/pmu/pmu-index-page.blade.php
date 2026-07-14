@@ -226,7 +226,7 @@
                 <div class="px-4 py-2.5 flex items-center justify-between gap-3">
                     <div class="relative w-72">
                         <input type="text" wire:model.live="search"
-                            placeholder="Search NOA numbers, PR numbers..."
+                            placeholder="Search NOA, PR, PO / Contract numbers..."
                             class="w-full px-4 py-2 pl-9 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                         <svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
