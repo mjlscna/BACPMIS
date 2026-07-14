@@ -827,8 +827,9 @@ class ModeOfProcurementPerLotPage extends Component
             return true;
         }
 
-        // Get the current/latest item (first in array after reverse)
-        $currentItem = reset($items);
+        // Get the current/latest item (items are stored oldest-first by mode_order;
+        // the view reverses for display, so the last element is the current mode)
+        $currentItem = end($items);
         $modeId = $currentItem['mode_of_procurement_id'] ?? null;
 
         // Skip validation if no mode is selected
