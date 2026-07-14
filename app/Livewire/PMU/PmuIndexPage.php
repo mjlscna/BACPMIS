@@ -939,6 +939,10 @@ class PmuIndexPage extends Component
 
     public function setManualStatus(int $pmuPoId, ?string $status): void
     {
+        if (!auth()->user()->can('update_pmu')) {
+            return;
+        }
+
         $allowed = [null, 'return_to_bac', 'for_end_user_compliance', 'forwarded_to_supply'];
         if (!in_array($status, $allowed, true)) {
             return;
