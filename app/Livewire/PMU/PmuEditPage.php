@@ -163,7 +163,19 @@ class PmuEditPage extends Component
                 $data['manual_status'] = $this->manual_status === 'auto' ? null : $this->manual_status;
             }
 
-            foreach ($this->selectedItems as $rowKey) {
+            // Only users with update_pmu may modify rows already forwarded to supply
+            $editableRowKeys = array_map('strval', $this->selectedItems);
+            if (!auth()->user()->can('update_pmu')) {
+                $forwardedRowKeys = PmuPo::where('pmu_id', $pmu->id)
+                    ->where('manual_status', 'forwarded_to_supply')
+                    ->whereIn('ref_id', $editableRowKeys)
+                    ->pluck('ref_id')
+                    ->map(fn($id) => (string) $id)
+                    ->toArray();
+                $editableRowKeys = array_values(array_diff($editableRowKeys, $forwardedRowKeys));
+            }
+
+            foreach ($editableRowKeys as $rowKey) {
                 $pmuPo = PmuPo::where('ref_id', $rowKey)
                     ->where('pmu_id', $pmu->id)
                     ->first();
@@ -197,7 +209,7 @@ class PmuEditPage extends Component
 
             LivewireAlert::title('Saved!')
                 ->success()
-                ->text('PO / Contract details saved for ' . count($this->selectedItems) . ' item(s).')
+                ->text('PO / Contract details saved for ' . count($editableRowKeys) . ' item(s).')
                 ->toast()
                 ->position('top-end')
                 ->show();
@@ -278,16 +290,19 @@ class PmuEditPage extends Component
             ->unique()->values()->map(fn($id) => (string) $id)->toArray();
 
         if ($value) {
-            // Exclude already-forwarded rows from selection
-            $pmuRecord = Pmu::where('notice_of_award_number', $this->noticeOfAwardNumber)->first();
-            $forwardedRowKeys = $pmuRecord
-                ? PmuPo::where('pmu_id', $pmuRecord->id)
-                    ->where('manual_status', 'forwarded_to_supply')
-                    ->whereIn('ref_id', $pageIds)
-                    ->pluck('ref_id')
-                    ->map(fn($id) => (string) $id)
-                    ->toArray()
-                : [];
+            // Exclude already-forwarded rows from selection unless the user may edit them
+            $forwardedRowKeys = [];
+            if (!auth()->user()->can('update_pmu')) {
+                $pmuRecord = Pmu::where('notice_of_award_number', $this->noticeOfAwardNumber)->first();
+                $forwardedRowKeys = $pmuRecord
+                    ? PmuPo::where('pmu_id', $pmuRecord->id)
+                        ->where('manual_status', 'forwarded_to_supply')
+                        ->whereIn('ref_id', $pageIds)
+                        ->pluck('ref_id')
+                        ->map(fn($id) => (string) $id)
+                        ->toArray()
+                    : [];
+            }
 
             $selectableIds = array_values(array_diff($pageIds, $forwardedRowKeys));
 

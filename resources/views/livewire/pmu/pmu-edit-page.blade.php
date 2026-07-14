@@ -212,8 +212,13 @@
                             <td class="px-3 py-2 whitespace-nowrap text-center">
                                 @if ($isForwardedToSupply)
                                     @php $forwardedAt = $pmuPoByProcId->get($row->rowKey)?->forwarded_to_supply_at; @endphp
-                                    <div class="relative flex justify-center items-center" x-data="{ open: false }"
+                                    <div class="relative flex justify-center items-center gap-1.5" x-data="{ open: false }"
                                         @click.outside="open = false">
+                                        @can('update_pmu')
+                                            <input type="checkbox" wire:model.live="selectedItems"
+                                                value="{{ $row->rowKey }}"
+                                                class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                        @endcan
                                         <button type="button" @click="open = !open" @mouseenter="open = true"
                                             @mouseleave="open = false"
                                             class="p-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 hover:bg-indigo-200 dark:hover:bg-indigo-800/60 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"

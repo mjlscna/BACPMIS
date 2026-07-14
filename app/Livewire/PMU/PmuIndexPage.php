@@ -270,12 +270,28 @@ class PmuIndexPage extends Component
             $lotQuery->where(function ($q) {
                 $q->where('procurements.pr_number', 'like', '%' . $this->search . '%')
                     ->orWhere('post_procurements.notice_of_award_number', 'like', '%' . $this->search . '%')
-                    ->orWhere('procurements.procurement_program_project', 'like', '%' . $this->search . '%');
+                    ->orWhere('procurements.procurement_program_project', 'like', '%' . $this->search . '%')
+                    ->orWhereExists(function ($sub) {
+                        $sub->select(\DB::raw(1))
+                            ->from('pmu_po')
+                            ->whereColumn('pmu_po.ref_id', 'procurements.procID')
+                            ->whereColumn('pmu_po.pmu_id', 'pmus.id')
+                            ->whereNull('pmu_po.deleted_at')
+                            ->where('pmu_po.po_contract_number', 'like', '%' . $this->search . '%');
+                    });
             });
             $itemQuery->where(function ($q) {
                 $q->where('procurements.pr_number', 'like', '%' . $this->search . '%')
                     ->orWhere('post_procurements.notice_of_award_number', 'like', '%' . $this->search . '%')
-                    ->orWhere('pr_items.description', 'like', '%' . $this->search . '%');
+                    ->orWhere('pr_items.description', 'like', '%' . $this->search . '%')
+                    ->orWhereExists(function ($sub) {
+                        $sub->select(\DB::raw(1))
+                            ->from('pmu_po')
+                            ->whereColumn('pmu_po.ref_id', 'pr_items.prItemID')
+                            ->whereColumn('pmu_po.pmu_id', 'pmus.id')
+                            ->whereNull('pmu_po.deleted_at')
+                            ->where('pmu_po.po_contract_number', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
@@ -923,6 +939,10 @@ class PmuIndexPage extends Component
 
     public function setManualStatus(int $pmuPoId, ?string $status): void
     {
+        if (!auth()->user()->can('update_pmu')) {
+            return;
+        }
+
         $allowed = [null, 'return_to_bac', 'for_end_user_compliance', 'forwarded_to_supply'];
         if (!in_array($status, $allowed, true)) {
             return;
