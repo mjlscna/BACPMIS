@@ -178,9 +178,22 @@
                                     </div>
 
                                     <!-- Submit Button -->
-                                    <button type="submit" wire:loading.class="opacity-50 disabled"
+                                    <button type="submit" wire:target="authenticate"
+                                        wire:loading.attr="disabled"
                                         class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gradient-to-bl from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 disabled:opacity-50 disabled:pointer-events-none">
-                                        Sign in
+                                        <!-- Default label -->
+                                        <span wire:loading.remove wire:target="authenticate">Sign in</span>
+                                        <!-- Logging in animation -->
+                                        <svg wire:loading wire:target="authenticate"
+                                            class="animate-spin size-4 text-white shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                        <span wire:loading wire:target="authenticate">Signing in...</span>
                                     </button>
                                 </div>
                             </form>
