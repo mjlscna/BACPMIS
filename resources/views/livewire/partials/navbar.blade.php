@@ -1,35 +1,29 @@
 <div class="fixed top-0 inset-x-0 z-60 pt-20 ">
     <header id="app-topbar"
         class=" top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full h-11 bg-emerald-600 border-gray-200 text-sm py-2.5 dark:bg-emerald-600 ">
-        <nav class="px-4 sm:px-6 flex basis-full items-center w-full mx-auto">
-            <div class="me-5 lg:me-0 lg:hidden">
-                <!-- Logo -->
-                <a class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80"
-                    href="#" aria-label="LMS">
-                    <img src="" width="200" height="40"></img>
-                </a>
-                <!-- End Logo -->
-
-                <div class="lg:hidden ms-1">
-                    <!-- Hamburger Toggle -->
-                    <button type="button"
-                        class="size-9 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-white hover:bg-emerald-700 focus:outline-hidden"
-                        data-hs-overlay="#app-sidebar" aria-controls="app-sidebar" aria-label="Toggle navigation">
-                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                </div>
+        <nav class="ps-2 pe-4 sm:pe-6 flex basis-full items-center w-full mx-auto gap-x-3">
+            <!-- Hamburger Toggle (mobile only) -->
+            <div class="lg:hidden">
+                <button type="button"
+                    class="size-9 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-white hover:bg-emerald-700 focus:outline-hidden"
+                    data-hs-overlay="#app-sidebar" aria-controls="app-sidebar" aria-label="Toggle navigation">
+                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
             </div>
 
-            <div class="w-full flex items-center justify-end ms-auto md:justify-between gap-x-1 md:gap-x-3">
+            <!-- System Title -->
+            <a href="{{ route('dashboard') }}" aria-label="PMIS"
+                class="inline-flex flex-col justify-center leading-none focus:outline-hidden focus:opacity-80">
+                <span class="text-center text-white font-bold text-base sm:text-lg leading-none">PMIS</span>
+                <span class="text-white/90 text-[9px] leading-tight whitespace-nowrap">
+                    Procurement Monitoring Information System
+                </span>
+            </a>
 
-                <div class="hidden md:block">
-                    <!-- Search Input -->
-                    <!--<img src="" width="200" height="50"></img>-->
-                    <!-- End Search Input -->
-                </div>
+            <div class="flex items-center ms-auto gap-x-1 md:gap-x-3">
 
                 <div class="flex items-center gap-x-2">
                     <!-- Dark Mode Toggle -->
@@ -90,44 +84,4 @@
         </nav>
     </header>
     <!-- ========== END HEADER ========== -->
-    <!-- ========== MAIN CONTENT ========== -->
-    @php
-        $segments = generate_breadcrumbs([
-            'dashboard' => 'Dashboard',
-            'procurements' => 'Procurements',
-            'mode-of-procurement' => 'Mode of Procurement',
-            'bac-approved-pr' => 'BAC Approved PR',
-            'pmu' => 'PMU',
-            'create' => 'Create',
-            'edit' => 'Edit',
-            'view' => 'View',
-        ]);
-    @endphp
-
-    <div class="h-8">
-        <div id="app-breadcrumb"
-            class=" top-0 inset-x-0 z-10 bg-white border-y border-gray-200 px-2 sm:px-2 lg:px-4 dark:bg-neutral-700 dark:border-neutral-700">
-            <div class="flex items-center py-1">
-                <ol class="ms-3 flex items-center whitespace-nowrap">
-                    @foreach ($segments as $index => $segment)
-                        <li
-                            class="flex items-center text-xs {{ $index === count($segments) - 1 ? 'font-semibold text-gray-800 dark:text-neutral-400' : 'text-gray-800 dark:text-neutral-400' }}">
-                            <a href="{{ $segment['url'] }}" class="hover:underline">
-                                {{ $segment['label'] }}
-                            </a>
-                            @if ($index < count($segments) - 1)
-                                <svg class="shrink-0 mx-3 overflow-visible size-2.5 text-gray-400 dark:text-neutral-500"
-                                    width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5 1L10.6869 7.16086C10.8637 7.35239 10.8637 7.64761 10.6869 7.83914L5 14"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                                </svg>
-                            @endif
-                        </li>
-                    @endforeach
-                </ol>
-            </div>
-        </div>
-    </div>
-
 </div>

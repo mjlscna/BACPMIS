@@ -114,7 +114,6 @@
         }
 
         #main-content-wrapper,
-        #app-topbar,
         #app-breadcrumb {
             padding-left: 12rem;
             transition: padding-left 0.25s ease;
@@ -125,7 +124,6 @@
         }
 
         html.sidebar-collapsed #main-content-wrapper,
-        html.sidebar-collapsed #app-topbar,
         html.sidebar-collapsed #app-breadcrumb {
             padding-left: 3.5rem;
         }
@@ -138,25 +136,9 @@
             }
 
             #main-content-wrapper,
-            #app-topbar,
             #app-breadcrumb {
                 padding-left: 0 !important;
             }
-        }
-
-        /* Logo full/collapsed toggle */
-        .sidebar-logo-collapsed {
-            display: none;
-        }
-
-        html.sidebar-collapsed #app-sidebar .sidebar-logo-full {
-            display: none;
-        }
-
-        html.sidebar-collapsed #app-sidebar .sidebar-logo-collapsed {
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* Text labels: smooth hide on collapse */
@@ -278,6 +260,7 @@
     @persist('navbar')
         @livewire('partials.navbar')
     @endpersist
+    <x-partials.breadcrumb />
     <x-partials.sidebar />
 
     <!-- Content -->
