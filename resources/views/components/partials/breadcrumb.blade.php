@@ -18,10 +18,10 @@
 @endphp
 
 <!-- ========== BREADCRUMB ========== -->
-<div class="fixed top-[124px] inset-x-0 z-50 h-8">
+<div class="fixed top-[124px] inset-x-0 z-50 h-7">
     <div id="app-breadcrumb"
-        class="h-full bg-white border-y border-gray-200 px-2 sm:px-2 lg:px-4 dark:bg-neutral-700 dark:border-neutral-700">
-        <div class="flex items-center h-full py-1">
+        class="h-full bg-gray-50 px-2 sm:px-2 lg:px-4 dark:bg-neutral-800">
+        <div class="flex items-center h-full">
             <ol class="ms-3 flex items-center whitespace-nowrap">
                 @foreach ($segments as $index => $segment)
                     <li

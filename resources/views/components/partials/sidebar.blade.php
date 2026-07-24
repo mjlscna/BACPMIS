@@ -11,10 +11,9 @@
     <div class="flex flex-col h-full">
         <!-- Collapse Toggle (desktop only) -->
         <button onclick="toggleSidebar()" id="sidebar-collapse-btn"
-            class="hidden lg:flex items-center justify-between w-full px-4 py-1.5
-                   bg-gray-50 hover:bg-gray-100 dark:bg-neutral-800 dark:hover:bg-neutral-900
+            class="hidden lg:flex items-center justify-between w-full h-7 px-4
+                   bg-white hover:bg-gray-100 dark:bg-neutral-700 dark:hover:bg-neutral-600
                    text-gray-400 dark:text-neutral-500 text-[9px] font-semibold tracking-widest uppercase
-                   border-b border-gray-200 dark:border-neutral-600
                    transition-colors duration-200
                    focus:outline-none"
             title="Toggle Sidebar">

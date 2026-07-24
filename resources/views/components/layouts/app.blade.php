@@ -26,7 +26,7 @@
         /* Custom navigate progress bar */
         #custom-progress-bar {
             position: fixed;
-            top: 156px;
+            top: 152px;
             left: 12rem;
             /* sidebar w-48 */
             right: 0;
@@ -264,7 +264,7 @@
     <x-partials.sidebar />
 
     <!-- Content -->
-    <div id="main-content-wrapper" class="w-full pt-[156px]">
+    <div id="main-content-wrapper" class="w-full pt-[152px]">
         <main class="p-4 md:p-6 page-content">
             {{ $slot }}
         </main>
