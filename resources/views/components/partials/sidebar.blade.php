@@ -1,45 +1,19 @@
 <!-- Sidebar -->
 <div id="app-sidebar"
     class="hs-overlay [--auto-close:lg] hs-overlay-open:translate-x-0
-            h-full
             hidden
-            fixed inset-y-0 start-0 z-70
+            fixed top-[124px] bottom-0 start-0 z-70
             bg-white
-            lg:block lg:translate-x-0 lg:end-auto lg:bottom-0
+            lg:block lg:translate-x-0 lg:end-auto
             dark:bg-neutral-700"
     role="dialog" tabindex="-1" aria-label="Sidebar">
 
     <div class="flex flex-col h-full">
-        <!-- Logo -->
-        <div class="bg-emerald-600 flex justify-center items-center text-center relative" style="height:124px;">
-            <!-- Full logo -->
-            <a href="#" aria-label="BACPMIS" class="sidebar-logo-full block focus:outline-hidden focus:opacity-80">
-                <h1 class="text-white font-bold leading-snug text-center">
-                    <span class="text-3xl md:text-4xl">WVCHD</span><br>
-                    <span class="text-xs">Procurement Monitoring</span><br>
-                    <span class="text-xs">Information System</span>
-                </h1>
-            </a>
-            <!-- Collapsed logo -->
-            <a href="#" aria-label="PMIS" class="sidebar-logo-collapsed focus:outline-hidden focus:opacity-80">
-                <div class="flex flex-col items-center gap-[2px]">
-                    <span class="text-white font-black text-[15px] leading-none">P</span>
-                    <span class="text-white/70 text-[6px] leading-none tracking-[0.15em] uppercase">·</span>
-                    <span class="text-white font-black text-[15px] leading-none">M</span>
-                    <span class="text-white/70 text-[6px] leading-none tracking-[0.15em] uppercase">·</span>
-                    <span class="text-white font-black text-[15px] leading-none">I</span>
-                    <span class="text-white/70 text-[6px] leading-none tracking-[0.15em] uppercase">·</span>
-                    <span class="text-white font-black text-[15px] leading-none">S</span>
-                </div>
-            </a>
-        </div>
-
         <!-- Collapse Toggle (desktop only) -->
         <button onclick="toggleSidebar()" id="sidebar-collapse-btn"
-            class="hidden lg:flex items-center justify-between w-full px-4 py-1.5
-                   bg-gray-50 hover:bg-gray-100 dark:bg-neutral-800 dark:hover:bg-neutral-900
+            class="hidden lg:flex items-center justify-between w-full h-7 px-4
+                   bg-white hover:bg-gray-100 dark:bg-neutral-700 dark:hover:bg-neutral-600
                    text-gray-400 dark:text-neutral-500 text-[9px] font-semibold tracking-widest uppercase
-                   border-b border-gray-200 dark:border-neutral-600
                    transition-colors duration-200
                    focus:outline-none"
             title="Toggle Sidebar">
