@@ -120,13 +120,7 @@ class ProcurementIndexPage extends Component
             $divisionQuery->where('fund_source_id', $this->fundSourceFilter);
         }
         if (!empty($this->remarkFilter)) {
-            $divisionQuery->where(function ($q) {
-                $q->whereHas('currentLotRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                })->orWhereHas('pr_items.currentItemRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                });
-            });
+            $divisionQuery->filterByRemark($this->remarkFilter);
         }
         if ($this->earlyProcurementFilter !== '') {
             $divisionQuery->where('early_procurement', $this->earlyProcurementFilter);
@@ -146,13 +140,7 @@ class ProcurementIndexPage extends Component
             $clusterQuery->where('fund_source_id', $this->fundSourceFilter);
         }
         if (!empty($this->remarkFilter)) {
-            $clusterQuery->where(function ($q) {
-                $q->whereHas('currentLotRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                })->orWhereHas('pr_items.currentItemRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                });
-            });
+            $clusterQuery->filterByRemark($this->remarkFilter);
         }
         if ($this->earlyProcurementFilter !== '') {
             $clusterQuery->where('early_procurement', $this->earlyProcurementFilter);
@@ -172,13 +160,7 @@ class ProcurementIndexPage extends Component
             $endUserQuery->where('fund_source_id', $this->fundSourceFilter);
         }
         if (!empty($this->remarkFilter)) {
-            $endUserQuery->where(function ($q) {
-                $q->whereHas('currentLotRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                })->orWhereHas('pr_items.currentItemRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                });
-            });
+            $endUserQuery->filterByRemark($this->remarkFilter);
         }
         if ($this->earlyProcurementFilter !== '') {
             $endUserQuery->where('early_procurement', $this->earlyProcurementFilter);
@@ -198,13 +180,7 @@ class ProcurementIndexPage extends Component
             $fundQuery->where('end_users_id', $this->endUserFilter);
         }
         if (!empty($this->remarkFilter)) {
-            $fundQuery->where(function ($q) {
-                $q->whereHas('currentLotRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                })->orWhereHas('pr_items.currentItemRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                });
-            });
+            $fundQuery->filterByRemark($this->remarkFilter);
         }
         if ($this->earlyProcurementFilter !== '') {
             $fundQuery->where('early_procurement', $this->earlyProcurementFilter);
@@ -230,8 +206,10 @@ class ProcurementIndexPage extends Component
             $remarkQuery->where('early_procurement', $this->earlyProcurementFilter);
         }
 
-        // Get remark IDs from both lot and item remarks
+        // Get remark IDs from both lot and item remarks. Converted PRs keep their
+        // pr_lot_remark rows as history, so each side is scoped by procurement_type.
         $lotRemarkIds = $remarkQuery->clone()
+            ->where('procurement_type', 'perLot')
             ->whereHas('currentLotRemark')
             ->with('currentLotRemark')
             ->get()
@@ -239,6 +217,7 @@ class ProcurementIndexPage extends Component
             ->filter();
 
         $itemRemarkIds = $remarkQuery->clone()
+            ->where('procurement_type', 'perItem')
             ->whereHas('pr_items.currentItemRemark')
             ->with('pr_items.currentItemRemark')
             ->get()
@@ -413,18 +392,9 @@ class ProcurementIndexPage extends Component
             $query->where('fund_source_id', $this->fundSourceFilter);
         }
 
-        // Apply remark filter
+        // Apply remark filter (lot remark for perLot, item remarks for perItem)
         if (!empty($this->remarkFilter)) {
-            $query->where(function ($q) {
-                // Filter for perLot procurements
-                $q->whereHas('currentLotRemark', function ($subQ) {
-                    $subQ->where('remarks_id', $this->remarkFilter);
-                })
-                    // OR filter for perItem procurements
-                    ->orWhereHas('pr_items.currentItemRemark', function ($subQ) {
-                        $subQ->where('remarks_id', $this->remarkFilter);
-                    });
-            });
+            $query->filterByRemark($this->remarkFilter);
         }
 
         // Apply early procurement filter

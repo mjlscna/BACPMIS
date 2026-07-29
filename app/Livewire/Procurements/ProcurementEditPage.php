@@ -47,9 +47,9 @@ class ProcurementEditPage extends Component
         $this->form['app_updated'] = (bool) ($this->form['app_updated'] ?? false);
         $this->form['early_procurement'] = (bool) ($this->form['early_procurement'] ?? false);
 
-        // Normalize procurement_type default
-        if (!in_array($this->form['procurement_type'] ?? null, ['perItem', 'perLot'])) {
-            $this->form['procurement_type'] = 'perLot';
+        // Normalize procurement_type against the stored value, never blindly to perLot
+        if (!in_array($this->form['procurement_type'] ?? null, ['perItem', 'perLot'], true)) {
+            $this->form['procurement_type'] = $procurement->procurement_type === 'perItem' ? 'perItem' : 'perLot';
         }
 
         // Load items sorted by item_no
@@ -163,11 +163,31 @@ class ProcurementEditPage extends Component
         logger('Updated category_venue to: ' . $this->form['category_venue']);
     }
 
+    /**
+     * Whether the Per Lot -> Per Item toggle should be interactive on this PR.
+     *
+     * Computed from the *stored* record, so the toggle stays usable while the
+     * change is unsaved (allowing an undo) and locks for good once saved.
+     */
+    public function getCanConvertTypeProperty(): bool
+    {
+        return $this->procurement->canConvertToPerItem();
+    }
+
     public function updatedFormProcurementType(string $value): void
     {
+        // Per Item -> Per Lot is never allowed, and Per Lot -> Per Item only on an
+        // untouched PR. Bounce anything else back to the stored value.
+        if ($value !== $this->procurement->procurement_type && !$this->canConvertType) {
+            $this->form['procurement_type'] = $this->procurement->procurement_type;
+            return;
+        }
+
         $this->form['procurement_type'] = $value;
 
         if ($value === 'perLot') {
+            // Only reachable as an undo of an unsaved Per Item toggle, so these
+            // rows are form state that was never persisted.
             $this->form['items'] = [];
             return;
         }
@@ -250,9 +270,30 @@ class ProcurementEditPage extends Component
 
         $this->form['abc'] = floatval(preg_replace('/[^0-9.]/', '', $this->form['abc'] ?? 0));
 
-        if (!in_array($this->form['procurement_type'] ?? '', ['perItem', 'perLot'])) {
-            $this->form['procurement_type'] = 'perLot';
+        // --- 0. Procurement type guard (authoritative) ---
+        // $form is a public Livewire property, so this is the only thing standing
+        // between a crafted request and a type change the UI does not offer.
+        $original = $this->procurement->procurement_type;
+        $requested = $this->form['procurement_type'] ?? $original;
+
+        if (!in_array($requested, ['perItem', 'perLot'], true)) {
+            $requested = $original; // fall back to the stored value, never to perLot
         }
+
+        if ($requested !== $original && !($original === 'perLot' && $requested === 'perItem' && $this->procurement->canConvertToPerItem())) {
+            $this->form['procurement_type'] = $original;
+
+            LivewireAlert::title('ERROR!')
+                ->error()
+                ->text('Procurement Type can only be changed from Per Lot to Per Item, and only while the PR is still at Stage 1 with no Mode of Procurement set.')
+                ->toast()
+                ->position('top-end')
+                ->show();
+
+            return false;
+        }
+
+        $this->form['procurement_type'] = $requested;
 
         // Clean item amounts before validation
         if (($this->form['procurement_type'] ?? '') === 'perItem' && !empty($this->form['items'])) {
@@ -433,10 +474,12 @@ class ProcurementEditPage extends Component
             if (!empty($itemsToDelete)) {
                 $this->procurement->pr_items()->whereIn('prItemID', $itemsToDelete)->delete();
             }
-        } else {
-            // If switching to perLot, remove all items
-            $this->procurement->pr_items()->delete();
         }
+
+        // No perLot branch: Per Item -> Per Lot is rejected in validateForm(), so a
+        // perLot save can only be a PR that never had items. On conversion the
+        // lot-level rows (mop_lot, pr_lot_prstage, pr_lot_remark) are deliberately
+        // retained as history.
 
         session()->flash('alert', [
             'type' => 'success',

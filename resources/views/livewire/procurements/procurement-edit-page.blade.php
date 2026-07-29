@@ -25,7 +25,12 @@
             <!-- Toggle -->
             <div class="flex items-center gap-x-3 mb-4">
                 <x-forms.prType id="procurement-toggle" model="form.procurement_type" :form="$form"
-                    :clickable="false" />
+                    :clickable="$this->canConvertType" />
+                @unless ($this->canConvertType)
+                    <span class="text-xs text-gray-500 dark:text-neutral-400">
+                        Type is locked once the PR advances past Stage 1 or a Mode of Procurement is set.
+                    </span>
+                @endunless
                 @if ($form['procurement_type'] === 'perItem')
                     {{-- Show/Hide table button --}}
                     <button type="button" wire:click="$toggle('showTable')"
@@ -361,5 +366,6 @@
 
     {{-- Review-before-save confirmation modal --}}
     <x-forms.procurement-review-modal :form="$form" :categories="$categories" :divisions="$divisions" :clusterCommittees="$clusterCommittees"
-        :venueSpecifics="$venueSpecifics" :venueProvinces="$venueProvinces" :endUsers="$endUsers" :fundSources="$fundSources" />
+        :venueSpecifics="$venueSpecifics" :venueProvinces="$venueProvinces" :endUsers="$endUsers" :fundSources="$fundSources"
+        :convertingToPerItem="$procurement->procurement_type === 'perLot' && $form['procurement_type'] === 'perItem'" />
 </div>
