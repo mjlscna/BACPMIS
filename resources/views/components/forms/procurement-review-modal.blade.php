@@ -7,6 +7,7 @@
     'venueProvinces' => [],
     'endUsers' => [],
     'fundSources' => [],
+    'convertingToPerItem' => false,
 ])
 
 @php
@@ -65,6 +66,15 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">
                 Please double-check the details below. Once you confirm, this record will be saved.
             </p>
+
+            @if ($convertingToPerItem)
+                <div
+                    class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+                    <span class="font-semibold">This PR will be converted from Per Lot to Per Item.</span>
+                    {{ count($form['items'] ?? []) }} item(s) will be created, each starting at Stage 1. Tracking will
+                    move from the lot to the individual items, and the procurement type cannot be changed back.
+                </div>
+            @endif
 
             {{-- Box 1: PR No. / Program & Project / Type / Items --}}
             <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-800">

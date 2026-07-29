@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -268,5 +269,49 @@ class Procurement extends Model implements Auditable
     public function prLotRemarks()
     {
         return $this->hasMany(PrLotRemark::class, 'procID', 'procID');
+    }
+
+    /**
+     * A PR may only be converted from Per Lot to Per Item, and only while it is
+     * still untouched: lot stage never moved off 1 and the Mode of Procurement is
+     * still the default seeded at creation. The reverse direction is never allowed.
+     */
+    public function canConvertToPerItem(): bool
+    {
+        if ($this->procurement_type !== 'perLot') {
+            return false;
+        }
+
+        // Stage must never have moved off 1 (also catches advance-then-revert)
+        if ($this->prLotPrstages()->where('pr_stage_id', '!=', 1)->exists()) {
+            return false;
+        }
+
+        // Per Lot supports multiple modes, so a second row means the MOP page was used
+        if ($this->mopLots()->count() > 1) {
+            return false;
+        }
+
+        return !$this->mopLots()->where('mode_of_procurement_id', '!=', 1)->exists();
+    }
+
+    /**
+     * Scope the lot-vs-item remark lookup by procurement_type.
+     *
+     * Converted PRs keep their pr_lot_remark rows as history, so matching on the
+     * lot remark without checking the type would surface a Per Item PR under a
+     * remark it no longer displays.
+     */
+    public function scopeFilterByRemark(Builder $query, $remarksId): Builder
+    {
+        return $query->where(function (Builder $q) use ($remarksId) {
+            $q->where(function (Builder $lot) use ($remarksId) {
+                $lot->where('procurement_type', 'perLot')
+                    ->whereHas('currentLotRemark', fn($s) => $s->where('remarks_id', $remarksId));
+            })->orWhere(function (Builder $item) use ($remarksId) {
+                $item->where('procurement_type', 'perItem')
+                    ->whereHas('pr_items.currentItemRemark', fn($s) => $s->where('remarks_id', $remarksId));
+            });
+        });
     }
 }

@@ -278,9 +278,9 @@ class BacPrsReceivedBPage extends Component
             });
         }
 
-        // Remarks filter
+        // Remarks filter (lot remarks only; converted PRs keep theirs as history)
         if ($this->remarksFilter) {
-            $query->whereHas('prLotRemarks', function ($q) {
+            $query->where('procurement_type', 'perLot')->whereHas('prLotRemarks', function ($q) {
                 $q->where('remarks_id', $this->remarksFilter)
                     ->whereRaw('remark_history = (SELECT MAX(remark_history) FROM pr_lot_remark WHERE procID = procurements.procID)');
             });
